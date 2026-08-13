@@ -77,6 +77,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
       seenEvents: [],
       seenHistoricalMilestones: HISTORICAL_MILESTONES.filter(item => item.year < startYear).map(item => item.id),
       technologyLevel: Math.max(1, getEra(startYear).techCap - 1),
+      attendedEvents: [],
     },
     studio: {
       name: studioName,

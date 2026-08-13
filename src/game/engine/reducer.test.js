@@ -67,3 +67,37 @@ test('an active project can be renamed without losing its franchise identity', (
   assert.equal(state.currentProject.franchiseName, 'Nome Final')
   assert.equal(state.currentProject.franchiseId, franchiseId)
 })
+
+test('event circuit respects the calendar and cannot be farmed twice', () => {
+  let state = createInitialState({ startYear: 1980 }, fixed)
+  state.date.month = 1
+  const money = state.player.money
+  state = reduceGame(state, { type: 'ATTEND_GAME_EVENT', eventId: 'city-fair' }, fixed)
+  assert.equal(state.player.money, money - 350)
+  assert.equal(state.player.followers, 30)
+  const repeated = reduceGame(state, { type: 'ATTEND_GAME_EVENT', eventId: 'city-fair' }, fixed)
+  assert.equal(repeated.player.money, state.player.money)
+
+  const impossible = reduceGame(state, { type: 'ATTEND_GAME_EVENT', eventId: 'e3' }, fixed)
+  assert.equal(impossible.player.money, state.player.money)
+})
+
+test('creator launch plans only exist in their era and queue a live chat', () => {
+  let oldState = createInitialState({ startYear: 1999 }, fixed)
+  oldState = reduceGame(oldState, { type: 'START_PROJECT', payload: { title: 'Antigo', genre: 'puzzle', theme: 'space', focus: 'gameplay', platform: 'pc', scale: 'micro' } }, fixed)
+  oldState = reduceGame(oldState, { type: 'SET_LAUNCH_PLAN', plan: 'creator' }, fixed)
+  assert.equal(oldState.currentProject.launchPlan, 'shadow')
+
+  let state = createInitialState({ startYear: 2012 }, fixed)
+  state = reduceGame(state, { type: 'START_PROJECT', payload: { title: 'Ao Vivo', genre: 'puzzle', theme: 'space', focus: 'gameplay', platform: 'pc', scale: 'micro' } }, fixed)
+  state = reduceGame(state, { type: 'SET_LAUNCH_PLAN', plan: 'creator' }, fixed)
+  assert.equal(state.currentProject.launchPlan, 'creator')
+  for (let index = 0; index < 3; index += 1) {
+    state.queue = []
+    state = reduceGame(state, { type: 'MONTH_ACTION', payload: { action: 'develop' } }, fixed)
+  }
+  assert.equal(state.queue[0].kind, 'release')
+  const live = state.queue.find(item => item.eventId === 'creator-campaign-live')
+  assert.equal(live.chat.length, 10)
+  assert.equal(new Set(live.chat.map(message => message.text)).size, 10)
+})

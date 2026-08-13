@@ -2,7 +2,7 @@
 
 Um jogo de carreira sobre fazer jogos e conviver com o resultado. A meta não é encontrar uma fórmula perfeita: é terminar o save com histórias que só aconteceram naquela linha do tempo.
 
-Versão atual: **0.8.0 — Pulso da Carreira**.
+Versão atual: **0.9.0 — Voz da Arquibancada**.
 
 ## Começar
 
@@ -93,6 +93,9 @@ Se você não sabe onde colocar uma mudança, consulte [docs/ARCHITECTURE.md](do
 | moedas e conversão de exibição | `src/game/engine/utils.js` e `state.settings.currency` |
 | avisos temporizados e configurações | `src/features/events/InfoModal.jsx`, `src/features/settings/SettingsModal.jsx` e `state.settings.timelineNotices` |
 | canais de divulgação de cada época | `src/game/data/marketingEras.js` e `src/game/data/eraLanguage.js` |
+| veículos, notas e textos da crítica | `src/game/data/reviews.js` e `src/game/engine/scoring.js` |
+| campanhas com criadores e chat ao vivo | `src/game/data/creatorCoverage.js` e `src/features/events/DecisionModal.jsx` |
+| feiras locais, BGS, E3, gamescom e palcos digitais | `src/game/data/gameEvents.js` e `src/screens/IndustryScreen.jsx` |
 | limites de vendas dos concorrentes | `src/game/engine/market.js` e `npm run balance` |
 | feedback numérico no cabeçalho | `src/components/layout/StatStrip.jsx` e `src/components/ui/CountUp.jsx` |
 

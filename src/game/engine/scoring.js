@@ -1,10 +1,10 @@
 import { FOCUSES, MARKET_ANGLES, PLATFORMS, SCALES } from '../data/catalog.js'
-import { REVIEW_LINES } from '../data/reviews.js'
+import { createReviews, primaryReview } from '../data/reviews.js'
 import { EQUIPMENT, TRAITS } from '../data/traits.js'
 import { CULTURES, OFFICES } from '../data/team.js'
 import { TECHS, getEra } from '../data/eras.js'
 import { teamContribution } from './studio.js'
-import { clamp, randomChoice, randomInt } from './utils.js'
+import { clamp, randomInt } from './utils.js'
 import { projectLicenseReadout } from './licensing.js'
 
 export function calculateQuality(state, project, random = Math.random) {
@@ -73,7 +73,7 @@ export function calculateRelease(state, project, random = Math.random) {
   const expectationPenalty = project.expectation && score < project.expectation ? Math.max(0.72, 1 - (project.expectation - score) / 100) : 1
   const franchiseFatigue = project.isSequel ? Math.max(0.72, 1 - Math.max(0, (project.sequelNumber ?? 2) - 3) * 0.08) : 1
   const licensed = projectLicenseReadout(state, project)
-  const launchMultiplier = project.launchPlan === 'campaign' ? 1.3 : project.launchPlan === 'early' ? 1.12 : project.launchPlan === 'shadow' ? 0.88 : 1
+  const launchMultiplier = project.launchPlan === 'campaign' ? 1.3 : project.launchPlan === 'creator' ? 1.22 : project.launchPlan === 'early' ? 1.12 : project.launchPlan === 'shadow' ? 0.88 : 1
   const sales = Math.round(qualityCurve * scale.reach * era.indieReach * projectReach * publisherReach * publisherFit * hypeMultiplier * expectationPenalty * franchiseFatigue * licensed.reachMultiplier * launchMultiplier * trend * angle * platformMultiplier * audienceMultiplier * marketingMultiplier * randomInt(82, 118, random) / 100)
   const gross = sales * scale.price
   const publisherCut = project.publisher?.royalty ?? 0
@@ -81,7 +81,8 @@ export function calculateRelease(state, project, random = Math.random) {
   const netRoyalty = Math.max(.12, effectiveRoyalty * (1 - publisherCut) - (project.licenseRoyalty ?? licensed.royalty))
   const revenue = Math.round(gross * netRoyalty * (1 - Math.min(0.75, state.studio.equity ?? 0)))
   const newFollowers = Math.round(sales * (score / 100) * 0.14)
-  const reviewGroup = REVIEW_LINES.find(group => score >= group.min)
+  const reviews = createReviews(score, project, state.date.year, random)
+  const leadReview = primaryReview(reviews)
   return {
     score,
     sales,
@@ -93,6 +94,7 @@ export function calculateRelease(state, project, random = Math.random) {
     price: scale.price,
     royalty: netRoyalty,
     platformRoyalty: effectiveRoyalty,
-    quote: randomChoice(reviewGroup.lines, random),
+    quote: leadReview.quote,
+    reviews,
   }
 }

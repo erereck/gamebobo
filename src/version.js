@@ -1,7 +1,20 @@
 export const VERSION_INFO = Object.freeze({
-  version: '0.8.0',
-  codename: 'Pulso da Carreira',
-  saveSchema: 6,
-  releasedAt: '2026-08-13',
-  promptIds: ['P-001', 'P-002', 'P-003', 'P-004', 'P-005', 'P-006', 'P-007', 'P-008', 'P-009', 'P-010', 'P-011'],
+  "version": "0.9.0",
+  "codename": "Voz da Arquibancada",
+  "saveSchema": 6,
+  "releasedAt": "2026-08-13",
+  "promptIds": [
+    "P-001",
+    "P-002",
+    "P-003",
+    "P-004",
+    "P-005",
+    "P-006",
+    "P-007",
+    "P-008",
+    "P-009",
+    "P-010",
+    "P-011",
+    "P-012"
+  ]
 })

@@ -58,7 +58,7 @@ export function ReleaseModal({ gameId }) {
   return (
     <Modal open locked className="release-modal" label={`Lançamento de ${game.title}`}>
       <div className="review-strip">
-        <span>ANÁLISE · REVISTA CONTROLE</span>
+        <span>BOLETIM DA IMPRENSA · {game.reviews?.length ?? 1} VEREDITOS</span>
         <span className={verdictReady ? 'is-revealed' : 'is-redacted'}>
           {verdictReady ? `${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}` : 'EDIÇÃO EM FECHAMENTO'}
         </span>
@@ -75,7 +75,10 @@ export function ReleaseModal({ gameId }) {
         <p className="score-status">
           {stage === 'waiting' ? 'A banca ainda está fechando a nota.' : stage === 'counting' ? 'Contagem da redação…' : 'Veredito publicado.'}
         </p>
-        <blockquote className={verdictReady ? 'release-verdict is-visible' : 'release-verdict'} aria-hidden={!verdictReady}>“{game.quote}”</blockquote>
+        {!game.reviews?.length && <blockquote className={verdictReady ? 'release-verdict is-visible' : 'release-verdict'} aria-hidden={!verdictReady}>“{game.quote}”</blockquote>}
+        {game.reviews?.length > 0 && <section className={verdictReady ? 'press-board is-visible' : 'press-board'} aria-label="Notas da imprensa">
+          {game.reviews.map(review => <article key={review.outletId}><header><strong>{review.outlet}</strong><b>{review.score}</b></header><p>“{review.quote}”</p><span>{review.format}</span></article>)}
+        </section>}
         <div className={consequencesReady ? 'release-aftermath is-visible' : 'release-aftermath'} aria-hidden={!consequencesReady}>
           <div className="release-numbers">
             <div><span>PRIMEIRO MÊS</span><strong><CountUp value={game.sales} format={formatNumber} active={consequencesReady} /></strong></div>

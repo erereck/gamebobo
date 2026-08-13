@@ -30,6 +30,10 @@ export function DecisionModal({ decision }) {
         <p className="overline">{decision.source === 'postLaunch' ? 'DEPOIS DO LANÇAMENTO' : decision.source === 'personal' ? 'VIDA PESSOAL' : 'DURANTE O PROJETO'}</p>
         <h2>{decision.title}</h2>
         <p className="decision-body">{formatCurrencyCopy(decision.body)}</p>
+        {decision.chat?.length > 0 && <section className="live-chat" aria-label="Chat da transmissão">
+          <header><span>CHAT AO VIVO</span><strong>{decision.chatSentiment}% CURTINDO</strong></header>
+          <div>{decision.chat.map((message, index) => <p key={`${message.name}-${index}`}><b className={message.color}>{message.name}</b><span>{message.text}</span></p>)}</div>
+        </section>}
         <div className="decision-choices">{decision.choices.map(choice => (
           <Button key={choice.id} onClick={() => dispatch({ type: 'RESOLVE_DECISION', choiceId: choice.id })}>
             <span><strong>{choice.label}</strong><small>{formatCurrencyCopy(choice.detail ?? choice.hint)}</small></span><em>{impactOf(choice.effects)}</em>

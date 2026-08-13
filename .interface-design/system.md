@@ -65,6 +65,9 @@ O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faix
 - Faixa essencial mobile: uma única linha de 56 px com fundador/idade, caixa, energia e estresse. Métricas secundárias somem dessa faixa abaixo de 620 px e permanecem nas telas apropriadas.
 - Impacto antes do clique: ações mensais e decisões mostram custo, faixa ou até três consequências mecânicas; `ESCOLHER` sozinho não é informação suficiente.
 - Linguagem de época: divulgação e mercado usam revista/lojista nos anos 1980, demo/locadora nos 1990, site/portal nos 2000 e loja/criador somente depois de seus marcos.
+- Boletim da imprensa: nota central representa o jogo; recortes menores mostram 2–4 redações historicamente disponíveis, com divergência curta e texto próprio. Discordância dá textura, não loteria.
+- Chat ao vivo: superfície CRT compacta, nomes coloridos apenas para identidade e dez mensagens distintas. O percentual de aprovação reage à nota; chat só aparece depois da consolidação do vídeo/streaming.
+- Circuito de eventos: credencial do mês domina a folha, próximas datas ficam numa agenda CRT lateral. Feira local abre a escada; palcos reais exigem ano, mês, reputação e caixa.
 
 ## Regras
 

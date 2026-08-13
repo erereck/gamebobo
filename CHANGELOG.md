@@ -6,6 +6,17 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 0.9.0 — Voz da Arquibancada — 2026-08-13
+
+- Cada lançamento recebe de duas a quatro análises de redações disponíveis naquele ano; as notas orbitam a qualidade real do jogo e os textos comentam resultado e foco sem parecer sorteio desconexo.
+- Revista Controle cobre o início da simulação; CVG, Famitsu, EGM, PC Gamer, IGN, GameSpot, Eurogamer e Canaltech entram somente depois de existirem.
+- A tela de resultado revela a média primeiro e abre depois um boletim com nota, fala e formato de cada veículo.
+- A partir de 2012, o plano `Estreia com criador` compra alcance, hype e uma transmissão patrocinada cuja opinião não pode ser comprada.
+- Transmissões mostram dez mensagens distintas, nomes coloridos e aprovação coerente com a nota; descobertas orgânicas de streamers usam o mesmo sistema depois de 2011.
+- Novo circuito jogável de eventos vai de feiras municipais a BGS, E3, gamescom, The Game Awards e Summer Game Fest, com calendário, reputação, custo, alcance e hype próprios.
+- A etiqueta do painel de configurações e o título deixaram de ser recortados em 320 px; o circuito e o boletim receberam composição mobile dedicada.
+- Três novos testes cobrem cronologia da imprensa, trava histórica de criadores e participação única em eventos; a suíte agora tem 45 casos.
+
 ## 0.8.0 — Pulso da Carreira — 2026-08-13
 
 - Caixa, energia e estresse agora contam até o novo valor e mostram deltas temporários; vendas, receita e seguidores também sobem quando as consequências do lançamento aparecem.

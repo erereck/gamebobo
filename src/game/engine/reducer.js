@@ -17,6 +17,8 @@ import { platformAtDate } from '../data/platformHistory.js'
 import { acceptLicenseOffer, importLicensePack, licenseFromState, maybeQueueLicenseEvent, recordLicensedRelease, renewLicense, requestLicense, placeLicenseBid, tickLicensing } from './licensing.js'
 import { attachCommissionToProject, minimumScaleMet, pitchCompany, recordCorporateRelease, requestPartnership, resolveCorporateRelease, respondCorporateOffer, tickCorporate } from './corporate.js'
 import { launchPlanMechanics, marketingForYear } from '../data/marketingEras.js'
+import { createCreatorCoverage } from '../data/creatorCoverage.js'
+import { GAME_EVENTS, attendedEventKey, eventExistsInYear } from '../data/gameEvents.js'
 
 function franchiseExpectation(state, franchiseId) {
   const games = state.games.filter(game => game.franchiseId === franchiseId)
@@ -126,6 +128,7 @@ function releaseProject(state, random) {
     addHistory(state, `Nasceu o gênero ${hybrid.name}`, `${game.title} virou a primeira referência.`, { highlight: true, kind: 'legacy' })
   }
   state.queue.unshift({ id: makeId('release'), kind: 'release', gameId: game.id })
+  if (project.launchPlan === 'creator' && state.date.year >= 2012) state.queue.splice(1, 0, createCreatorCoverage(game, random))
   addHistory(state, `${game.title} saiu com nota ${game.score}`, `${game.sales.toLocaleString('pt-BR')} cópias no primeiro mês.`, { highlight: true, kind: 'release' })
 }
 
@@ -287,6 +290,12 @@ function setLaunchPlan(state, plan) {
   project.launchPlan = plan
   if (!project.launchPlansUsed.includes(plan)) {
     if (plan === 'campaign') project.hype += 14
+    if (plan === 'creator') {
+      project.hype += 8
+      project.reach += .18
+      project.pressure += 5
+      addHistory(state, `Criador reservado para ${project.title}`, 'A transmissão está paga. A opinião continua fora do seu controle.', { highlight: true, kind: 'marketing' })
+    }
     if (plan === 'early') {
       const presales = Math.max(400, Math.round((state.player.followers + project.hype * 35) * SCALES[project.scale].price * 0.08))
       project.quality -= 4
@@ -297,6 +306,26 @@ function setLaunchPlan(state, plan) {
     }
     project.launchPlansUsed.push(plan)
   }
+}
+
+function attendGameEvent(state, eventId) {
+  const event = GAME_EVENTS.find(item => item.id === eventId)
+  const key = event && attendedEventKey(event, state.date.year)
+  state.world.attendedEvents ??= []
+  if (!event || !eventExistsInYear(event, state.date.year) || !event.months.includes(state.date.month) || state.world.attendedEvents.includes(key)) return
+  if (state.player.reputation < event.minReputation || state.player.money < event.cost || state.player.energy < 8) return
+  state.player.money -= event.cost
+  state.player.energy = clamp(state.player.energy - 8, 0, 100)
+  state.player.stress = clamp(state.player.stress + 4, 0, 100)
+  state.player.followers += event.followers
+  state.player.reputation = clamp(state.player.reputation + event.reputation, 0, 100)
+  state.studio.research += event.research
+  if (state.currentProject) {
+    state.currentProject.hype += event.hype
+    state.currentProject.pressure += Math.max(1, Math.round(event.hype / 3))
+  }
+  state.world.attendedEvents.push(key)
+  addHistory(state, `Estande na ${event.name}`, `${event.followers.toLocaleString('pt-BR')} pessoas novas acompanharam o estúdio${state.currentProject ? `; ${state.currentProject.title} ganhou ${event.hype} de hype` : ''}.`, { highlight: event.tier !== 'LOCAL', kind: 'event' })
 }
 
 export function reduceGame(currentState, action, random = Math.random) {
@@ -310,6 +339,7 @@ export function reduceGame(currentState, action, random = Math.random) {
   if (action.type === 'UPGRADE_EQUIPMENT') upgradeEquipment(state)
   if (action.type === 'ANNOUNCE_PROJECT') announceProject(state)
   if (action.type === 'SET_LAUNCH_PLAN') setLaunchPlan(state, action.plan)
+  if (action.type === 'ATTEND_GAME_EVENT') attendGameEvent(state, action.eventId)
   if (action.type === 'RENAME_PROJECT' && state.currentProject) {
     const title = String(action.title ?? '').trim().slice(0, 56)
     if (title && title !== state.currentProject.title) {

@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-012 — 2026-08-13 — Voz da Arquibancada
+
+Pedido: Incorporar as ideias do Gabb: crítica coerente, veículos reais por época, divulgação com criadores, chat ao vivo variado, escada de eventos locais a globais e correção do título cortado nas configurações, sem antecipar tecnologias.
+
+Resultado: versão 0.9.0.
+
 ## P-011 — 2026-08-13 — Pulso da Carreira
 
 Pedido: aprofundar game feel e impacto das ações, voltar ao topo após passar o mês, compactar os dados essenciais no celular, animar números, permitir editar o nome do jogo, auditar o balanceamento com Monte Carlo e impedir anacronismos como lojas digitais ou vendas de 15 milhões em 1980.

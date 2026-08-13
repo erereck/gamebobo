@@ -10,6 +10,7 @@ import { getEra } from '../data/eras.js'
 import { availablePlatforms, generateCompetitorLaunch } from './market.js'
 import { makeId, randomChoice, randomInt } from './utils.js'
 import { HISTORICAL_MILESTONES } from '../data/industryHistory.js'
+import { createCreatorCoverage } from '../data/creatorCoverage.js'
 
 export const MONTHS = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
 export const MONTH_NAMES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
@@ -194,7 +195,12 @@ function tickPostLaunch(state, random) {
     if (!queued && game && candidates.length && random() < 0.46) {
       const event = randomChoice(candidates, random)
       release.eventIds.push(event.id)
-      state.queue.push(asDecision(event, 'postLaunch', { gameId: game.id }))
+      if (event.id === 'small-streamer') {
+        const coverage = createCreatorCoverage(game, random)
+        coverage.tag = 'AO VIVO · ACHADO ORGÂNICO'
+        coverage.eventId = event.id
+        state.queue.push(coverage)
+      } else state.queue.push(asDecision(event, 'postLaunch', { gameId: game.id }))
       queued = true
     }
     return release.monthsLeft > 0

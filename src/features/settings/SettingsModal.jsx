@@ -14,7 +14,7 @@ export function SettingsModal() {
       <div className="settings-sheet">
         <span className="event-tag">PAINEL DO GABINETE</span>
         <p className="overline">CONFIGURAÇÕES</p>
-        <h2>Do seu jeito.</h2>
+        <h2 className="settings-title">Do seu jeito.</h2>
         <p className="settings-intro">Preferências ficam guardadas junto desta carreira neste navegador.</p>
 
         <div className="settings-list">

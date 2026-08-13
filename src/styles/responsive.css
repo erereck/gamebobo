@@ -66,6 +66,7 @@
   .release-numbers { grid-template-columns: 1fr; }
   .release-numbers div { border-right: 0; border-bottom: 1px dashed var(--line); }
   .release-numbers div:last-child { border: 0; }
+  .press-board { grid-template-columns: 1fr; }
   .game-library, .competitor-grid { grid-template-columns: 1fr; }
   .current-project-row { grid-template-columns: 1fr; gap: 5px; }
   .skill-list > div { grid-template-columns: 92px 1fr 26px; }
@@ -102,6 +103,7 @@
   .era-hero h3 { margin-top: 20px; }
   .info-sheet, .awards-sheet { padding: 36px 18px 20px; }
   .settings-sheet { padding: 36px 18px 20px; }
+  .settings-sheet h2 { font-size: 34px; line-height: 1.05; }
   .settings-row { align-items: flex-start; }
   .settings-row input { margin-top: 4px; }
   .settings-actions { align-items: stretch; flex-direction: column-reverse; }
@@ -111,6 +113,10 @@
   .chart-row div > span, .chart-row div > small, .company-rolodex button > span, .company-rolodex button > small { font-size: 8px; }
   .chart-row div > strong { font-size: 11px; }
   dialog.modal { max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px); }
+  .event-desk { grid-template-columns: 1fr; }
+  .event-desk>aside { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .event-desk>aside>span { grid-column: 1/-1; }
+  .event-desk>aside p { margin: 0; }
 }
 
 @media (max-width: 380px) {
@@ -118,6 +124,11 @@
   .header-tools { gap: 4px; }
   .header-tools button { min-width: 44px; }
   .screen-heading h2 { font-size: 30px; }
+  .event-circuit>header { align-items: flex-start; flex-direction: column; }
+  .event-current-list>article,.event-empty { padding: 18px 14px; }
+  .event-current-list>article dl { grid-template-columns: 1fr; }
+  .event-current-list>article dl div { border-right: 0; border-bottom: 1px dashed var(--line); }
+  .event-desk>aside { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -46,3 +46,19 @@ O lifetime não entra inteiro no lançamento. O motor libera 55% no primeiro ano
 ## Colaborações como referência de sistema
 
 A “Mesa dos grandes” usa empresas e IPs reais como referência editorial, mas probabilidades, valores, confiança e propostas pertencem à simulação. O precedente Nintendo/Capcom foi revisado na entrevista oficial [Iwata Asks — história dos Zelda portáteis](https://iwataasks.nintendo.com/interviews/ds/zelda/1/2/): a Nintendo acompanhou de perto os Oracles e declarou ter delegado mais depois que a primeira colaboração funcionou. Essa progressão inspirou a regra `entrega → confiança → autonomia`, sem tentar reproduzir contratos reais.
+
+## Imprensa, criadores e eventos
+
+`reviews.js` só sorteia uma redação depois do ano em que ela passou a existir. A Revista Controle é fictícia e cobre o vazio de 1980; EGM, PC Gamer, IGN, GameSpot, Eurogamer e Canaltech entram gradualmente. As notas individuais variam pouco em torno da qualidade calculada: personalidade editorial não vira loteria.
+
+Campanhas pagas com criadores entram em 2012. O YouTube já monetizava parceiros desde 2007, mas o corte posterior representa a consolidação desse canal como ferramenta previsível de divulgação de jogos, em vez de antecipar a economia de criadores.
+
+O circuito mistura feiras fictícias locais com marcos reais. Cada entrada declara ano, mês, reputação e custo; nunca deve ser liberada apenas porque o jogador começou a carreira no futuro.
+
+- [YouTube — expansão do Partner Program em 2007](https://blog.youtube/news-and-events/partner-program-expands/)
+- [EGM — história editorial desde o fim dos anos 1980](https://egmnow.com/aboutus/)
+- [PC Gamer — mais de 30 anos de publicação](https://www.pcgamer.com/about-pc-gamer/)
+- [Canaltech — origem em julho de 2012](https://canaltech.com.br/sobre/)
+- [ESA — primeira E3 em 1995](https://www.theesa.com/timeline-entry/history-of-video-games-1995/)
+- [BGS — criada como Rio Game Show em 2009](https://www.brasilgameshow.com.br/sobre/)
+- [The Game Awards — fundado em 2014](https://thegameawards.com/about)

@@ -31,6 +31,7 @@ const eras = [
     standard: ['Página de loja e trailer', 'Screenshots, trailer e divulgação básica.'],
     campaign: ['Campanha grande', 'Compra atenção em lojas, eventos e criadores. A cobrança vem junto.'],
     early: ['Acesso antecipado', 'Vende antes de terminar e transforma jogador em testador.'],
+    creator: ['Estreia com criador', 'Uma transmissão patrocinada amplia o alcance. A opinião ao vivo continua sendo dele.'],
   } },
 ]
 
@@ -41,4 +42,5 @@ export const launchPlanMechanics = Object.freeze({
   standard: { cost: 1200, effect: 'ALCANCE BASE' },
   campaign: { cost: 8000, effect: 'HYPE +14 · ALCANCE +30%' },
   early: { cost: 500, effect: 'CAIXA AGORA · QUALIDADE −4' },
+  creator: { cost: 3600, effect: 'HYPE +8 · ALCANCE +18% · CHAT AO VIVO' },
 })
