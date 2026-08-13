@@ -2,7 +2,7 @@
 
 Um jogo de carreira sobre fazer jogos e conviver com o resultado. A meta não é encontrar uma fórmula perfeita: é terminar o save com histórias que só aconteceram naquela linha do tempo.
 
-Versão atual: **0.10.0 — Promessa da Capa**.
+Versão atual: **0.10.3 — Promessa da Capa**.
 
 ## Começar
 
@@ -19,6 +19,7 @@ Outros comandos:
 npm run build       # gera a versão de produção em dist/
 npm run test        # testa as regras centrais sem abrir o navegador
 npm run balance     # simula 25 mil lançamentos por era e imprime percentis
+npm run balance:audit -- 100 # audita projetos, planos, culturas, cauda rara e carreiras
 npm run version -- patch "descrição curta"
 npm run prompt -- "resumo do pedido que originou a mudança"
 ```
@@ -80,10 +81,11 @@ Se você não sabe onde colocar uma mudança, consulte [docs/ARCHITECTURE.md](do
 | equipe, cargos, cultura e escritórios | `src/game/data/team.js` e `src/game/engine/studio.js` |
 | contratos, editoras e empréstimos | `src/game/data/business.js` e `src/game/engine/business.js` |
 | eras, tecnologia e pesquisa | `src/game/data/eras.js` |
-| prêmios anuais | `src/game/data/awards.js` e `src/game/engine/awards.js` |
+| prêmios anuais e cerimônia | `src/game/data/awards.js`, `src/game/engine/awards.js` e `src/features/awards/AwardsModal.jsx` |
 | eventos entre estúdios, equipe ou franquias | `competitorEvents.js`, `studioEvents.js` ou `franchiseEvents.js` |
 | gêneros que podem nascer no save | `src/game/data/hybridGenres.js` |
 | nota e vendas | `src/game/engine/scoring.js` |
+| metas, percentis e auditoria de balanceamento | `docs/BALANCE.md` e `scripts/balance-audit.mjs` |
 | passagem do mês e mercado | `src/game/engine/world.js` |
 | ações disponíveis | `src/game/engine/reducer.js` e `src/features/career/MonthActions.jsx` |
 | texto e tom | `docs/CONTENT_GUIDE.md`, depois o arquivo em `data/` |
@@ -93,6 +95,9 @@ Se você não sabe onde colocar uma mudança, consulte [docs/ARCHITECTURE.md](do
 | entrada, continuar save e ficha de carreira | `src/features/onboarding/` e `src/styles/onboarding.css` |
 | moedas e conversão de exibição | `src/game/engine/utils.js` e `state.settings.currency` |
 | avisos temporizados e configurações | `src/features/events/InfoModal.jsx`, `src/features/settings/SettingsModal.jsx` e `state.settings.timelineNotices` |
+| trilha, loop e Media Session | `src/app/music.js` e `src/features/settings/MusicPlayer.jsx` |
+| ícones SVG da interface | `src/components/ui/Icon.jsx` |
+| músicas, capas e créditos | `src/assets/music/` e `docs/CREDITS.md` |
 | canais de divulgação de cada época | `src/game/data/marketingEras.js` e `src/game/data/eraLanguage.js` |
 | veículos, notas e textos da crítica | `src/game/data/reviews.js` e `src/game/engine/scoring.js` |
 | campanhas com criadores e chat ao vivo | `src/game/data/creatorCoverage.js` e `src/features/events/DecisionModal.jsx` |

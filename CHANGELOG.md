@@ -6,6 +6,39 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 0.10.3 — Promessa da Capa — 2026-08-13
+
+- Cerimônia de prêmios em envelopes, rolagem mobile corrigida e economia de vendas e leilões coerente.
+- Cada categoria agora abre sozinha, em sequência, com suspense curto, recibos dos resultados anteriores, confete para vitórias e `Jogo do Ano` reservado ao encerramento.
+- A folha de premiação ganhou rolagem vertical real, altura segura para o navegador mobile e ação final sempre alcançável; a composição foi verificada também em uma viewport de apenas 390×500 px.
+- `Melhor Indie` passa a existir somente em 2004, acompanhando a consolidação histórica do termo em vez de aparecer anacronicamente nos anos 1980 e 1990.
+- Retornos automáticos ao topo agora levam 240 ms, enquanto caixa, energia, estresse e demais contadores ganharam 10% mais duração, desaceleração mais expressiva e um pulso visual sem deslocar a interface.
+- Jogos excepcionais com nota 90–99 recebem descoberta crítica contínua: um 99/100 no Mega Drive não fica preso a 15 mil cópias por perder um sorteio, sem transformar toda nota alta em fenômeno mundial.
+- Leilões de licença passaram a respeitar idade, histórico de vendas e porte do estúdio concorrente; uma empresa nascida naquele ano não consegue mais inventar milhões para disputar uma IP.
+- A auditoria preservou a cauda dos sonhos: em 100 mil blockbusters fortes, houve oito resultados acima de 100 milhões e quatro acima de 300 milhões; os 60 testes de regressão passaram.
+
+## 0.10.2 — Promessa da Capa — 2026-08-13
+
+- Trilha em loop com player, volume persistente, capa e uma família própria de ícones SVG.
+- `stock music`, de leafotario, começa após a primeira interação da carreira, toca em loop a 18% e respeita as restrições de autoplay dos navegadores.
+- O painel de configurações ganhou um deck CRT com a capa fornecida, autoria, duração, estado, play/pause, mute, volume de 0–100% e alvos de toque de 44 px.
+- Título, artista e capa também são publicados na Media Session, permitindo identificação nos controles de mídia compatíveis do celular.
+- Música e efeitos do gabinete são independentes; todas as preferências ficam no save e carreiras antigas recebem valores seguros sem mudança de schema.
+- Uma família de dezesseis ícones SVG próprios substitui abreviações no cabeçalho, numeração das abas, `EDITAR NOME` e o caractere de fechar, preservando rótulos onde ajudam jogadores novos.
+- Navegação agora combina ícone e nome; controles exclusivamente visuais possuem `aria-label`, tooltip e área mínima de 44×44 px.
+- Testes reais confirmaram MP3 servido em `206`, metadata correta, ausência de overflow em 390/1365 px e zero erros de console; a suíte chegou a 56 casos.
+
+## 0.10.1 — Promessa da Capa — 2026-08-13
+
+- Recalibração completa de notas, escalas, vendas, culturas, promessas e raridade de fenômenos.
+- A régua editorial agora trata 70 como um jogo bom com arestas, 80 como muito bom sem canonização automática, 90 como feito raro e menos de 60 como produção genuinamente quebrada.
+- Jogos iniciais controlados ficam perto de 73–75; uma partida ruim ainda existe por acúmulo de bugs, exaustão, escopo inviável e decisões perigosas, não por uma moeda invisível.
+- Escalas grandes ganharam custo real de complexidade, enquanto traços, culturas, playtest, crunch e promessas foram aproximados para nenhuma escolha correta resolver o jogo sozinha.
+- Seguidores agora têm retorno decrescente, a cultura comercial finalmente converte marketing em alcance e eventos de produção deixaram de empilhar qualidade sem limite.
+- Estouros comerciais formam uma cauda rara; fenômenos mundiais podem atravessar 100 ou 300 milhões, mas obedecem ao teto de público da década e recebem uma revelação especial no lançamento.
+- Uma nova auditoria reproduzível cobre jogo inicial por era, escalas, promessas, traços, culturas, playtest, planos de lançamento, 100 mil blockbusters e carreiras autônomas de dez anos.
+- Cinco regressões novas protegem a faixa inicial, desastres merecidos, cultura comercial e o teto histórico de fenômenos; a suíte agora tem 54 testes.
+
 ## 0.10.0 — Promessa da Capa — 2026-08-13
 
 - Projetos agora nascem com uma promessa de capa e passam por protótipo, produção e polimento em uma pasta única e legível.

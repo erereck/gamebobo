@@ -154,14 +154,32 @@ function resolveAuction(state, auction) {
   addHistory(state, `${holder} venceu a disputa por ${ip.name}`, `Direitos exclusivos até ${state.date.year + auction.durationYears}.`, { highlight: true, kind: 'license' })
 }
 
+export function competitorBidCapacity(studio, year) {
+  const age = Math.max(0, year - (studio.founded ?? year))
+  const catalogSales = (studio.games ?? []).reduce((sum, game) => sum + (game.sales ?? 0), 0)
+  if (studio.cohort) {
+    const garageBase = year < 1985 ? 35000 : year < 1995 ? 140000 : year < 2005 ? 360000 : year < 2015 ? 900000 : 1600000
+    return Math.round(garageBase + age * garageBase * .42 + catalogSales * 3.2)
+  }
+  const majorBase = year < 1985 ? 1800000 : year < 1995 ? 14000000 : year < 2005 ? 38000000 : year < 2015 ? 90000000 : 180000000
+  const maturity = clamp(.55 + age / 28, .55, 1.45)
+  return Math.round(majorBase * maturity + catalogSales * 5)
+}
+
 function maybeCreateAuction(state, random) {
   if (state.licenses.auctions.length || state.date.year === state.licenses.lastAuctionYear || random() > .045) return
   const candidates = licensesForState(state).filter(ip => ip.availableFrom <= state.date.year && !state.licenses.active.some(item => item.licenseId === ip.id) && !state.licenses.exclusives.some(item => item.licenseId === ip.id && item.expiresYear >= state.date.year))
   if (!candidates.length) return
   const ip = randomChoice(candidates, random)
   const base = quoteLicense(state, ip.id)
-  const bidders = [...state.competitors].sort(() => random() - .5).slice(0, 3)
-  const bids = bidders.map(studio => ({ bidder: studio.name, amount: Math.round(base * randomInt(72, 118, random) / 10000) * 10000, royalty: clamp(ip.royalty + randomInt(-2, 4, random) / 100, .08, .24), player: false }))
+  const bidders = [...state.competitors].sort(() => random() - .5)
+  const bids = bidders.map(studio => {
+    const capacity = competitorBidCapacity(studio, state.date.year)
+    const desired = base * randomInt(72, 118, random) / 100
+    const amount = Math.floor(Math.min(desired, capacity * .55) / 10000) * 10000
+    return { bidder: studio.name, amount, royalty: clamp(ip.royalty + randomInt(-2, 4, random) / 100, .08, .24), player: false, studioId: studio.id }
+  }).filter(bid => bid.amount >= Math.max(10000, base * .4)).slice(0, 3)
+  if (!bids.length) return
   state.licenses.auctions.push({ id: makeId('license-auction'), licenseId: ip.id, monthsLeft: 3, durationYears: ip.durationYears, royalty: ip.royalty, bids, playerBid: null, minimum: Math.round(Math.max(...bids.map(item => item.amount)) * 1.08 / 10000) * 10000 })
   state.licenses.lastAuctionYear = state.date.year
 }

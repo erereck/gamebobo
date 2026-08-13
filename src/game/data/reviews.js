@@ -17,11 +17,10 @@ export const REVIEW_OUTLETS = Object.freeze([
 
 const LINES = [
   { min: 92, lines: ['Acaba e deixa vontade de voltar para o começo.', 'Tem uma segurança rara até nas ideias mais estranhas.', 'Um daqueles jogos que reorganizam a conversa do ano.', 'A equipe sabia exatamente onde queria chegar.'] },
-  { min: 82, lines: ['Tropeça pouco e acerta com personalidade.', 'A melhor parte é perceber que ninguém fez igual.', 'Tem defeitos visíveis e qualidades difíceis de largar.', 'Quando os créditos sobem, o controle continua na mão.'] },
-  { min: 72, lines: ['Demora a engrenar, mas encontra um ritmo muito bom.', 'Nem toda ideia fecha; as melhores compensam com folga.', 'É irregular do jeito que projetos ambiciosos costumam ser.', 'Uma boa estreia, especialmente quando para de explicar demais.'] },
-  { min: 62, lines: ['A ideia chega antes do acabamento.', 'Funciona mais vezes do que falha.', 'Faltou lapidar, não faltou intenção.', 'Há uma noite divertida aqui, entre alguns tropeços.'] },
-  { min: 48, lines: ['Tem bons minutos espalhados num jogo difícil de recomendar.', 'Parece uma versão anterior àquela que deveria ter chegado às lojas.', 'A ambição aparece; o domínio ainda não.', 'Algumas decisões pedem uma segunda tentativa da equipe.'] },
-  { min: 0, lines: ['Saiu antes de ficar pronto.', 'Há uma boa ideia soterrada por problemas básicos.', 'Os créditos são curtos. A lista de problemas, não.', 'O próximo projeto precisa começar pelas lições deste.'] },
+  { min: 82, lines: ['Tropeça pouco e acerta com personalidade.', 'É muito bom sem precisar fingir que não tem defeitos.', 'Tem falhas visíveis e qualidades difíceis de largar.', 'Quando os créditos sobem, ainda dá vontade de continuar.'] },
+  { min: 70, lines: ['Demora a engrenar, mas encontra um ritmo bom.', 'Nem toda ideia fecha; as melhores compensam.', 'É irregular do jeito que projetos ambiciosos costumam ser.', 'Um jogo bom, especialmente quando para de explicar demais.'] },
+  { min: 60, lines: ['A ideia chega antes do acabamento.', 'Funciona, mas quase sempre do jeito mais difícil.', 'Faltou lapidar e sobrou coisa para tolerar.', 'Há bons momentos aqui, separados por tropeços demais.'] },
+  { min: 0, lines: ['Saiu antes de ficar pronto.', 'Há uma boa ideia soterrada por problemas básicos.', 'Os créditos são curtos. A lista de problemas, não.', 'É difícil recomendar esta versão para alguém.'] },
 ]
 
 const FOCUS_NOTES = {

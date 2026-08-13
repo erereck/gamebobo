@@ -58,10 +58,16 @@ O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faix
 - Ficha de inscrição: campos insetos, ano em fita CRT, perfis como recortes de papel e moeda em três carimbos. Botão de início só ativa com fundador e estúdio preenchidos.
 - Scrollbar: trilho em papel fundo e polegar de etiqueta vermelha, fino no documento e em superfícies roláveis; barras horizontais de navegação podem continuar ocultas quando o gesto já é evidente.
 - Aviso da linha do tempo: papel modal com fita regressiva de 8 segundos no rodapé; etiqueta vermelha perde comprimento da esquerda para a direita, pausa durante interação e nunca é usada em decisões obrigatórias.
-- Configurações: folha única aberta por `CFG` no cabeçalho; switches ampliados para som e avisos, carimbos existentes para moeda e ação destrutiva subordinada no rodapé.
+- Configurações: folha única aberta pelo ícone de engrenagem no cabeçalho; switches ampliados para efeitos e avisos, carimbos existentes para moeda e ação destrutiva subordinada no rodapé.
+- Player da bancada: deck CRT dentro das configurações, com capa 80 px (64 px mobile), faixa e artista como foco, play circular em fósforo e volume numa segunda linha. Música e efeitos são controles separados; nunca usar a superfície preta ou verde do Spotify literalmente.
+- Iconografia: SVGs próprios em `24×24`, traço `1.8`, pontas arredondadas e `currentColor`; não misturar emojis ou outra biblioteca. Botão apenas com ícone exige `aria-label`, `title` e área mínima `44×44 px`.
+- Navegação ilustrada: abas usam ícone + nome e dispensam numeração serial. O nome permanece porque as oito áreas ainda precisam ensinar sua função ao jogador novo.
+- Ferramentas do cabeçalho: moeda conserva texto por ser dado; música e configurações usam ícones. O conjunto deve caber em 390 px sem esconder a marca.
 - Revelação de lançamento: 700 ms de nota lacrada, contagem de 3,2 s com desaceleração forte, veredito editorial e só depois consequências. A espera longa é exclusiva desse momento raro; demais entradas ficam em 160–260 ms.
+- Carimbo de estouro: aparece dentro das consequências, sem abrir outro modal. Usa CRT e fósforo para um sucesso inesperado; um fenômeno troca a borda pela etiqueta vermelha e aumenta apenas a palavra focal. Não antecipar a raridade antes das vendas contarem.
 - Movimento de bancada: filhos diretos de cada tela assentam como folhas em cascata, aba ativa recebe um carimbo curto e o item mais novo da fita entra lateralmente. Somente `transform` e `opacity`; sempre respeitar movimento reduzido.
-- Pulso numérico: caixa, energia e estresse contam por 620 ms e recebem etiqueta temporária de delta sem alterar o layout; verde-fósforo é melhora e vermelho é piora, considerando que menos estresse é positivo.
+- Pulso numérico: caixa, energia e estresse contam por 682 ms, desaceleram no fim e recebem etiqueta temporária de delta sem alterar o layout; verde-fósforo é melhora e vermelho é piora, considerando que menos estresse é positivo.
+- Retorno ao topo: ações que mudam o momento da carreira voltam ao primeiro conteúdo útil em 240 ms com desaceleração quartic; movimento reduzido troca a viagem por reposicionamento imediato.
 - Faixa essencial mobile: uma única linha de 56 px com fundador/idade, caixa, energia e estresse. Métricas secundárias somem dessa faixa abaixo de 620 px e permanecem nas telas apropriadas.
 - Impacto antes do clique: ações mensais e decisões mostram custo, faixa ou até três consequências mecânicas; `ESCOLHER` sozinho não é informação suficiente.
 - Linguagem de época: divulgação e mercado usam revista/lojista nos anos 1980, demo/locadora nos 1990, site/portal nos 2000 e loja/criador somente depois de seus marcos.
@@ -73,6 +79,7 @@ O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faix
 - Playtest: anexo de papel com faixa de nota, “funciona” e “trava”. Nunca revela a nota final nem exige passar o mês.
 - Ficha de projeto mobile: escolhas extensas usam `select` nativo; promessas formam uma faixa horizontal com a recomendada inteira e a próxima parcialmente visível. O formulário não pode virar catálogo vertical de chips.
 - Ação contextual: o primeiro botão mensal nomeia o trabalho real da fase — fechar protótipo, produzir ou polir — e descreve impacto em uma linha.
+- Cerimônia de prêmios: folha rolável com um envelope dominante por vez; categorias já abertas viram recibos horizontais, vitórias ganham confete curto e `Jogo do Ano` é sempre o último e maior envelope. O botão deve permanecer alcançável em 390×500 px, `Melhor Indie` só aparece a partir de 2004 e nenhuma categoria adota dourado fora da paleta.
 
 ## Regras
 

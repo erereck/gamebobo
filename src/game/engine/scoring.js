@@ -46,8 +46,12 @@ export function calculateQuality(state, project, random = Math.random) {
   const promiseBonus = promise.quality + Math.min(2, project.promiseFit ?? 0) * 1.5
   const bugPenalty = Math.min(14, (project.bugs ?? 0) * .9)
   const licenseLuck = licensed.volatility ? randomInt(-licensed.volatility, licensed.volatility, random) : 0
-  const value = foundation + project.quality + innovationBonus + promiseBonus + equipment.bonus + office.bonus + trendBonus + angleBonus + sequelModifier + traitQuality + traitInnovation + cultureQuality + cultureInnovation + techBonus + licensed.qualityBonus - bugPenalty - techPenalty - exhaustion - healthPenalty + luck + licenseLuck
-  return clamp(Math.round(value), 24, trait?.id === 'perfectionist' ? 99 : 97)
+  const rawValue = foundation + project.quality + innovationBonus + promiseBonus + equipment.bonus + office.bonus + trendBonus + angleBonus + sequelModifier + traitQuality + traitInnovation + cultureQuality + cultureInnovation + techBonus + licensed.qualityBonus - bugPenalty - techPenalty - exhaustion - healthPenalty + luck + licenseLuck
+  const scaleComplexity = { micro: 0, small: 0, medium: 9, large: 13, blockbuster: 18 }[project.scale] ?? 0
+  const reviewEra = state.date.year >= 2010 ? 2 : state.date.year >= 2000 ? 1 : 0
+  const severeBuildPenalty = Math.max(0, (project.bugs ?? 0) - 5) * 1.2 + Math.max(0, state.player.stress - 85) * .14
+  const calibrated = 70 + (rawValue - 50) * .55 + reviewEra - scaleComplexity - severeBuildPenalty
+  return clamp(Math.round(calibrated), 24, trait?.id === 'perfectionist' ? 99 : 97)
 }
 
 export function calculateRelease(state, project, random = Math.random) {
@@ -59,9 +63,10 @@ export function calculateRelease(state, project, random = Math.random) {
   const angle = project.focus === marketAngle?.focus ? 1.14 : 1
   const platformShare = state.market.platforms[project.platform] ?? 33
   const platformMultiplier = 0.72 + platformShare / 100
-  const audienceMultiplier = 1 + state.player.followers / 7000
-  const marketingMultiplier = 0.82 + state.player.stats.marketing / 120
-  const qualityCurve = Math.max(800, score ** 2.16)
+  const audienceMultiplier = 1 + Math.log10(1 + state.player.followers / 500) * .65
+  const culture = CULTURES.find(item => item.id === state.studio.cultureId)
+  const marketingMultiplier = 0.78 + state.player.stats.marketing / 135 + (culture?.modifiers.marketing ?? 0) / 45
+  const qualityCurve = Math.max(180, Math.max(0, score - 42) ** 2 * 4.2)
   const era = getEra(state.date.year)
   const projectReach = 1 + (project.reach ?? 0)
   const publisherReach = project.publisher?.reach ?? 1
@@ -78,13 +83,20 @@ export function calculateRelease(state, project, random = Math.random) {
   const franchiseFatigue = project.isSequel ? Math.max(0.72, 1 - Math.max(0, (project.sequelNumber ?? 2) - 3) * 0.08) : 1
   const licensed = projectLicenseReadout(state, project)
   const launchMultiplier = project.launchPlan === 'campaign' ? 1.3 : project.launchPlan === 'creator' ? 1.22 : project.launchPlan === 'early' ? 1.12 : project.launchPlan === 'shadow' ? 0.88 : 1
-  const sales = Math.round(qualityCurve * scale.reach * era.indieReach * projectReach * publisherReach * publisherFit * hypeMultiplier * expectationPenalty * franchiseFatigue * licensed.reachMultiplier * launchMultiplier * trend * angle * platformMultiplier * audienceMultiplier * marketingMultiplier * randomInt(82, 118, random) / 100)
+  const ordinarySales = qualityCurve * scale.reach * era.indieReach * projectReach * publisherReach * publisherFit * hypeMultiplier * expectationPenalty * franchiseFatigue * licensed.reachMultiplier * launchMultiplier * trend * angle * platformMultiplier * audienceMultiplier * marketingMultiplier * randomInt(82, 118, random) / 100
+  const criticalDiscovery = score >= 90 ? ((score - 89) ** 3) * 650 * era.indieReach * scale.reach * platformMultiplier : 0
+  const breakoutChance = score >= 78 ? clamp((score - 77) * .00045 + (project.innovation ?? 0) * .0001 + (project.hype ?? 0) * .000025, 0, .018) : 0
+  const breakout = random() < breakoutChance
+  const phenomenon = breakout && score >= 88 && random() < .006 + Math.max(0, score - 94) * .002
+  const breakoutMultiplier = phenomenon ? 40 * (60 ** random()) : breakout ? randomInt(250, 750, random) / 100 : 1
+  const marketCeiling = state.date.year < 1985 ? 1_000_000 : state.date.year < 1995 ? 8_000_000 : state.date.year < 2005 ? 35_000_000 : state.date.year < 2015 ? 180_000_000 : 500_000_000
+  const sales = Math.min(marketCeiling, Math.round(Math.max(ordinarySales * breakoutMultiplier, criticalDiscovery)))
   const gross = sales * scale.price
   const publisherCut = project.publisher?.royalty ?? 0
   const effectiveRoyalty = Math.min(0.98, platform.royalty + (project.directMargin ?? 0))
   const netRoyalty = Math.max(.12, effectiveRoyalty * (1 - publisherCut) - (project.licenseRoyalty ?? licensed.royalty))
   const revenue = Math.round(gross * netRoyalty * (1 - Math.min(0.75, state.studio.equity ?? 0)))
-  const newFollowers = Math.round(sales * (score / 100) * 0.14)
+  const newFollowers = Math.round(sales * (score / 100) * (phenomenon ? .06 : breakout ? .1 : .14))
   const reviews = createReviews(score, project, state.date.year, random)
   const leadReview = primaryReview(reviews)
   return {
@@ -100,5 +112,8 @@ export function calculateRelease(state, project, random = Math.random) {
     platformRoyalty: effectiveRoyalty,
     quote: leadReview.quote,
     reviews,
+    breakout,
+    phenomenon,
+    breakoutMultiplier,
   }
 }

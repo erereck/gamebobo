@@ -9,6 +9,7 @@ import { formatMoney } from '../../game/engine/utils.js'
 import { licenseFromState } from '../../game/engine/licensing.js'
 import { Button } from '../../components/ui/Button.jsx'
 import { Modal } from '../../components/ui/Modal.jsx'
+import { Icon } from '../../components/ui/Icon.jsx'
 
 const suggestions = ['Cubo de Domingo', 'Neon Futebol', 'Quarto 12', 'Manual do Fim', 'Cidade Baixa', 'Depois da Aula']
 const defaults = { title: '', genre: 'rpg', theme: 'fantasy', scale: 'small', platform: 'pc', focus: 'gameplay', promiseId: 'world-to-explore', franchiseId: '', licenseIds: [] }
@@ -53,7 +54,7 @@ export function NewProjectModal() {
       <form onSubmit={submit}>
         <header className="modal-titlebar">
           <div><p>ABRIR PROJETO</p><h2>Uma boa ideia cabe numa ficha.</h2></div>
-          <button type="button" className="modal-close" onClick={() => setProjectModalOpen(false)} aria-label="Fechar">×</button>
+          <button type="button" className="modal-close" onClick={() => setProjectModalOpen(false)} aria-label="Fechar" title="Fechar"><Icon name="close" size={24} /></button>
         </header>
         <div className="project-form">
           {commission && <section className="commission-brief full-field"><span>{commission.concept?.toUpperCase()} · {commission.monthsLeft} MESES</span><strong>{licenseFromState(state, commission.licenseId)?.name}</strong><p>Gênero e licença vieram no brief. Escala mínima pequena · meta {commission.scoreFloor} · liberdade criativa {Math.round(commission.creativeFreedom)}%{commission.offbeat ? ' · a empresa quer algo fora do gênero habitual' : ''}.</p></section>}

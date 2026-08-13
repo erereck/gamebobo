@@ -3,9 +3,25 @@ import { reduceGame } from '../game/engine/reducer.js'
 import { loadGame, saveGame } from '../game/persistence/storage.js'
 import { setDisplayCurrency } from '../game/engine/utils.js'
 import { playSound } from './audio.js'
+import { syncMusic } from './music.js'
 
 const GameContext = createContext(null)
-const scrollHome = () => requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }))
+const scrollHome = () => requestAnimationFrame(() => {
+  const from = window.scrollY
+  if (!from || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.scrollTo(0, 0)
+    return
+  }
+  const started = performance.now()
+  const duration = 240
+  const tick = now => {
+    const progress = Math.min(1, (now - started) / duration)
+    const eased = 1 - Math.pow(1 - progress, 4)
+    window.scrollTo(0, Math.round(from * (1 - eased)))
+    if (progress < 1) requestAnimationFrame(tick)
+  }
+  requestAnimationFrame(tick)
+})
 
 export function GameProvider({ children }) {
   const [state, rawDispatch] = useReducer(reduceGame, undefined, loadGame)
@@ -21,12 +37,24 @@ export function GameProvider({ children }) {
     if (sessionStarted && state) saveGame(state)
   }, [state, sessionStarted])
 
+  useEffect(() => {
+    if (!sessionStarted || !state) return
+    syncMusic({
+      playing: state.settings.musicPlaying !== false,
+      muted: state.settings.musicMuted === true,
+      volume: state.settings.musicVolume ?? .18,
+    })
+  }, [sessionStarted, state?.settings?.musicPlaying, state?.settings?.musicMuted, state?.settings?.musicVolume])
+
   const dispatch = useCallback(action => {
     const sound = action.type === 'START_PROJECT' ? 'confirm' : action.type === 'RESOLVE_DECISION' ? 'event' : action.type === 'ACK_QUEUE' ? 'confirm' : 'click'
-    playSound(sound, state?.settings?.sound ?? true)
+    if (action.type !== 'SET_MUSIC_VOLUME') playSound(sound, state?.settings?.sound ?? true)
+    if (action.type === 'TOGGLE_MUSIC_PLAYBACK') syncMusic({ playing: state?.settings?.musicPlaying === false, muted: state?.settings?.musicMuted, volume: state?.settings?.musicVolume ?? .18 })
+    if (action.type === 'TOGGLE_MUSIC_MUTE') syncMusic({ playing: state?.settings?.musicPlaying !== false, muted: !state?.settings?.musicMuted, volume: state?.settings?.musicVolume ?? .18 })
+    if (action.type === 'SET_MUSIC_VOLUME') syncMusic({ playing: state?.settings?.musicPlaying !== false, muted: state?.settings?.musicMuted, volume: action.volume })
     rawDispatch(action)
     if (['MONTH_ACTION', 'ACK_QUEUE', 'RESOLVE_DECISION'].includes(action.type)) scrollHome()
-  }, [state?.settings?.sound])
+  }, [state?.settings?.sound, state?.settings?.musicPlaying, state?.settings?.musicMuted, state?.settings?.musicVolume])
 
   const setView = useCallback(nextView => {
     rawSetView(nextView)
@@ -34,6 +62,7 @@ export function GameProvider({ children }) {
   }, [])
 
   const startCareer = useCallback(options => {
+    syncMusic({ playing: true, muted: false, volume: .18 })
     rawDispatch({ type: 'RESET_CAREER', options })
     rawSetView('career')
     setSessionStarted(true)
@@ -41,7 +70,11 @@ export function GameProvider({ children }) {
   }, [])
 
   const continueCareer = useCallback(() => {
-    if (state) { setSessionStarted(true); scrollHome() }
+    if (state) {
+      syncMusic({ playing: state.settings.musicPlaying !== false, muted: state.settings.musicMuted === true, volume: state.settings.musicVolume ?? .18 })
+      setSessionStarted(true)
+      scrollHome()
+    }
   }, [state])
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createInitialState } from './state.js'
 import { reduceGame } from './reducer.js'
-import { importLicensePack, licenseEligibility, licenseFromState, projectLicenseReadout } from './licensing.js'
+import { competitorBidCapacity, importLicensePack, licenseEligibility, licenseFromState, projectLicenseReadout, tickLicensing } from './licensing.js'
 
 const high = () => .99
 
@@ -58,4 +58,16 @@ test('a licensed release writes back into the IP history and contract', () => {
   assert.equal(state.games[0].licenseIds[0], 'lego')
   assert.equal(state.licenses.active[0].projects, 1)
   assert.equal(state.licenses.catalog.lego.history[0].title, 'Bloco Zero')
+})
+
+test('license auction bids respect each competitor capacity', () => {
+  const state = createInitialState({ startYear: 1991 }, high)
+  tickLicensing(state, () => .01)
+  const auction = state.licenses.auctions[0]
+  assert.ok(auction)
+  auction.bids.forEach(bid => {
+    const studio = state.competitors.find(item => item.id === bid.studioId)
+    assert.ok(studio)
+    assert.ok(bid.amount <= competitorBidCapacity(studio, 1991) * .55)
+  })
 })

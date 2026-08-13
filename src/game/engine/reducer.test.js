@@ -4,6 +4,7 @@ import { reduceGame } from './reducer.js'
 import { createInitialState } from './state.js'
 import { formatMoney, setDisplayCurrency } from './utils.js'
 import { getEra } from '../data/eras.js'
+import { hydrateV6 } from '../persistence/migrate.js'
 
 const fixed = () => 0.99
 
@@ -25,6 +26,29 @@ test('currency preference changes display without changing the underlying cash',
   assert.equal(changed.player.money, original.player.money)
   assert.match(formatMoney(changed.player.money), /US\$/)
   setDisplayCurrency('BRL')
+})
+
+test('music controls persist playback, mute and a clamped volume', () => {
+  let state = createInitialState(fixed)
+  assert.equal(state.settings.musicPlaying, true)
+  assert.equal(state.settings.musicMuted, false)
+  assert.equal(state.settings.musicVolume, .18)
+  state = reduceGame(state, { type: 'TOGGLE_MUSIC_PLAYBACK' }, fixed)
+  state = reduceGame(state, { type: 'TOGGLE_MUSIC_MUTE' }, fixed)
+  state = reduceGame(state, { type: 'SET_MUSIC_VOLUME', volume: 4 }, fixed)
+  assert.equal(state.settings.musicPlaying, false)
+  assert.equal(state.settings.musicMuted, true)
+  assert.equal(state.settings.musicVolume, 1)
+})
+
+test('existing careers receive safe music defaults', () => {
+  const oldState = createInitialState(fixed)
+  oldState.settings = { sound: false, currency: 'EUR', timelineNotices: false }
+  const hydrated = hydrateV6(oldState)
+  assert.equal(hydrated.settings.sound, false)
+  assert.equal(hydrated.settings.musicPlaying, true)
+  assert.equal(hydrated.settings.musicMuted, false)
+  assert.equal(hydrated.settings.musicVolume, .18)
 })
 
 test('disabling timeline notices clears only passive timeline cards', () => {

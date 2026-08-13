@@ -5,7 +5,7 @@ export const PROJECT_EVENTS = [
     title: 'No computador do seu amigo, não abre.',
     body: 'Na sua máquina funciona. Na dele aparece uma janela preta e nada mais. Ele trouxe o gabinete até sua casa.',
     choices: [
-      { id: 'fix', label: 'Parar e corrigir', detail: 'Mais um mês. Menos susto no lançamento.', outcome: 'Você passou quatro dias numa biblioteca que nem lembrava ter usado.', effects: { project: { quality: 9, months: 1, pressure: 5 }, player: { money: -900 } } },
+      { id: 'fix', label: 'Parar e corrigir', detail: 'Mais um mês. Menos susto no lançamento.', outcome: 'Você passou quatro dias numa biblioteca que nem lembrava ter usado.', effects: { project: { quality: 5, months: 1, pressure: 5 }, player: { money: -900 } } },
       { id: 'requirements', label: 'Publicar os requisitos', detail: 'Barato. Limita o público.', outcome: 'Os requisitos cabem em três linhas. A terceira é “boa sorte”.', effects: { project: { quality: -3, reach: -0.08 } } },
       { id: 'ignore', label: 'Testar depois', detail: 'Você sabe o que “depois” costuma significar.', outcome: 'O gabinete continua no canto do quarto.', effects: { project: { quality: -7, pressure: -3 } } },
     ],
@@ -16,7 +16,7 @@ export const PROJECT_EVENTS = [
     title: 'O sistema principal ficou chato.',
     body: 'Funciona, não quebra e ninguém quer jogar uma segunda vez. Tecnicamente, está pronto.',
     choices: [
-      { id: 'redo', label: 'Refazer a base', detail: 'Caro e demorado.', outcome: 'Você apagou a pasta “final_agora_vai”.', effects: { project: { quality: 12, months: 2, cost: 2600, pressure: 10 } } },
+      { id: 'redo', label: 'Refazer a base', detail: 'Caro e demorado.', outcome: 'Você apagou a pasta “final_agora_vai”.', effects: { project: { quality: 7, months: 2, cost: 2600, pressure: 10 } } },
       { id: 'twist', label: 'Colocar uma regra esquisita', detail: 'Pode salvar ou piorar tudo.', outcome: 'A regra parece errada até funcionar pela primeira vez.', effects: { project: { qualityRandom: [-6, 15], innovation: 8 }, story: 'uma regra improvisada segurou o jogo' } },
       { id: 'ship', label: 'Seguir o plano', detail: 'Sem atraso.', outcome: 'A tarefa foi marcada como concluída.', effects: { project: { quality: -6 } } },
     ],
@@ -27,7 +27,7 @@ export const PROJECT_EVENTS = [
     title: 'A arte provisória ficou no jogo.',
     body: 'Você se acostumou tanto aos bonecos cinza que só percebeu ao preparar as imagens de divulgação.',
     choices: [
-      { id: 'hire', label: 'Chamar uma artista', detail: 'R$ 3.400 e mais um mês.', outcome: 'Ela pediu metade adiantado e devolveu personagens que têm rosto.', effects: { project: { quality: 10, months: 1, cost: 3400 }, player: { energy: 5 } } },
+      { id: 'hire', label: 'Chamar uma artista', detail: 'R$ 3.400 e mais um mês.', outcome: 'Ela pediu metade adiantado e devolveu personagens que têm rosto.', effects: { project: { quality: 6, months: 1, cost: 3400 }, player: { energy: 5 } } },
       { id: 'learn', label: 'Fazer você mesmo', detail: 'Gasta energia. Você aprende alguma coisa.', outcome: 'Nem tudo ficou bonito, mas pelo menos combina.', effects: { project: { quality: 4 }, player: { energy: -14 }, stat: { art: 3 } } },
       { id: 'style', label: 'Assumir como estilo', detail: 'A imprensa pode comprar a ideia.', outcome: 'No texto de apresentação, “minimalista” aparece duas vezes.', effects: { project: { qualityRandom: [-4, 9], innovation: 4 } } },
     ],

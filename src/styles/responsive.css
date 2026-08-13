@@ -46,6 +46,7 @@
   .project-empty, .project-active { min-height: 382px; padding: 22px 18px; }
   .project-title-row { display: block; }
   .project-title-display { align-items: flex-start; flex-direction: column; }
+  .project-title-display .project-edit-button { width: 44px; min-height: 44px; }
   .project-title-editor input { min-width: 100%; }
   .phase-stamp { display: none; }
   .progress-copy { margin-top: 38px; }
@@ -102,7 +103,7 @@
   .team-member .button { grid-column: 2; justify-self: start; }
   .hiring-board > div:not(.card-kicker) > article { align-items: flex-start; flex-direction: column; }
   .hiring-board article > div:last-child { text-align: left; }
-  .research-board > div, .genre-atlas > div, .trophy-cabinet > div, .award-results { grid-template-columns: 1fr; }
+  .research-board > div, .genre-atlas > div, .trophy-cabinet > div { grid-template-columns: 1fr; }
   .research-board article, .genre-atlas article { border-right: 0; }
   .era-timeline { grid-template-columns: repeat(2, 1fr); }
   .auction-bids, .license-meters, .license-terms, .license-fit { grid-template-columns: 1fr; }
@@ -118,10 +119,17 @@
   .era-hero { align-items: start; }
   .era-hero h3 { margin-top: 20px; }
   .info-sheet, .awards-sheet { padding: 36px 18px 20px; }
+  .awards-modal { max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px); }
+  .award-envelope { min-height: 210px; padding: 22px 18px; }
+  .award-envelope.is-goty { min-height: 240px; }
   .settings-sheet { padding: 36px 18px 20px; }
   .settings-sheet h2 { font-size: 34px; line-height: 1.05; }
   .settings-row { align-items: flex-start; }
   .settings-row input { margin-top: 4px; }
+  .desk-player { grid-template-columns: 64px minmax(0,1fr) 44px; grid-template-rows: auto auto; gap: 10px; }
+  .desk-player > img { grid-row: 1; width: 64px; height: 64px; }
+  .deck-play { width: 44px; height: 44px; }
+  .deck-volume { grid-column: 1 / -1; }
   .settings-actions { align-items: stretch; flex-direction: column-reverse; }
   .settings-actions .button { width: 100%; }
   .month-actions button, .launch-plans button, .company-rolodex > button, .rights-ledger button { min-height: 48px; }

@@ -16,7 +16,8 @@
 .modal-titlebar { padding: 20px 22px; display: flex; justify-content: space-between; align-items: flex-start; color: var(--paper-bright); background: var(--crt); }
 .modal-titlebar p { margin: 0 0 6px; color: #91a0ae; font: 700 9px/1 "Courier New", monospace; letter-spacing: .1em; }
 .modal-titlebar h2 { max-width: 580px; margin: 0; color: var(--phosphor); font: 900 26px/1 "Arial Black", sans-serif; letter-spacing: -.045em; }
-.modal-close { width: 44px; height: 44px; margin: -8px -8px 0 0; color: #b8c2cb; background: transparent; border: 0; cursor: pointer; font-size: 28px; }
+.modal-close { width: 44px; height: 44px; margin: -8px -8px 0 0; display: grid; place-items: center; color: #b8c2cb; background: transparent; border: 0; cursor: pointer; }
+.modal-close:hover { color: var(--phosphor); }
 .modal-actions { padding: 14px 22px; display: flex; justify-content: flex-end; gap: 8px; background: var(--paper-deep); border-top: 1px solid var(--line); }
 .project-form { padding: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 22px 18px; }
 .full-field { grid-column: 1 / -1; }

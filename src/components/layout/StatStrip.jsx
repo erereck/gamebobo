@@ -34,8 +34,8 @@ function PulseStat({ label, value, format = Math.round, suffix = '', danger, inv
     const start = performance.now()
     let frame
     const tick = now => {
-      const progress = Math.min(1, (now - start) / 620)
-      const eased = 1 - Math.pow(1 - progress, 3)
+      const progress = Math.min(1, (now - start) / 682)
+      const eased = 1 - Math.pow(1 - progress, 4)
       setDisplayed(from + difference * eased)
       if (progress < 1) frame = requestAnimationFrame(tick)
     }
@@ -44,5 +44,5 @@ function PulseStat({ label, value, format = Math.round, suffix = '', danger, inv
     return () => { cancelAnimationFrame(frame); window.clearTimeout(clear) }
   }, [value])
   const good = inverse ? delta < 0 : delta > 0
-  return <div className={`strip-stat ${danger ? 'is-danger' : ''} ${priority ? `is-${priority}` : ''}`}><span>{label}</span><strong>{format(displayed)}{suffix}</strong>{delta !== 0 && <em className={good ? 'delta-good' : 'delta-bad'}>{delta > 0 ? '+' : '−'}{format(Math.abs(delta))}{suffix}</em>}</div>
+  return <div className={`strip-stat ${danger ? 'is-danger' : ''} ${priority ? `is-${priority}` : ''} ${delta !== 0 ? 'is-changing' : ''}`}><span>{label}</span><strong>{format(displayed)}{suffix}</strong>{delta !== 0 && <em className={good ? 'delta-good' : 'delta-bad'}>{delta > 0 ? '+' : '−'}{format(Math.abs(delta))}{suffix}</em>}</div>
 }

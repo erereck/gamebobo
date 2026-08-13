@@ -1,5 +1,23 @@
 # Registro de prompts
 
+## P-016 — 2026-08-13 — Noite dos Envelopes
+
+Pedido: Corrigir a tela de prêmios presa no celular, dramatizar categorias com Jogo do Ano por último, remover Melhor Indie antes de 2004, acelerar retorno ao topo, prolongar animações numéricas e corrigir vendas 99/100 e rivais com milhões inventados.
+
+Resultado: versão 0.10.3. A cerimônia virou uma revelação sequencial e rolável, `Jogo do Ano` fecha a noite, `Melhor Indie` só existe a partir de 2004, o retorno ao topo e os pulsos numéricos foram refinados, jogos excepcionais ganharam descoberta crítica e rivais passaram a obedecer um orçamento verificável nos leilões.
+
+## P-015 — 2026-08-13 — A registrar
+
+Pedido: Adicionar stock music de leafotario em loop baixo, player nas configurações com capa, volume e mute, além de ícones para compactar e enriquecer a interface.
+
+Resultado: versão 0.10.2. A faixa fornecida toca em loop baixo após a primeira interação, possui play/pause, mute, volume persistente e Media Session com capa e autoria. Dezesseis SVGs próprios compactaram cabeçalho, abas, edição e fechamento sem remover orientação importante para jogadores novos.
+
+## P-014 — 2026-08-13 — A registrar
+
+Pedido: Mega update de balanceamento para partidas rápidas: notas abaixo de 60 raras e merecidas, 80 sem virar perfeição e vendas de centenas de milhões possíveis, mas extraordinárias.
+
+Resultado: notas e vendas foram recalibradas para o ritmo curto; escolhas dominantes perderam vantagem, eventos ganharam limite por escala, seguidores passaram a ter retorno decrescente e uma cauda raríssima permite fenômenos de até 500 milhões. A auditoria permanente e cinco testes protegem as novas metas.
+
 ## P-013 — 2026-08-13 — Promessa da Capa
 
 Pedido: Adaptar as melhores ideias de Software Inc. ao ritmo curto do Gamebobo, com fases de produção, identidade de projeto, playtests incertos e interface imediata para jogadores novos, sem adicionar complexidade de simulador de 40 horas.

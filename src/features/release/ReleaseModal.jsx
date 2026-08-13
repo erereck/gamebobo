@@ -85,6 +85,11 @@ export function ReleaseModal({ gameId }) {
             <div><span>RECEITA</span><strong><CountUp value={game.revenue} format={formatMoney} active={consequencesReady} duration={900} /></strong></div>
             <div><span>NOVOS SEGUIDORES</span><strong><CountUp value={game.newFollowers} format={formatNumber} prefix="+" active={consequencesReady} duration={1040} /></strong></div>
           </div>
+          {game.breakout && <section className={game.phenomenon ? 'release-breakout is-phenomenon' : 'release-breakout'} aria-label={game.phenomenon ? 'Fenômeno histórico' : 'Sucesso inesperado'}>
+            <span>{game.phenomenon ? 'A LINHA DO TEMPO MUDOU' : 'NINGUÉM VIU CHEGANDO'}</span>
+            <strong>{game.phenomenon ? 'FENÔMENO' : 'ESTOURO'}</strong>
+            <p>{game.phenomenon ? 'Não é só um lançamento grande. Este jogo virou referência para todo mundo que vem depois.' : 'O jogo atravessou a bolha do estúdio e encontrou gente demais para caber na previsão.'}</p>
+          </section>}
           <p className="support-note">Nos próximos meses ainda podem aparecer bugs, vídeos e pedidos de reembolso.</p>
           <Button variant="primary" onClick={() => dispatch({ type: 'ACK_QUEUE' })}>VOLTAR PARA A CARREIRA</Button>
         </div>

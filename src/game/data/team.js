@@ -24,7 +24,7 @@ export const CULTURES = [
   { id: 'craft', name: 'Acabamento acima do prazo', description: 'Qualidade primeiro. Projeto costuma escorregar.', modifiers: { quality: 5, months: 1 } },
   { id: 'experimental', name: 'Laboratório aberto', description: 'Inovação recebe bônus. Sequências ficam desconfortáveis.', modifiers: { innovation: 7, sequel: -3 } },
   { id: 'commercial', name: 'Olho na prateleira', description: 'Marketing e vendas sobem. Fãs hardcore desconfiam.', modifiers: { marketing: 6, hardcoreTrust: -3 } },
-  { id: 'crunch', name: 'Tudo para sexta', description: 'Rápido por alguns meses. Moral e saúde pagam.', modifiers: { progress: 0.18, stress: 7, morale: -6 } },
+  { id: 'crunch', name: 'Tudo para sexta', description: 'Corta quase um mês. Moral e saúde pagam.', modifiers: { progress: 0.34, stress: 4, morale: -5 } },
 ]
 
 export const OFFICES = [

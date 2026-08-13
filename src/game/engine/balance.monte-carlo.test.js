@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { generateCompetitorLaunch } from './market.js'
+import { competitorBidCapacity } from './licensing.js'
 import { marketingForYear } from '../data/marketingEras.js'
 import { worldEventsForYear } from '../data/worldEvents.js'
 import { MARKET_ANGLES } from '../data/catalog.js'
@@ -38,6 +39,13 @@ test('Monte Carlo reach grows across industry eras', () => {
   }
   assert.ok(median(1980) < median(1990))
   assert.ok(median(1990) < median(2010))
+})
+
+test('a same-year garage cannot invent millions for a license auction', () => {
+  const garage = { cohort: true, founded: 1991, games: [], momentum: 18 }
+  const veteran = { cohort: false, founded: 1979, games: [] }
+  assert.ok(competitorBidCapacity(garage, 1991) < 500_000)
+  assert.ok(competitorBidCapacity(veteran, 1991) > 5_000_000)
 })
 
 test('marketing channels and world events unlock in their historical period', () => {

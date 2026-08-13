@@ -125,7 +125,8 @@ function releaseProject(state, random) {
   state.player.reputation = clamp(state.player.reputation + Math.round((game.score - state.player.reputation) / 10), 0, 100)
   state.studio.reputation = clamp(state.studio.reputation + Math.round((game.score - state.studio.reputation) / 9), 0, 100)
   state.player.audience.trust = clamp(state.player.audience.trust + Math.round((game.score - 65) / 9) - (project.expectation && game.score < project.expectation - 10 ? 4 : 0) - Math.min(5, Math.floor((project.bugs ?? 0) / 3)), 0, 100)
-  const hardcoreShare = project.promiseAudience === 'hardcore' ? .68 : project.promiseAudience === 'casual' ? .25 : .46
+  const releaseCulture = CULTURES.find(item => item.id === state.studio.cultureId)
+  const hardcoreShare = clamp((project.promiseAudience === 'hardcore' ? .68 : project.promiseAudience === 'casual' ? .25 : .46) + (releaseCulture?.modifiers.hardcoreTrust ?? 0) / 100, .18, .76)
   state.player.audience.hardcore += Math.round(game.newFollowers * hardcoreShare)
   state.player.audience.casual += Math.round(game.newFollowers * (1 - hardcoreShare))
   state.player.audience.genres[game.genre] = (state.player.audience.genres[game.genre] ?? 0) + game.newFollowers
@@ -144,7 +145,9 @@ function releaseProject(state, random) {
   }
   state.queue.unshift({ id: makeId('release'), kind: 'release', gameId: game.id })
   if (project.launchPlan === 'creator' && state.date.year >= 2012) state.queue.splice(1, 0, createCreatorCoverage(game, random))
-  addHistory(state, `${game.title} saiu com nota ${game.score}`, `${game.sales.toLocaleString('pt-BR')} cópias no primeiro mês.`, { highlight: true, kind: 'release' })
+  const releaseTitle = game.phenomenon ? `${game.title} virou um fenômeno` : game.breakout ? `${game.title} estourou` : `${game.title} saiu com nota ${game.score}`
+  const releaseBody = game.phenomenon ? `${game.sales.toLocaleString('pt-BR')} cópias no primeiro mês. A linha do tempo acabou de mudar.` : `${game.sales.toLocaleString('pt-BR')} cópias no primeiro mês.`
+  addHistory(state, releaseTitle, releaseBody, { highlight: true, kind: 'release' })
 }
 
 function processYearEnd(state, random) {
@@ -261,7 +264,8 @@ function monthAction(state, payload, random) {
   tickLicensing(state, random)
   tickCorporate(state, random)
 
-  if (!finished && state.currentProject && !state.queue.some(item => item.kind === 'decision') && state.currentProject.eventIds.length < 4 && random() < 0.48) {
+  const eventLimit = state.currentProject ? ({ micro: 1, small: 2, medium: 3, large: 4, blockbuster: 4 }[state.currentProject.scale] ?? 2) : 0
+  if (!finished && state.currentProject && !state.queue.some(item => item.kind === 'decision') && state.currentProject.eventIds.length < eventLimit && random() < 0.38) {
     const candidates = PROJECT_EVENTS.filter(event => state.date.year >= (event.fromYear ?? 1980) && state.date.year <= (event.toYear ?? 9999) && !state.currentProject.eventIds.includes(event.id))
     if (candidates.length) queueProjectEvent(state, randomChoice(candidates, random))
   }
@@ -458,6 +462,9 @@ export function reduceGame(currentState, action, random = Math.random) {
   if (action.type === 'REQUEST_PARTNERSHIP') requestPartnership(state, action.companyId, random)
   if (action.type === 'RESPOND_CORPORATE_OFFER') respondCorporateOffer(state, action.offerId, action.response, random)
   if (action.type === 'TOGGLE_SOUND') state.settings.sound = !state.settings.sound
+  if (action.type === 'TOGGLE_MUSIC_PLAYBACK') state.settings.musicPlaying = state.settings.musicPlaying === false
+  if (action.type === 'TOGGLE_MUSIC_MUTE') state.settings.musicMuted = !state.settings.musicMuted
+  if (action.type === 'SET_MUSIC_VOLUME') state.settings.musicVolume = clamp(Number(action.volume) || 0, 0, 1)
   if (action.type === 'SET_CURRENCY' && ['BRL', 'USD', 'EUR'].includes(action.currency)) state.settings.currency = action.currency
   if (action.type === 'SET_TIMELINE_NOTICES') {
     state.settings.timelineNotices = Boolean(action.enabled)

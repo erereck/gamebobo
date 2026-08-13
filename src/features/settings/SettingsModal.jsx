@@ -2,6 +2,7 @@ import { useGame } from '../../app/GameContext.jsx'
 import { Button } from '../../components/ui/Button.jsx'
 import { Modal } from '../../components/ui/Modal.jsx'
 import { CURRENCIES } from '../../game/engine/utils.js'
+import { MusicPlayer } from './MusicPlayer.jsx'
 
 export function SettingsModal() {
   const { state, dispatch, settingsModalOpen, setSettingsModalOpen, setResetModalOpen } = useGame()
@@ -18,6 +19,7 @@ export function SettingsModal() {
         <p className="settings-intro">Preferências ficam guardadas junto desta carreira neste navegador.</p>
 
         <div className="settings-list">
+          <MusicPlayer settings={state.settings} dispatch={dispatch} />
           <label className="settings-row">
             <span><strong>Sons do gabinete</strong><small>Cliques, confirmações e eventos.</small></span>
             <input type="checkbox" checked={state.settings.sound} onChange={() => dispatch({ type: 'TOGGLE_SOUND' })} />

@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/Button.jsx'
 import { ProgressBar } from '../../components/ui/ProgressBar.jsx'
 import { WorkbenchCard } from '../../components/ui/WorkbenchCard.jsx'
 import { licenseFromState } from '../../game/engine/licensing.js'
+import { Icon } from '../../components/ui/Icon.jsx'
 
 const AUDIENCE = { casual: 'PÚBLICO AMPLO', hardcore: 'PÚBLICO DE NICHO', balanced: 'PÚBLICO MISTO' }
 
@@ -40,7 +41,7 @@ export function ProjectFocus() {
       <div className="project-active">
         <div className="project-title-row">
           <div className="project-title-copy"><p className="overline">{labelOf(state.world.knownGenres, project.genre)} · {labelOf(THEMES, project.theme)} · {labelOf(PLATFORMS, project.platform)}</p>
-            {editingTitle ? <form className="project-title-editor" onSubmit={event => { event.preventDefault(); dispatch({ type: 'RENAME_PROJECT', title: draftTitle }); setEditingTitle(false) }}><label className="sr-only" htmlFor="project-title-edit">Novo nome do jogo</label><input id="project-title-edit" value={draftTitle} onChange={event => setDraftTitle(event.target.value)} maxLength={56} autoFocus /><button type="submit">SALVAR</button><button type="button" onClick={() => { setDraftTitle(project.title); setEditingTitle(false) }}>CANCELAR</button></form> : <div className="project-title-display"><h2>{project.title}</h2><button type="button" onClick={() => setEditingTitle(true)} aria-label={`Editar nome de ${project.title}`}>EDITAR NOME</button></div>}
+            {editingTitle ? <form className="project-title-editor" onSubmit={event => { event.preventDefault(); dispatch({ type: 'RENAME_PROJECT', title: draftTitle }); setEditingTitle(false) }}><label className="sr-only" htmlFor="project-title-edit">Novo nome do jogo</label><input id="project-title-edit" value={draftTitle} onChange={event => setDraftTitle(event.target.value)} maxLength={56} autoFocus /><button type="submit">SALVAR</button><button type="button" onClick={() => { setDraftTitle(project.title); setEditingTitle(false) }}>CANCELAR</button></form> : <div className="project-title-display"><h2>{project.title}</h2><button type="button" className="project-edit-button" onClick={() => setEditingTitle(true)} aria-label={`Editar nome de ${project.title}`} title="Editar nome"><Icon name="edit" size={16} /></button></div>}
           </div>
           <span className="phase-stamp">{PROJECT_PHASES[phaseIndex].label}</span>
         </div>

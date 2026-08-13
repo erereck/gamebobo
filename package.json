@@ -1,7 +1,7 @@
 {
   "name": "gamebobo",
   "private": true,
-  "version": "0.10.0",
+  "version": "0.10.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "node --test src/game/engine/*.test.js",
     "balance": "node scripts/monte-carlo.mjs",
+    "balance:audit": "node scripts/balance-audit.mjs",
     "version": "node scripts/bump-version.mjs",
     "prompt": "node scripts/log-prompt.mjs"
   },

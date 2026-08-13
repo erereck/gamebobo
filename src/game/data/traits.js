@@ -3,7 +3,7 @@ export const TRAITS = [
     id: 'visionary',
     name: 'Visionário',
     description: 'Ideia nova rende mais. Repetir fórmula rende menos.',
-    modifiers: { innovation: 8, sequel: -4 },
+    modifiers: { innovation: 4, sequel: -3 },
   },
   {
     id: 'workaholic',
@@ -15,7 +15,7 @@ export const TRAITS = [
     id: 'perfectionist',
     name: 'Perfeccionista',
     description: 'O teto de qualidade é maior. O calendário não ajuda.',
-    modifiers: { quality: 6, projectMonths: 1 },
+    modifiers: { quality: 3, projectMonths: 1 },
   },
   {
     id: 'communicator',
