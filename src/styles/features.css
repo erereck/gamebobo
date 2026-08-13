@@ -11,6 +11,12 @@
 .project-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .project-title-row .overline { color: #8fa1b2; }
 .project-title-row h2 { margin: 8px 0 0; color: var(--phosphor); font: 900 clamp(30px, 5vw, 48px)/.94 "Arial Black", sans-serif; letter-spacing: -.06em; overflow-wrap: anywhere; }
+.project-title-copy { min-width: 0; }
+.project-title-display { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px 12px; }
+.project-title-display button, .project-title-editor button { min-height: 32px; padding: 0 8px; color: #9eafbd; background: transparent; border: 1px solid var(--line-dark); border-radius: var(--radius-small); cursor: pointer; font: 700 7px/1 "Courier New", monospace; }
+.project-title-display button:hover, .project-title-editor button:hover { color: var(--phosphor); border-color: var(--phosphor-deep); }
+.project-title-editor { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.project-title-editor input { min-width: min(360px, 100%); height: 46px; padding: 0 10px; color: var(--phosphor); background: #0d1b2e; border: 1px solid var(--line-dark); border-radius: var(--radius-small); font: 900 20px/1 "Arial Black", sans-serif; }
 .phase-stamp { flex: 0 0 auto; padding: 7px 9px; color: var(--phosphor); border: 2px solid var(--phosphor-deep); font: 700 9px/1 "Courier New", monospace; letter-spacing: .08em; transform: rotate(2deg); }
 .progress-copy { margin-top: 68px; display: flex; align-items: baseline; justify-content: space-between; }
 .progress-copy strong { color: var(--phosphor); font: 700 44px/1 "Courier New", monospace; letter-spacing: -.08em; font-variant-numeric: tabular-nums; }
@@ -219,10 +225,12 @@
 .launch-plans button { min-height: 82px; padding: 10px; text-align: left; color: var(--ink); background: rgba(255,255,255,.26); border: 1px solid var(--line); border-radius: var(--radius-small); cursor: pointer; }
 .launch-plans button:hover { background: var(--paper-bright); border-color: var(--line-strong); }
 .launch-plans button.is-active { color: var(--paper-bright); background: var(--crt-raised); border-color: var(--crt); box-shadow: inset 3px 0 var(--phosphor); }
-.launch-plans strong, .launch-plans small, .launch-plans em { display: block; }
+.launch-plans strong, .launch-plans small, .launch-plans span, .launch-plans em { display: block; }
 .launch-plans strong { font-size: 10px; }
 .launch-plans small { margin-top: 4px; color: var(--ink-faint); font-size: 8px; line-height: 1.25; }
 .launch-plans button.is-active small { color: #9caaba; }
+.launch-plans span { margin-top: 7px; color: var(--phosphor-deep); font: 700 7px/1.2 "Courier New", monospace; }
+.launch-plans button.is-active span { color: var(--phosphor); }
 .launch-plans em { margin-top: 7px; color: var(--sticker); font: normal 700 8px/1 "Courier New", monospace; }
 .publisher-slot { background: var(--paper-deep); }
 .publisher-slot > span { color: var(--ink-faint); font: 700 8px/1 "Courier New", monospace; letter-spacing: .08em; }

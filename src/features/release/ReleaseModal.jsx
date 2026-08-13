@@ -4,6 +4,7 @@ import { PLATFORMS, labelOf } from '../../game/data/catalog.js'
 import { formatMoney, formatNumber } from '../../game/engine/utils.js'
 import { Button } from '../../components/ui/Button.jsx'
 import { Modal } from '../../components/ui/Modal.jsx'
+import { CountUp } from '../../components/ui/CountUp.jsx'
 import { licenseFromState } from '../../game/engine/licensing.js'
 
 export function ReleaseModal({ gameId }) {
@@ -77,9 +78,9 @@ export function ReleaseModal({ gameId }) {
         <blockquote className={verdictReady ? 'release-verdict is-visible' : 'release-verdict'} aria-hidden={!verdictReady}>“{game.quote}”</blockquote>
         <div className={consequencesReady ? 'release-aftermath is-visible' : 'release-aftermath'} aria-hidden={!consequencesReady}>
           <div className="release-numbers">
-            <div><span>PRIMEIRO MÊS</span><strong>{formatNumber(game.sales)}</strong></div>
-            <div><span>RECEITA</span><strong>{formatMoney(game.revenue)}</strong></div>
-            <div><span>NOVOS SEGUIDORES</span><strong>+{formatNumber(game.newFollowers)}</strong></div>
+            <div><span>PRIMEIRO MÊS</span><strong><CountUp value={game.sales} format={formatNumber} active={consequencesReady} /></strong></div>
+            <div><span>RECEITA</span><strong><CountUp value={game.revenue} format={formatMoney} active={consequencesReady} duration={900} /></strong></div>
+            <div><span>NOVOS SEGUIDORES</span><strong><CountUp value={game.newFollowers} format={formatNumber} prefix="+" active={consequencesReady} duration={1040} /></strong></div>
           </div>
           <p className="support-note">Nos próximos meses ainda podem aparecer bugs, vídeos e pedidos de reembolso.</p>
           <Button variant="primary" onClick={() => dispatch({ type: 'ACK_QUEUE' })}>VOLTAR PARA A CARREIRA</Button>

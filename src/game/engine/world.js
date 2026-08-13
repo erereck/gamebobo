@@ -1,7 +1,7 @@
 import { MARKET_ANGLES, labelOf } from '../data/catalog.js'
 import { PERSONAL_EVENTS } from '../data/personalEvents.js'
 import { POST_LAUNCH_EVENTS } from '../data/postLaunchEvents.js'
-import { WORLD_EVENTS } from '../data/worldEvents.js'
+import { worldEventsForYear } from '../data/worldEvents.js'
 import { STUDIO_EVENTS } from '../data/studioEvents.js'
 import { FRANCHISE_EVENTS } from '../data/franchiseEvents.js'
 import { COMPETITOR_EVENTS } from '../data/competitorEvents.js'
@@ -111,7 +111,8 @@ function tickMarket(state, random) {
   })
   const roundingDifference = 100 - Object.values(state.market.platforms).reduce((sum, value) => sum + value, 0)
   state.market.platforms[platformIds[0]] += roundingDifference
-  addHistory(state, `${labelOf(state.world.knownGenres, state.market.genre)} ganhou espaço`, `As lojas também estão pedindo ${labelOf(MARKET_ANGLES, state.market.angle).toLowerCase()}.`, { highlight: true, kind: 'market' })
+  const channel = state.date.year < 1985 ? 'As revistas e os lojistas' : state.date.year < 2007 ? 'A imprensa e as lojas' : 'As lojas e comunidades digitais'
+  addHistory(state, `${labelOf(state.world.knownGenres, state.market.genre)} ganhou espaço`, `${channel} também estão pedindo ${labelOf(MARKET_ANGLES, state.market.angle).toLowerCase()}.`, { highlight: true, kind: 'market' })
 }
 
 function tickCompetitors(state, random) {
@@ -166,7 +167,7 @@ function tickEra(state) {
 
 function tickWorldEvent(state, random) {
   if (random() > 0.055 || state.queue.some(item => item.kind === 'decision')) return
-  const candidates = WORLD_EVENTS.filter(event => !state.world.seenEvents.includes(event.id) || random() < 0.15)
+  const candidates = worldEventsForYear(state.date.year).filter(event => !state.world.seenEvents.includes(event.id) || random() < 0.15)
   if (!candidates.length) return
   const event = randomChoice(candidates, random)
   state.world.seenEvents.push(event.id)
@@ -189,7 +190,7 @@ function tickPostLaunch(state, random) {
       game.revenue += tailRevenue
       state.player.money += tailRevenue
     }
-    const candidates = POST_LAUNCH_EVENTS.filter(event => !release.eventIds.includes(event.id))
+    const candidates = POST_LAUNCH_EVENTS.filter(event => state.date.year >= (event.fromYear ?? 1980) && state.date.year <= (event.toYear ?? 9999) && !release.eventIds.includes(event.id))
     if (!queued && game && candidates.length && random() < 0.46) {
       const event = randomChoice(candidates, random)
       release.eventIds.push(event.id)
@@ -230,7 +231,7 @@ function tickFranchiseEvent(state, random) {
     groups.set(game.franchiseId, list)
   })
   const franchises = [...groups.values()].filter(games => games.length >= 2)
-  const candidates = FRANCHISE_EVENTS.filter(event => !state.world.seenEvents.includes(`franchise:${event.id}`))
+  const candidates = FRANCHISE_EVENTS.filter(event => state.date.year >= (event.fromYear ?? 1980) && state.date.year <= (event.toYear ?? 9999) && !state.world.seenEvents.includes(`franchise:${event.id}`))
   if (!franchises.length || !candidates.length) return
   const games = randomChoice(franchises, random)
   const game = games[0]
@@ -241,7 +242,7 @@ function tickFranchiseEvent(state, random) {
 
 function tickCompetitorEvent(state, random) {
   if (state.queue.some(item => item.kind === 'decision') || random() > 0.05) return
-  const candidates = COMPETITOR_EVENTS.filter(event => !state.world.seenEvents.includes(`competitor:${event.id}`))
+  const candidates = COMPETITOR_EVENTS.filter(event => state.date.year >= (event.fromYear ?? 1980) && state.date.year <= (event.toYear ?? 9999) && !state.world.seenEvents.includes(`competitor:${event.id}`))
   if (!candidates.length || !state.competitors.length) return
   const studio = randomChoice(state.competitors, random)
   const event = randomChoice(candidates, random)

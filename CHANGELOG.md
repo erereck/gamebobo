@@ -6,6 +6,19 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 0.8.0 — Pulso da Carreira — 2026-08-13
+
+- Caixa, energia e estresse agora contam até o novo valor e mostram deltas temporários; vendas, receita e seguidores também sobem quando as consequências do lançamento aparecem.
+- Passar o mês, resolver decisões, fechar resultados, trocar de tela, iniciar ou continuar uma carreira devolve o jogador ao topo.
+- O painel mobile caiu para uma única faixa de 56 px com nome, idade e os três números essenciais; saúde, seguidores e reputação continuam disponíveis nas telas dedicadas.
+- O título do projeto pode ser editado durante a produção sem quebrar franquia, save ou histórico.
+- Toda escolha de evento expõe até três efeitos mecânicos antes do clique, e ações mensais mostram faixas reais de custo e desgaste.
+- Divulgação muda com a época: revistas, demos, locadoras, sites, lojas e acesso antecipado entram somente quando fazem sentido.
+- Eventos digitais receberam datas mínimas; textos de mercado, projetos e contratos foram auditados para não antecipar fóruns, streaming ou lojas digitais.
+- Vendas de estúdios da mesma geração agora consideram tamanho do mercado, idade do estúdio e raridade histórica de fenômenos.
+- Auditoria Monte Carlo reproduzível cobre 300 mil lançamentos por execução completa; em 1980, 50 mil amostras deram mediana de 5.075, P99 de 23.229 e máximo de 83.063 cópias.
+- A suíte passou de 38 para 42 testes, incluindo regressões históricas, distribuição de vendas e renomeação.
+
 ## 0.7.2 — Edição Zero — 2026-08-13
 
 - A nota de cada lançamento começa lacrada, sobe por 3,2 segundos e desacelera perto do resultado definitivo.

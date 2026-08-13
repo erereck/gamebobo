@@ -1,6 +1,6 @@
 export const POST_LAUNCH_EVENTS = [
   {
-    id: 'small-streamer',
+    id: 'small-streamer', fromYear: 2011,
     tag: 'AO VIVO · 23:48',
     title: 'Um streamer pequeno achou seu jogo.',
     body: 'Ele tem 312 pessoas assistindo e insiste em terminar hoje. O chat já deu apelido para o chefe da segunda fase.',
@@ -11,7 +11,7 @@ export const POST_LAUNCH_EVENTS = [
     ],
   },
   {
-    id: 'money-duplication',
+    id: 'money-duplication', fromYear: 2005,
     tag: 'TÓPICO FIXADO',
     title: 'Descobriram como duplicar dinheiro.',
     body: 'O processo leva sete passos e envolve pausar no meio de uma animação. Já existe um vídeo ensinando.',
@@ -22,7 +22,7 @@ export const POST_LAUNCH_EVENTS = [
     ],
   },
   {
-    id: 'refund-wave',
+    id: 'refund-wave', fromYear: 2010,
     tag: 'SUPORTE LOTADO',
     title: 'Uma leva de jogadores pediu reembolso.',
     body: 'A maioria cita travamentos. Dois reclamam que o jogo “não parece com a capa”, embora não exista capa.',
@@ -33,7 +33,7 @@ export const POST_LAUNCH_EVENTS = [
     ],
   },
   {
-    id: 'guide',
+    id: 'guide', fromYear: 1995,
     tag: 'GUIA NÃO OFICIAL',
     title: 'Um jogador escreveu um guia de 38 páginas.',
     body: 'Tem mapa, tabela de dano e uma seção só para coisas que ele acha que você fez de propósito.',
@@ -55,7 +55,7 @@ export const POST_LAUNCH_EVENTS = [
     ],
   },
   {
-    id: 'sleeper',
+    id: 'sleeper', fromYear: 2007,
     tag: 'SEIS MESES DEPOIS',
     title: 'As vendas voltaram a subir.',
     body: 'Ninguém sabe apontar um motivo. Há vídeos novos, uma tradução de fã e muita gente dizendo “como eu não conhecia isso?”.',

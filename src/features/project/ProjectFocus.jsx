@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useGame } from '../../app/GameContext.jsx'
 import { FOCUSES, PLATFORMS, THEMES, labelOf } from '../../game/data/catalog.js'
 import { formatMoney } from '../../game/engine/utils.js'
@@ -7,8 +8,11 @@ import { WorkbenchCard } from '../../components/ui/WorkbenchCard.jsx'
 import { licenseFromState } from '../../game/engine/licensing.js'
 
 export function ProjectFocus() {
-  const { state, setProjectModalOpen } = useGame()
+  const { state, dispatch, setProjectModalOpen } = useGame()
   const project = state.currentProject
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [draftTitle, setDraftTitle] = useState(project?.title ?? '')
+  useEffect(() => setDraftTitle(project?.title ?? ''), [project?.id, project?.title])
   if (!project) {
     return (
       <WorkbenchCard kicker="NA SUA MESA" meta="NADA ABERTO" className="project-focus">
@@ -29,7 +33,9 @@ export function ProjectFocus() {
     <WorkbenchCard kicker="NA SUA MESA" meta="EM PRODUÇÃO" className="project-focus">
       <div className="project-active">
         <div className="project-title-row">
-          <div><p className="overline">{labelOf(state.world.knownGenres, project.genre)} · {labelOf(THEMES, project.theme)} · {labelOf(PLATFORMS, project.platform)}</p><h2>{project.title}</h2></div>
+          <div className="project-title-copy"><p className="overline">{labelOf(state.world.knownGenres, project.genre)} · {labelOf(THEMES, project.theme)} · {labelOf(PLATFORMS, project.platform)}</p>
+            {editingTitle ? <form className="project-title-editor" onSubmit={event => { event.preventDefault(); dispatch({ type: 'RENAME_PROJECT', title: draftTitle }); setEditingTitle(false) }}><label className="sr-only" htmlFor="project-title-edit">Novo nome do jogo</label><input id="project-title-edit" value={draftTitle} onChange={event => setDraftTitle(event.target.value)} maxLength={56} autoFocus /><button type="submit">SALVAR</button><button type="button" onClick={() => { setDraftTitle(project.title); setEditingTitle(false) }}>CANCELAR</button></form> : <div className="project-title-display"><h2>{project.title}</h2><button type="button" onClick={() => setEditingTitle(true)} aria-label={`Editar nome de ${project.title}`}>EDITAR NOME</button></div>}
+          </div>
           <span className="phase-stamp">{phase}</span>
         </div>
         {project.licenseIds?.length > 0 && <div className="project-rights-line"><span>LICENCIADO</span>{project.licenseIds.map(id => <strong key={id}>{licenseFromState(state, id)?.name}</strong>)}</div>}

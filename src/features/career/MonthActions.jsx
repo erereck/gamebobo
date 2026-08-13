@@ -1,5 +1,5 @@
 import { useGame } from '../../app/GameContext.jsx'
-import { STATS } from '../../game/data/catalog.js'
+import { SCALES, STATS } from '../../game/data/catalog.js'
 import { MONTH_NAMES } from '../../game/engine/world.js'
 import { WorkbenchCard } from '../../components/ui/WorkbenchCard.jsx'
 import { formatMoney } from '../../game/engine/utils.js'
@@ -7,21 +7,22 @@ import { formatMoney } from '../../game/engine/utils.js'
 export function MonthActions() {
   const { state, dispatch, setProjectModalOpen } = useGame()
   const project = state.currentProject
+  const promoteCost = project ? Math.round(1200 + SCALES[project.scale].cost * 0.06) : 0
   const weakest = [...STATS].sort((a, b) => state.player.stats[a.id] - state.player.stats[b.id])[0]
   const actions = state.currentContract ? [
     { key: 'C', title: `Entregar ${state.currentContract.title}`, detail: `${state.currentContract.monthsLeft} meses restantes`, effect: `+${formatMoney(state.currentContract.pay)}`, action: 'contract' },
     { key: 'D', title: 'Descansar', detail: 'O contrato espera um mês', effect: '-ESTRESSE', action: 'rest' },
   ] : project ? [
-    { key: 'A', title: 'Avançar o projeto', detail: 'Um mês na build atual', effect: '+PROGRESSO', action: 'develop', disabled: state.player.energy < 8 },
-    ...(project.announced ? [{ key: 'M', title: 'Divulgar o jogo', detail: 'Campanha pequena por um mês', effect: '+HYPE', action: 'promote', disabled: state.player.money < 2000 }] : []),
-    { key: 'F', title: 'Pegar um freelance', detail: 'O projeto fica parado', effect: '+CAIXA', action: 'work', disabled: state.player.energy < 15 },
-    { key: 'D', title: 'Descansar', detail: 'O prazo anda sem você', effect: '-ESTRESSE', action: 'rest' },
+    { key: 'A', title: 'Avançar o projeto', detail: 'Um mês na build atual', effect: '+PROG · −10–16 EN', action: 'develop', disabled: state.player.energy < 8 },
+    ...(project.announced ? [{ key: 'M', title: 'Divulgar o jogo', detail: `Custa ${formatMoney(promoteCost)}`, effect: '+5–16 HYPE · +3 PRESSÃO', action: 'promote', disabled: state.player.money < promoteCost }] : []),
+    { key: 'F', title: 'Pegar um freelance', detail: 'O projeto fica parado', effect: '+CAIXA · −19 EN', action: 'work', disabled: state.player.energy < 15 },
+    { key: 'D', title: 'Descansar', detail: 'O prazo anda sem você', effect: '+30–44 EN', action: 'rest' },
   ] : [
     { key: 'N', title: 'Abrir projeto', detail: 'Escolher o próximo jogo', effect: 'CRIAR', action: 'new' },
-    { key: 'T', title: 'Trabalhar', detail: 'Freelance e assistência', effect: '+CAIXA', action: 'work', disabled: state.player.energy < 15 },
-    { key: 'E', title: `Estudar ${weakest.label.toLowerCase()}`, detail: `${formatMoney(900)} e um mês`, effect: '+ATRIBUTO', action: 'study', stat: weakest.id, disabled: state.player.money < 900 },
-    { key: 'P', title: 'Pesquisar tecnologia', detail: `${formatMoney(1800)} e um mês`, effect: '+PESQUISA', action: 'research', disabled: state.player.money < 1800 },
-    { key: 'D', title: 'Descansar', detail: 'Dormir em horário normal', effect: '-ESTRESSE', action: 'rest' },
+    { key: 'T', title: 'Trabalhar', detail: 'Freelance e assistência', effect: '+CAIXA · −14 EN', action: 'work', disabled: state.player.energy < 15 },
+    { key: 'E', title: `Estudar ${weakest.label.toLowerCase()}`, detail: `${formatMoney(900)} e um mês`, effect: '+3–6 ATRIBUTO', action: 'study', stat: weakest.id, disabled: state.player.money < 900 },
+    { key: 'P', title: 'Pesquisar tecnologia', detail: `${formatMoney(1800)} e um mês`, effect: '+7–12 PESQ.', action: 'research', disabled: state.player.money < 1800 },
+    { key: 'D', title: 'Descansar', detail: 'Dormir em horário normal', effect: '+30–44 EN', action: 'rest' },
   ]
   const act = item => item.action === 'new' ? setProjectModalOpen(true) : dispatch({ type: 'MONTH_ACTION', payload: { action: item.action, stat: item.stat } })
   return (

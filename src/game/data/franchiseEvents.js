@@ -1,6 +1,6 @@
 export const FRANCHISE_EVENTS = [
   {
-    id: 'canon-argument',
+    id: 'canon-argument', fromYear: 1995,
     tag: 'FÓRUM EM GUERRA',
     title: 'Uma frase dividiu os fãs de {franchise}.',
     body: 'Metade jura que entendeu a história. A outra metade jura que vocês esqueceram o próprio jogo.',
@@ -11,7 +11,7 @@ export const FRANCHISE_EVENTS = [
     ],
   },
   {
-    id: 'remaster-demand',
+    id: 'remaster-demand', fromYear: 2007,
     tag: 'ABAIXO-ASSINADO',
     title: 'Querem {franchise} de volta.',
     body: 'Um vídeo comparando o jogo antigo com lançamentos atuais puxou uma campanha por remaster. Não é uma multidão, mas é barulhenta.',
@@ -22,7 +22,7 @@ export const FRANCHISE_EVENTS = [
     ],
   },
   {
-    id: 'fan-project',
+    id: 'fan-project', fromYear: 2005,
     tag: 'FEITO POR FÃS',
     title: 'Fizeram um jogo dentro de {franchise}.',
     body: 'É gratuito, estranho e claramente feito por amor. A licença, porém, é sua.',

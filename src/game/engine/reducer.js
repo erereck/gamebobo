@@ -16,6 +16,7 @@ import { DEBT_CRISIS } from '../data/debtCrisis.js'
 import { platformAtDate } from '../data/platformHistory.js'
 import { acceptLicenseOffer, importLicensePack, licenseFromState, maybeQueueLicenseEvent, recordLicensedRelease, renewLicense, requestLicense, placeLicenseBid, tickLicensing } from './licensing.js'
 import { attachCommissionToProject, minimumScaleMet, pitchCompany, recordCorporateRelease, requestPartnership, resolveCorporateRelease, respondCorporateOffer, tickCorporate } from './corporate.js'
+import { launchPlanMechanics, marketingForYear } from '../data/marketingEras.js'
 
 function franchiseExpectation(state, franchiseId) {
   const games = state.games.filter(game => game.franchiseId === franchiseId)
@@ -229,7 +230,7 @@ function monthAction(state, payload, random) {
   tickCorporate(state, random)
 
   if (!finished && state.currentProject && !state.queue.some(item => item.kind === 'decision') && state.currentProject.eventIds.length < 4 && random() < 0.48) {
-    const candidates = PROJECT_EVENTS.filter(event => !state.currentProject.eventIds.includes(event.id))
+    const candidates = PROJECT_EVENTS.filter(event => state.date.year >= (event.fromYear ?? 1980) && state.date.year <= (event.toYear ?? 9999) && !state.currentProject.eventIds.includes(event.id))
     if (candidates.length) queueProjectEvent(state, randomChoice(candidates, random))
   }
   if (!finished) maybeQueueLicenseEvent(state, random)
@@ -267,13 +268,15 @@ function announceProject(state) {
   project.announcementDate = dateLabel(state.date)
   project.hype += 8 + Math.round(state.player.followers / 2000) + Math.round(state.player.stats.marketing / 14)
   project.pressure += 9
-  addHistory(state, `${project.title} foi anunciado`, `${project.hype} pontos de hype. Agora existe uma cobrança pública.`, { highlight: true, kind: 'marketing' })
+  const marketing = marketingForYear(state.date.year)
+  addHistory(state, `${project.title} foi apresentado a ${marketing.publicWord}`, `${project.hype} pontos de hype. Agora existe uma cobrança pública.`, { highlight: true, kind: 'marketing' })
 }
 
 function setLaunchPlan(state, plan) {
   const project = state.currentProject
   if (!project) return
-  const costs = { shadow: 0, standard: 1200, campaign: 8000, early: 500 }
+  const marketing = marketingForYear(state.date.year)
+  const costs = Object.fromEntries(Object.entries(launchPlanMechanics).filter(([id]) => marketing.plans[id]).map(([id, plan]) => [id, plan.cost]))
   if (!(plan in costs) || project.launchPlan === plan) return
   const extraCost = Math.max(0, costs[plan] - (project.launchSpend ?? 0))
   if (state.player.money < extraCost) return
@@ -307,6 +310,15 @@ export function reduceGame(currentState, action, random = Math.random) {
   if (action.type === 'UPGRADE_EQUIPMENT') upgradeEquipment(state)
   if (action.type === 'ANNOUNCE_PROJECT') announceProject(state)
   if (action.type === 'SET_LAUNCH_PLAN') setLaunchPlan(state, action.plan)
+  if (action.type === 'RENAME_PROJECT' && state.currentProject) {
+    const title = String(action.title ?? '').trim().slice(0, 56)
+    if (title && title !== state.currentProject.title) {
+      const previous = state.currentProject.title
+      state.currentProject.title = title
+      if (!state.currentProject.isSequel) state.currentProject.franchiseName = title
+      addHistory(state, `${previous} virou ${title}`, 'O nome mudou na capa do projeto. O resto do trabalho continua igual.', { highlight: true, kind: 'project' })
+    }
+  }
   if (action.type === 'REFRESH_CANDIDATES') { state.player.money -= 500; refreshCandidates(state, random) }
   if (action.type === 'HIRE_CANDIDATE') {
     const person = hireCandidate(state, action.candidateId)

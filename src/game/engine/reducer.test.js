@@ -57,3 +57,13 @@ test('a micro project releases after three development months', () => {
   assert.equal(state.games.length, 1)
   assert.equal(state.queue[0].kind, 'release')
 })
+
+test('an active project can be renamed without losing its franchise identity', () => {
+  let state = createInitialState(fixed)
+  state = reduceGame(state, { type: 'START_PROJECT', payload: { title: 'Rascunho', genre: 'puzzle', theme: 'space', focus: 'gameplay', platform: 'pc', scale: 'micro' } }, fixed)
+  const franchiseId = state.currentProject.franchiseId
+  state = reduceGame(state, { type: 'RENAME_PROJECT', title: 'Nome Final' }, fixed)
+  assert.equal(state.currentProject.title, 'Nome Final')
+  assert.equal(state.currentProject.franchiseName, 'Nome Final')
+  assert.equal(state.currentProject.franchiseId, franchiseId)
+})

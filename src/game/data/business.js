@@ -7,7 +7,7 @@ export const PUBLISHERS = [
 
 export const CONTRACT_TEMPLATES = [
   { id: 'port', title: 'Port de catálogo', months: 2, pay: 16000, energy: 16, skill: 'programming', gain: 2, description: 'Adaptar um jogo antigo para outra plataforma.' },
-  { id: 'advergame', title: 'Jogo publicitário', months: 3, pay: 28000, energy: 22, skill: 'marketing', gain: 3, description: 'A marca quer “viral”, mas não sabe explicar como.' },
+  { id: 'advergame', title: 'Jogo publicitário', months: 3, pay: 28000, energy: 22, skill: 'marketing', gain: 3, description: 'A marca quer repercussão, mas não sabe explicar como.' },
   { id: 'outsourcing-art', title: 'Pacote de arte', months: 2, pay: 19000, energy: 18, skill: 'art', gain: 2, description: 'Cenários para um estúdio maior que não vai colocar seu nome na capa.' },
   { id: 'prototype', title: 'Protótipo sob encomenda', months: 2, pay: 22000, energy: 20, skill: 'design', gain: 3, description: 'Uma editora quer testar uma ideia antes de bancar o jogo.' },
   { id: 'consulting', title: 'Consultoria de sistemas', months: 1, pay: 12000, energy: 12, skill: 'design', gain: 1, description: 'Reuniões longas para responder perguntas curtas.' },

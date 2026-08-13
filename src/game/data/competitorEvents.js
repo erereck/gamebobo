@@ -1,6 +1,6 @@
 export const COMPETITOR_EVENTS = [
   {
-    id: 'bundle-invite',
+    id: 'bundle-invite', fromYear: 2007,
     tag: 'E-MAIL DE {studio}',
     title: '{studio} quer montar um pacote com seus jogos.',
     body: 'A proposta é simples: desconto conjunto, divulgação cruzada e uma semana dividindo a mesma vitrine.',

@@ -61,6 +61,10 @@ O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faix
 - Configurações: folha única aberta por `CFG` no cabeçalho; switches ampliados para som e avisos, carimbos existentes para moeda e ação destrutiva subordinada no rodapé.
 - Revelação de lançamento: 700 ms de nota lacrada, contagem de 3,2 s com desaceleração forte, veredito editorial e só depois consequências. A espera longa é exclusiva desse momento raro; demais entradas ficam em 160–260 ms.
 - Movimento de bancada: filhos diretos de cada tela assentam como folhas em cascata, aba ativa recebe um carimbo curto e o item mais novo da fita entra lateralmente. Somente `transform` e `opacity`; sempre respeitar movimento reduzido.
+- Pulso numérico: caixa, energia e estresse contam por 620 ms e recebem etiqueta temporária de delta sem alterar o layout; verde-fósforo é melhora e vermelho é piora, considerando que menos estresse é positivo.
+- Faixa essencial mobile: uma única linha de 56 px com fundador/idade, caixa, energia e estresse. Métricas secundárias somem dessa faixa abaixo de 620 px e permanecem nas telas apropriadas.
+- Impacto antes do clique: ações mensais e decisões mostram custo, faixa ou até três consequências mecânicas; `ESCOLHER` sozinho não é informação suficiente.
+- Linguagem de época: divulgação e mercado usam revista/lojista nos anos 1980, demo/locadora nos 1990, site/portal nos 2000 e loja/criador somente depois de seus marcos.
 
 ## Regras
 

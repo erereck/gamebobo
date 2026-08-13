@@ -5,11 +5,12 @@ import { setDisplayCurrency } from '../game/engine/utils.js'
 import { playSound } from './audio.js'
 
 const GameContext = createContext(null)
+const scrollHome = () => requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }))
 
 export function GameProvider({ children }) {
   const [state, rawDispatch] = useReducer(reduceGame, undefined, loadGame)
   const [sessionStarted, setSessionStarted] = useState(false)
-  const [view, setView] = useState('career')
+  const [view, rawSetView] = useState('career')
   const [projectModalOpen, setProjectModalOpen] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
@@ -24,16 +25,23 @@ export function GameProvider({ children }) {
     const sound = action.type === 'START_PROJECT' ? 'confirm' : action.type === 'RESOLVE_DECISION' ? 'event' : action.type === 'ACK_QUEUE' ? 'confirm' : 'click'
     playSound(sound, state?.settings?.sound ?? true)
     rawDispatch(action)
+    if (['MONTH_ACTION', 'ACK_QUEUE', 'RESOLVE_DECISION'].includes(action.type)) scrollHome()
   }, [state?.settings?.sound])
+
+  const setView = useCallback(nextView => {
+    rawSetView(nextView)
+    scrollHome()
+  }, [])
 
   const startCareer = useCallback(options => {
     rawDispatch({ type: 'RESET_CAREER', options })
-    setView('career')
+    rawSetView('career')
     setSessionStarted(true)
+    scrollHome()
   }, [])
 
   const continueCareer = useCallback(() => {
-    if (state) setSessionStarted(true)
+    if (state) { setSessionStarted(true); scrollHome() }
   }, [state])
 
   useEffect(() => {

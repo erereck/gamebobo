@@ -2,7 +2,7 @@
 
 Um jogo de carreira sobre fazer jogos e conviver com o resultado. A meta não é encontrar uma fórmula perfeita: é terminar o save com histórias que só aconteceram naquela linha do tempo.
 
-Versão atual: **0.7.2 — Edição Zero**.
+Versão atual: **0.8.0 — Pulso da Carreira**.
 
 ## Começar
 
@@ -18,6 +18,7 @@ Outros comandos:
 ```bash
 npm run build       # gera a versão de produção em dist/
 npm run test        # testa as regras centrais sem abrir o navegador
+npm run balance     # simula 25 mil lançamentos por era e imprime percentis
 npm run version -- patch "descrição curta"
 npm run prompt -- "resumo do pedido que originou a mudança"
 ```
@@ -91,6 +92,9 @@ Se você não sabe onde colocar uma mudança, consulte [docs/ARCHITECTURE.md](do
 | entrada, continuar save e ficha de carreira | `src/features/onboarding/` e `src/styles/onboarding.css` |
 | moedas e conversão de exibição | `src/game/engine/utils.js` e `state.settings.currency` |
 | avisos temporizados e configurações | `src/features/events/InfoModal.jsx`, `src/features/settings/SettingsModal.jsx` e `state.settings.timelineNotices` |
+| canais de divulgação de cada época | `src/game/data/marketingEras.js` e `src/game/data/eraLanguage.js` |
+| limites de vendas dos concorrentes | `src/game/engine/market.js` e `npm run balance` |
+| feedback numérico no cabeçalho | `src/components/layout/StatStrip.jsx` e `src/components/ui/CountUp.jsx` |
 
 ## Regra de dependência
 

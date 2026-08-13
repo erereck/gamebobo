@@ -23,10 +23,14 @@
 .tab-rail button.is-active { animation: tab-stamp 180ms var(--ease-out); }
 .tab-rail button.is-active span { color: rgba(255,255,255,.68); }
 .stat-strip { display: grid; grid-template-columns: 1.55fr repeat(6, 1fr); background: var(--paper); border: solid var(--line); border-width: 0 1px 1px; box-shadow: var(--shadow-small); }
-.identity-stat, .strip-stat { min-height: 66px; padding: 12px 14px; border-right: 1px dashed var(--line); }
+.identity-stat, .strip-stat { position: relative; min-height: 66px; padding: 12px 14px; border-right: 1px dashed var(--line); }
 .identity-stat { display: flex; align-items: center; gap: 11px; }
 .identity-stat strong, .strip-stat strong { display: block; font-size: 14px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.identity-stat strong b, .identity-stat strong i { font: inherit; }
 .identity-stat div span, .strip-stat span { display: block; margin-top: 5px; color: var(--ink-faint); font: 700 8px/1.2 "Courier New", monospace; letter-spacing: .04em; }
+.strip-stat em { position: absolute; right: 8px; bottom: 7px; padding: 3px 4px; color: var(--paper-bright); font: normal 700 7px/1 "Courier New", monospace; animation: stat-delta-in 180ms var(--ease-out) both; }
+.strip-stat em.delta-good { background: var(--phosphor-deep); }
+.strip-stat em.delta-bad { background: var(--sticker); }
 .status-light { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: var(--phosphor-deep); box-shadow: 0 0 0 3px rgba(115,157,59,.16); }
 .screen { padding-top: 20px; animation: screen-in 220ms var(--ease-out); }
 @keyframes screen-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -39,6 +43,7 @@
 @keyframes desk-piece-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes timeline-slip-in { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes tab-stamp { 0% { transform: translateY(-1px) scale(.985); } 100% { transform: translateY(0) scale(1); } }
+@keyframes stat-delta-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .screen-heading { min-height: 92px; padding: 4px 4px 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; border-bottom: 1px solid var(--line-strong); }
 .screen-heading h2 { margin: 5px 0 0; font: 900 clamp(32px, 5vw, 52px)/.9 "Arial Black", sans-serif; letter-spacing: -.065em; }
 .screen-heading > p { max-width: 420px; margin: 0; color: var(--ink-soft); font: italic 14px/1.45 Georgia, serif; }

@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-011 — 2026-08-13 — Pulso da Carreira
+
+Pedido: aprofundar game feel e impacto das ações, voltar ao topo após passar o mês, compactar os dados essenciais no celular, animar números, permitir editar o nome do jogo, auditar o balanceamento com Monte Carlo e impedir anacronismos como lojas digitais ou vendas de 15 milhões em 1980.
+
+Resultado: versão 0.8.0.
+
 ## P-010 — 2026-08-13 — Fechamento da revista
 
 Pedido: adicionar drama ao lançamento, começando com a nota escondida, contando devagar até o limite e mostrando as consequências somente depois; dar mais vida aos menus com animações discretas.

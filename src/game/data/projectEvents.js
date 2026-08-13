@@ -25,15 +25,15 @@ export const PROJECT_EVENTS = [
     id: 'borrowed-art',
     tag: 'ARTE TEMPORÁRIA',
     title: 'A arte provisória ficou no jogo.',
-    body: 'Você se acostumou tanto aos bonecos cinza que só percebeu ao tirar as imagens para a página da loja.',
+    body: 'Você se acostumou tanto aos bonecos cinza que só percebeu ao preparar as imagens de divulgação.',
     choices: [
       { id: 'hire', label: 'Chamar uma artista', detail: 'R$ 3.400 e mais um mês.', outcome: 'Ela pediu metade adiantado e devolveu personagens que têm rosto.', effects: { project: { quality: 10, months: 1, cost: 3400 }, player: { energy: 5 } } },
       { id: 'learn', label: 'Fazer você mesmo', detail: 'Gasta energia. Você aprende alguma coisa.', outcome: 'Nem tudo ficou bonito, mas pelo menos combina.', effects: { project: { quality: 4 }, player: { energy: -14 }, stat: { art: 3 } } },
-      { id: 'style', label: 'Assumir como estilo', detail: 'A imprensa pode comprar a ideia.', outcome: 'Na descrição da loja, “minimalista” aparece duas vezes.', effects: { project: { qualityRandom: [-4, 9], innovation: 4 } } },
+      { id: 'style', label: 'Assumir como estilo', detail: 'A imprensa pode comprar a ideia.', outcome: 'No texto de apresentação, “minimalista” aparece duas vezes.', effects: { project: { qualityRandom: [-4, 9], innovation: 4 } } },
     ],
   },
   {
-    id: 'festival',
+    id: 'festival', fromYear: 1999,
     tag: 'INSCRIÇÕES ATÉ SEXTA',
     title: 'Um festival indie abriu inscrições.',
     body: 'A build está longe do fim. O estande custa quase o mesmo que dois meses de aluguel.',
@@ -55,7 +55,7 @@ export const PROJECT_EVENTS = [
     ],
   },
   {
-    id: 'date-promise',
+    id: 'date-promise', fromYear: 1995,
     tag: 'FÓRUM OFICIAL',
     title: 'Você prometeu uma data.',
     body: 'Doze pessoas responderam ao tópico. Uma delas pergunta todo dia se ainda sai sexta-feira.',
