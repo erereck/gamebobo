@@ -6,6 +6,13 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 0.7.2 — Edição Zero — 2026-08-13
+
+- A nota de cada lançamento começa lacrada, sobe por 3,2 segundos e desacelera perto do resultado definitivo.
+- Crítica, estrelas, vendas, receita, seguidores e botão de saída entram em etapas, preservando o suspense antes das consequências.
+- Telas assentam suas folhas em uma cascata curta; abas recebem resposta de carimbo, a fita anima o acontecimento mais novo e botões ganharam pressão tátil.
+- Movimento reduzido do sistema remove a contagem e as translações sem esconder nenhuma informação.
+
 ## 0.7.1 — Edição Zero — 2026-08-13
 
 - Marcos históricos, novas plataformas e mudanças de era agora exibem uma fita regressiva de oito segundos e continuam automaticamente.

@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-010 — 2026-08-13 — Fechamento da revista
+
+Pedido: adicionar drama ao lançamento, começando com a nota escondida, contando devagar até o limite e mostrando as consequências somente depois; dar mais vida aos menus com animações discretas.
+
+Resultado: versão 0.7.2.
+
 ## P-009 — 2026-08-13 — Fita de leitura
 
 Pedido: fazer avisos como “Pac-Man chega aos arcades” avançarem sozinhos depois de oito segundos, mostrar o tempo numa barra e permitir desligar esses avisos nas configurações.

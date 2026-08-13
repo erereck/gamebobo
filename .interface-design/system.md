@@ -59,6 +59,8 @@ O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faix
 - Scrollbar: trilho em papel fundo e polegar de etiqueta vermelha, fino no documento e em superfícies roláveis; barras horizontais de navegação podem continuar ocultas quando o gesto já é evidente.
 - Aviso da linha do tempo: papel modal com fita regressiva de 8 segundos no rodapé; etiqueta vermelha perde comprimento da esquerda para a direita, pausa durante interação e nunca é usada em decisões obrigatórias.
 - Configurações: folha única aberta por `CFG` no cabeçalho; switches ampliados para som e avisos, carimbos existentes para moeda e ação destrutiva subordinada no rodapé.
+- Revelação de lançamento: 700 ms de nota lacrada, contagem de 3,2 s com desaceleração forte, veredito editorial e só depois consequências. A espera longa é exclusiva desse momento raro; demais entradas ficam em 160–260 ms.
+- Movimento de bancada: filhos diretos de cada tela assentam como folhas em cascata, aba ativa recebe um carimbo curto e o item mais novo da fita entra lateralmente. Somente `transform` e `opacity`; sempre respeitar movimento reduzido.
 
 ## Regras
 

@@ -3,12 +3,13 @@
 .button--primary:hover { background: #e25b48; }
 .button--secondary { color: var(--ink); background: var(--paper-deep); border: 1px solid var(--line-strong); }
 .button--secondary:hover { background: var(--paper-bright); }
+.button:active, .header-tools button:active, .tab-rail button:active, .month-actions button:active { transform: scale(.97); }
 .button--small { min-height: 38px; padding: 0 12px; }
 .workbench-card { position: relative; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-medium); box-shadow: var(--shadow-small); overflow: hidden; }
 .card-kicker { min-height: 36px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--ink-soft); background: var(--paper-deep); border-bottom: 1px solid var(--line); font: 700 9px/1 "Courier New", monospace; letter-spacing: .1em; }
 .progress { height: 11px; padding: 2px; background: #091525; border: 1px solid var(--line-dark); }
 .progress span { display: block; height: 100%; background: var(--phosphor); box-shadow: 0 0 12px rgba(183,223,104,.3); transition: width 420ms var(--ease-out); }
-.modal { width: min(760px, calc(100% - 24px)); max-height: calc(100vh - 32px); padding: 0; color: var(--ink); background: var(--paper); border: 1px solid var(--line-strong); border-radius: var(--radius-large); box-shadow: 0 22px 80px rgba(20,24,31,.44); overflow: auto; }
+.modal { position: fixed; inset: 0; width: min(760px, calc(100% - 24px)); max-height: calc(100vh - 32px); padding: 0; margin: auto; color: var(--ink); background: var(--paper); border: 1px solid var(--line-strong); border-radius: var(--radius-large); box-shadow: 0 22px 80px rgba(20,24,31,.44); overflow: auto; }
 .modal::backdrop { background: rgba(13,22,36,.72); backdrop-filter: blur(3px); }
 .modal[open] { animation: modal-in 220ms var(--ease-out); }
 @keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }

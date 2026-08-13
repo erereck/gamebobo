@@ -73,12 +73,22 @@
 .decision-choices em { color: var(--sticker); font: normal 700 8px/1 "Courier New", monospace; }
 .release-modal { width: min(700px, calc(100% - 24px)); background: var(--paper-bright); }
 .review-strip { min-height: 42px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; color: var(--paper-bright); background: var(--sticker); font: 700 9px/1 "Courier New", monospace; letter-spacing: .08em; }
+.review-strip span:last-child { font-variant-numeric: tabular-nums; transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out); }
+.review-strip .is-redacted { opacity: .72; letter-spacing: .12em; }
+.review-strip .is-revealed { animation: verdict-stamp 220ms var(--ease-out) both; }
 .release-sheet { padding: 34px; text-align: center; }
 .release-sheet h2 { margin: 10px 0 20px; font: 900 clamp(34px, 8vw, 60px)/.88 "Arial Black", sans-serif; letter-spacing: -.065em; overflow-wrap: anywhere; }
-.score { display: flex; justify-content: center; align-items: baseline; }
-.score strong { color: var(--sticker); font: 700 84px/.8 "Courier New", monospace; letter-spacing: -.12em; }
+.score { min-height: 68px; display: flex; justify-content: center; align-items: baseline; }
+.score strong { min-width: 2.2ch; color: var(--sticker); font: 700 84px/.8 "Courier New", monospace; letter-spacing: -.12em; font-variant-numeric: tabular-nums; }
 .score span { margin-left: 8px; color: var(--ink-faint); font: 700 10px/1 "Courier New", monospace; }
-.release-sheet blockquote { max-width: 500px; margin: 24px auto; color: var(--ink-soft); font: italic 18px/1.45 Georgia, serif; }
+.score .score-sealed { min-width: 1ch; color: var(--ink-faint); opacity: .34; animation: sealed-pulse 700ms var(--ease-out) infinite alternate; }
+.score--verdict strong, .score--consequences strong { animation: score-settle 520ms var(--ease-out) both; }
+.score-status { min-height: 14px; margin: 11px 0 0; color: var(--ink-faint); font: 700 8px/1 "Courier New", monospace; letter-spacing: .08em; }
+.release-sheet blockquote { max-width: 500px; margin: 20px auto 24px; color: var(--ink-soft); font: italic 18px/1.45 Georgia, serif; }
+.release-verdict { visibility: hidden; opacity: 0; transform: translateY(5px); }
+.release-verdict.is-visible { visibility: visible; animation: release-line-in 260ms var(--ease-out) both; }
+.release-aftermath { visibility: hidden; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.release-aftermath.is-visible { visibility: visible; pointer-events: auto; animation: release-line-in 260ms var(--ease-out) both; }
 .release-numbers { display: grid; grid-template-columns: repeat(3,1fr); margin: 26px 0 14px; border: solid var(--line); border-width: 1px 0; }
 .release-numbers div { padding: 15px 8px; border-right: 1px dashed var(--line); }
 .release-numbers div:last-child { border: 0; }
@@ -86,6 +96,11 @@
 .release-numbers strong { display: block; margin-top: 6px; font-size: 14px; font-variant-numeric: tabular-nums; }
 .support-note { color: var(--ink-soft); font: italic 12px/1.4 Georgia, serif; }
 .release-sheet > .button { width: 100%; margin-top: 10px; }
+.release-aftermath > .button { width: 100%; margin-top: 10px; }
+@keyframes sealed-pulse { from { opacity: .22; transform: translateY(1px); } to { opacity: .42; transform: translateY(-1px); } }
+@keyframes score-settle { 0% { transform: translateY(-2px) scale(1.035); } 100% { transform: translateY(0) scale(1); } }
+@keyframes verdict-stamp { from { opacity: 0; transform: translateY(-3px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes release-line-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .projects-layout { padding-top: 16px; display: grid; grid-template-columns: 1fr 260px; gap: 16px; align-items: start; }
 .game-library { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
 .current-project-row { margin-top: 16px; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; color: var(--paper-bright); background: var(--crt); border-radius: var(--radius-medium); }

@@ -2,7 +2,7 @@
 
 Um jogo de carreira sobre fazer jogos e conviver com o resultado. A meta não é encontrar uma fórmula perfeita: é terminar o save com histórias que só aconteceram naquela linha do tempo.
 
-Versão atual: **0.7.1 — Edição Zero**.
+Versão atual: **0.7.2 — Edição Zero**.
 
 ## Começar
 
