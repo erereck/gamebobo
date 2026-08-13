@@ -6,6 +6,7 @@ import { TECHS, getEra } from '../data/eras.js'
 import { teamContribution } from './studio.js'
 import { clamp, randomInt } from './utils.js'
 import { projectLicenseReadout } from './licensing.js'
+import { promiseForId } from '../data/projectPromises.js'
 
 export function calculateQuality(state, project, random = Math.random) {
   const focus = FOCUSES.find(item => item.id === project.focus)
@@ -41,8 +42,11 @@ export function calculateQuality(state, project, random = Math.random) {
   const healthPenalty = Math.max(0, 55 - state.player.health) * 0.13
   const luck = randomInt(-7, 8, random)
   const licensed = projectLicenseReadout(state, project)
+  const promise = promiseForId(project.promiseId)
+  const promiseBonus = promise.quality + Math.min(2, project.promiseFit ?? 0) * 1.5
+  const bugPenalty = Math.min(14, (project.bugs ?? 0) * .9)
   const licenseLuck = licensed.volatility ? randomInt(-licensed.volatility, licensed.volatility, random) : 0
-  const value = foundation + project.quality + innovationBonus + equipment.bonus + office.bonus + trendBonus + angleBonus + sequelModifier + traitQuality + traitInnovation + cultureQuality + cultureInnovation + techBonus + licensed.qualityBonus - techPenalty - exhaustion - healthPenalty + luck + licenseLuck
+  const value = foundation + project.quality + innovationBonus + promiseBonus + equipment.bonus + office.bonus + trendBonus + angleBonus + sequelModifier + traitQuality + traitInnovation + cultureQuality + cultureInnovation + techBonus + licensed.qualityBonus - bugPenalty - techPenalty - exhaustion - healthPenalty + luck + licenseLuck
   return clamp(Math.round(value), 24, trait?.id === 'perfectionist' ? 99 : 97)
 }
 

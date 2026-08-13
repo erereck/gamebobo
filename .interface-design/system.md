@@ -68,6 +68,11 @@ O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faix
 - Boletim da imprensa: nota central representa o jogo; recortes menores mostram 2–4 redações historicamente disponíveis, com divergência curta e texto próprio. Discordância dá textura, não loteria.
 - Chat ao vivo: superfície CRT compacta, nomes coloridos apenas para identidade e dez mensagens distintas. O percentual de aprovação reage à nota; chat só aparece depois da consolidação do vídeo/streaming.
 - Circuito de eventos: credencial do mês domina a folha, próximas datas ficam numa agenda CRT lateral. Feira local abre a escada; palcos reais exigem ano, mês, reputação e caixa.
+- Pasta de produção: um único CRT concentra título, trilho de protótipo/produção/polimento, promessa, progresso, pendências e playtest. Nenhuma fase ganha tela própria.
+- Promessa da capa: folha clara presa ao CRT, com uma frase humana, público e peso de escopo. É a identidade do jogo; não usar árvore de recursos.
+- Playtest: anexo de papel com faixa de nota, “funciona” e “trava”. Nunca revela a nota final nem exige passar o mês.
+- Ficha de projeto mobile: escolhas extensas usam `select` nativo; promessas formam uma faixa horizontal com a recomendada inteira e a próxima parcialmente visível. O formulário não pode virar catálogo vertical de chips.
+- Ação contextual: o primeiro botão mensal nomeia o trabalho real da fase — fechar protótipo, produzir ou polir — e descreve impacto em uma linha.
 
 ## Regras
 

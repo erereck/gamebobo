@@ -6,6 +6,19 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 0.10.0 — Promessa da Capa — 2026-08-13
+
+- Projetos agora nascem com uma promessa de capa e passam por protótipo, produção e polimento em uma pasta única e legível.
+- Onze promessas dão identidade mecânica ao projeto: afinidade de gênero e foco, público, alcance, inovação, risco técnico e peso de escopo; opções futuras só aparecem depois de existirem.
+- Promessas ambiciosas podem acrescentar meses e custo quando a escala escolhida é pequena demais; a ficha mostra o impacto antes de abrir o projeto.
+- Cada fase muda a ação mensal: o protótipo prova a ideia, a produção constrói qualidade e pendências, e o polimento remove problemas antes da nota.
+- Pendências reduzem qualidade e confiança se chegarem ao lançamento, tornando o acabamento uma consequência real em vez de uma etiqueta.
+- Um playtest opcional por projeto entrega uma faixa incerta de nota, um ponto forte e um problema concreto sem avançar o calendário.
+- O público ganho pelo lançamento agora conversa com a promessa: jogos de nicho e de apelo amplo formam audiências diferentes.
+- A tela principal ganhou trilho de três fases, folha da promessa, contador de pendências e relatório físico de playtest sem criar uma nova seção.
+- No celular, gênero, tema, foco, escala e plataforma viraram seletores compactos; as promessas usam uma única faixa horizontal e a ação do mês sobe para o primeiro enquadramento útil.
+- Saves antigos recebem valores seguros sem mudança de schema; a suíte chegou a 50 testes e a auditoria visual passou em 390 px e 1365 px sem erros no console.
+
 ## 0.9.0 — Voz da Arquibancada — 2026-08-13
 
 - Cada lançamento recebe de duas a quatro análises de redações disponíveis naquele ano; as notas orbitam a qualidade real do jogo e os textos comentam resultado e foco sem parecer sorteio desconexo.

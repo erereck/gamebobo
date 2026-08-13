@@ -2,7 +2,7 @@
 
 Um jogo de carreira sobre fazer jogos e conviver com o resultado. A meta não é encontrar uma fórmula perfeita: é terminar o save com histórias que só aconteceram naquela linha do tempo.
 
-Versão atual: **0.9.0 — Voz da Arquibancada**.
+Versão atual: **0.10.0 — Promessa da Capa**.
 
 ## Começar
 
@@ -74,6 +74,7 @@ Se você não sabe onde colocar uma mudança, consulte [docs/ARCHITECTURE.md](do
 | negociação, leilão, contrato e reputação de IP | `src/game/engine/licensing.js` |
 | traços e upgrades do quarto | `src/game/data/traits.js` |
 | evento durante um projeto | `src/game/data/projectEvents.js` |
+| promessas, fases, público e peso de escopo | `src/game/data/projectPromises.js` |
 | evento depois do lançamento | `src/game/data/postLaunchEvents.js` |
 | vida pessoal | `src/game/data/personalEvents.js` |
 | equipe, cargos, cultura e escritórios | `src/game/data/team.js` e `src/game/engine/studio.js` |
@@ -117,7 +118,7 @@ O save é automático e local. A versão 0.6 preserva saves das versões 0.2 a 0
 ## O loop em camadas
 
 - **Mês:** trabalhar, estudar, pesquisar, descansar, divulgar ou avançar uma build.
-- **Projeto:** orçamento, equipe, foco, hype, editora, plano de lançamento e crises de produção.
+- **Projeto:** promessa de capa, protótipo, produção, polimento, playtest, pendências, orçamento, hype, editora e plano de lançamento.
 - **Pós-lançamento:** vendas de cauda, patches, comunidade, prêmios, franquias e rivalidades.
 - **Estúdio:** contratações, salários, cultura, escritório, pesquisa, dívida e reputação.
 - **Décadas:** novas plataformas, eras tecnológicas, gêneros que nascem no save e sucessores que mantêm o mundo vivo depois do fundador.

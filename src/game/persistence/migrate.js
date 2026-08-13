@@ -1,6 +1,7 @@
 import { GENRES, PLATFORMS } from '../data/catalog.js'
 import { createInitialState } from '../engine/state.js'
 import { makeId } from '../engine/utils.js'
+import { promiseForId } from '../data/projectPromises.js'
 
 const genreMap = { RPG: 'rpg', Ação: 'action', Estratégia: 'strategy', Puzzle: 'puzzle', Simulação: 'simulation', Esporte: 'sports', Terror: 'horror' }
 const platformMap = { PC: 'pc', PlayBox: 'playstation-2', Ninvento: 'gamecube' }
@@ -187,8 +188,10 @@ export function hydrateV6(oldState) {
   state.studio.parentCompany ??= null
   state.studio.autonomy ??= 100
   state.settings = { ...fresh.settings, ...(oldState.settings ?? {}) }
-  if (state.currentProject) state.currentProject = { corporateCommissionId: null, ...state.currentProject }
-  state.games = state.games.map(game => ({ corporateCommissionId: null, ...game }))
+  const defaultPromise = promiseForId('precise-controls')
+  const productionDefaults = { corporateCommissionId: null, promiseId: defaultPromise.id, promiseName: defaultPromise.label, promiseAudience: defaultPromise.audience, promiseFit: 0, scopeMonths: 0, bugs: 0, playtest: null, phaseHistory: ['prototype'] }
+  if (state.currentProject) state.currentProject = { ...productionDefaults, ...state.currentProject }
+  state.games = state.games.map(game => ({ ...productionDefaults, playtest: null, ...game }))
   return state
 }
 

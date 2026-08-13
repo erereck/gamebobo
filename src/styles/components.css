@@ -23,6 +23,7 @@
 .text-field > span, .select-field > span, .choice-field legend { display: block; margin-bottom: 8px; color: var(--ink-soft); font: 700 9px/1 "Courier New", monospace; letter-spacing: .09em; }
 .text-field input, .select-field select { width: 100%; height: 48px; padding: 0 13px; color: var(--ink); background: var(--paper-deep); border: 1px solid var(--line-strong); border-radius: var(--radius-small); font-weight: 800; }
 .choice-field { min-width: 0; padding: 0; margin: 0; border: 0; }
+.choice-select-mobile { display: none; }
 .choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
 .choice-chip { position: relative; }
 .choice-chip input { position: absolute; opacity: 0; pointer-events: none; }
@@ -34,6 +35,21 @@
 .project-estimate div span { display: block; color: #8fa0b0; font: 700 8px/1 "Courier New", monospace; }
 .project-estimate div strong { display: block; margin-top: 6px; color: var(--phosphor); font: 700 15px/1 "Courier New", monospace; }
 .project-estimate p { grid-column: 1/-1; margin: 0; color: #b1bcc6; font: italic 11px/1.35 Georgia, serif; }
+.promise-picker { min-width: 0; padding: 0; margin: 0; border: 0; }
+.promise-picker > legend { color: var(--ink-soft); font: 700 9px/1 "Courier New", monospace; letter-spacing: .09em; }
+.promise-picker > p { margin: 8px 0 10px; color: var(--ink-faint); font: italic 11px/1.35 Georgia, serif; }
+.promise-picker > div { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.promise-picker label { position: relative; min-width: 0; }
+.promise-picker input { position: absolute; opacity: 0; }
+.promise-picker label > span { min-height: 132px; padding: 10px; display: flex; flex-direction: column; color: var(--ink); background: rgba(255,255,255,.28); border: 1px solid var(--line); cursor: pointer; transition: transform 120ms, border-color 120ms, background 120ms; }
+.promise-picker label:hover > span { transform: translateY(-2px); border-color: var(--line-strong); }
+.promise-picker label.is-selected > span { color: var(--paper-bright); background: var(--crt); border-color: var(--crt); box-shadow: inset 3px 0 var(--phosphor); }
+.promise-picker small { color: var(--sticker); font: 700 7px/1 "Courier New", monospace; letter-spacing: .06em; }
+.promise-picker strong { margin-top: 8px; font-size: 11px; line-height: 1.05; }
+.promise-picker em { margin-top: 6px; color: var(--ink-faint); font: italic 10px/1.3 Georgia, serif; }
+.promise-picker b { margin-top: auto; padding-top: 10px; color: var(--phosphor-deep); font: 700 7px/1 "Courier New", monospace; }
+.promise-picker .is-selected em { color: #aeb9c5; }
+.promise-picker .is-selected b { color: var(--phosphor); }
 .empty-panel { min-height: 260px; padding: 40px; display: grid; place-content: center; text-align: center; color: var(--ink-soft); background: var(--paper); border: 1px dashed var(--line-strong); border-radius: var(--radius-medium); }
 .empty-panel strong { color: var(--ink); }
 .empty-panel p { margin: 8px 0 0; font: italic 13px/1.4 Georgia, serif; }

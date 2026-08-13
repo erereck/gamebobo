@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { reduceGame } from './reducer.js'
 import { createInitialState } from './state.js'
 import { formatMoney, setDisplayCurrency } from './utils.js'
+import { getEra } from '../data/eras.js'
 
 const fixed = () => 0.99
 
@@ -56,6 +57,42 @@ test('a micro project releases after three development months', () => {
   assert.equal(state.currentProject, null)
   assert.equal(state.games.length, 1)
   assert.equal(state.queue[0].kind, 'release')
+})
+
+test('an ambitious cover promise adds visible scope to a tiny project', () => {
+  let state = createInitialState({ startYear: 1980 }, fixed)
+  state = reduceGame(state, { type: 'START_PROJECT', payload: { title: 'Outra Vez', genre: 'puzzle', theme: 'space', focus: 'innovation', platform: 'pc', scale: 'micro', promiseId: 'new-every-run' } }, fixed)
+  assert.equal(state.currentProject.promiseName, 'Cada partida é diferente')
+  assert.equal(state.currentProject.scopeMonths, 1)
+  assert.equal(state.currentProject.totalMonths, 4)
+  const basePeriodCost = Math.round(3600 * getEra(1980).costMultiplier)
+  assert.ok(state.currentProject.estimatedCost > basePeriodCost)
+})
+
+test('playtest gives a range without spending a month or allowing a repeat', () => {
+  let state = createInitialState({ startYear: 1998 }, fixed)
+  state = reduceGame(state, { type: 'START_PROJECT', payload: { title: 'Build 7', genre: 'action', theme: 'space', focus: 'gameplay', platform: 'pc', scale: 'small', promiseId: 'precise-controls' } }, fixed)
+  state = reduceGame(state, { type: 'MONTH_ACTION', payload: { action: 'develop' } }, fixed)
+  state.queue = []
+  const date = { ...state.date }
+  const money = state.player.money
+  state = reduceGame(state, { type: 'RUN_PLAYTEST' }, fixed)
+  assert.deepEqual(state.date, date)
+  assert.ok(state.currentProject.playtest.min < state.currentProject.playtest.max)
+  assert.ok(state.player.money < money)
+  const afterFirst = state.player.money
+  state = reduceGame(state, { type: 'RUN_PLAYTEST' }, fixed)
+  assert.equal(state.player.money, afterFirst)
+})
+
+test('polish removes pending problems instead of creating more', () => {
+  let state = createInitialState({ startYear: 2000 }, fixed)
+  state = reduceGame(state, { type: 'START_PROJECT', payload: { title: 'Fechando', genre: 'rpg', theme: 'fantasy', focus: 'systems', platform: 'pc', scale: 'medium', promiseId: 'interlocking-systems' } }, fixed)
+  state.currentProject.progress = 7
+  state.currentProject.totalMonths = 10
+  state.currentProject.bugs = 8
+  state = reduceGame(state, { type: 'MONTH_ACTION', payload: { action: 'develop' } }, fixed)
+  assert.ok(state.currentProject.bugs < 8)
 })
 
 test('an active project can be renamed without losing its franchise identity', () => {

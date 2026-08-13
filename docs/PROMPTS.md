@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-013 — 2026-08-13 — Promessa da Capa
+
+Pedido: Adaptar as melhores ideias de Software Inc. ao ritmo curto do Gamebobo, com fases de produção, identidade de projeto, playtests incertos e interface imediata para jogadores novos, sem adicionar complexidade de simulador de 40 horas.
+
+Resultado: versão 0.10.0.
+
 ## P-012 — 2026-08-13 — Voz da Arquibancada
 
 Pedido: Incorporar as ideias do Gabb: crítica coerente, veículos reais por época, divulgação com criadores, chat ao vivo variado, escada de eventos locais a globais e correção do título cortado nas configurações, sem antecipar tecnologias.

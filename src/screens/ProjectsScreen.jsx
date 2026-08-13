@@ -24,7 +24,7 @@ export function ProjectsScreen() {
 
 function CurrentProject({ project, genres }) {
   const progress = Math.min(100, Math.round(project.progress / project.totalMonths * 100))
-  return <article className="current-project-row"><span>EM PRODUÇÃO</span><strong>{project.title}</strong><small>{labelOf(genres, project.genre)} · {progress}%</small></article>
+  return <article className="current-project-row"><span>EM PRODUÇÃO</span><strong>{project.title}</strong><small>{labelOf(genres, project.genre)} · {project.promiseName} · {progress}%</small></article>
 }
 
 function GameBox({ game, genres, state }) {
@@ -34,6 +34,7 @@ function GameBox({ game, genres, state }) {
       <span className="box-label">LANÇADO · {game.released}{game.rivals?.length ? ` · ${game.rivals.length} CONFRONTO` : ''}</span>
       <h3>{game.title}</h3>
       <p>{labelOf(genres, game.genre)} · {labelOf(FOCUSES, game.focus)} · {labelOf(PLATFORMS, game.platform)}</p>
+      {game.promiseName && <small className="box-promise">PROMESSA · {game.promiseName}</small>}
       {game.licenseIds?.length > 0 && <div className="box-licenses">{game.licenseIds.map(id => <span key={id}>{licenseFromState(state, id)?.name}</span>)}</div>}
       <div className="box-score"><strong>{game.score}</strong><span>/ 100</span></div>
       <dl><div><dt>VENDAS</dt><dd>{formatNumber(game.sales)}</dd></div><div><dt>RESULTADO</dt><dd className={profit < 0 ? 'negative' : ''}>{formatMoney(profit)}</dd></div><div><dt>CONFIANÇA</dt><dd>{game.trust}/100</dd></div></dl>

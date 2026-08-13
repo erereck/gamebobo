@@ -3,17 +3,19 @@ import { SCALES, STATS } from '../../game/data/catalog.js'
 import { MONTH_NAMES } from '../../game/engine/world.js'
 import { WorkbenchCard } from '../../components/ui/WorkbenchCard.jsx'
 import { formatMoney } from '../../game/engine/utils.js'
+import { phaseForId, projectPhase } from '../../game/data/projectPromises.js'
 
 export function MonthActions() {
   const { state, dispatch, setProjectModalOpen } = useGame()
   const project = state.currentProject
   const promoteCost = project ? Math.round(1200 + SCALES[project.scale].cost * 0.06) : 0
   const weakest = [...STATS].sort((a, b) => state.player.stats[a.id] - state.player.stats[b.id])[0]
+  const currentPhase = project ? phaseForId(projectPhase(project)) : null
   const actions = state.currentContract ? [
     { key: 'C', title: `Entregar ${state.currentContract.title}`, detail: `${state.currentContract.monthsLeft} meses restantes`, effect: `+${formatMoney(state.currentContract.pay)}`, action: 'contract' },
     { key: 'D', title: 'Descansar', detail: 'O contrato espera um mês', effect: '-ESTRESSE', action: 'rest' },
   ] : project ? [
-    { key: 'A', title: 'Avançar o projeto', detail: 'Um mês na build atual', effect: '+PROG · −10–16 EN', action: 'develop', disabled: state.player.energy < 8 },
+    { key: 'A', title: currentPhase.action, detail: currentPhase.detail, effect: currentPhase.effect, action: 'develop', disabled: state.player.energy < 8 },
     ...(project.announced ? [{ key: 'M', title: 'Divulgar o jogo', detail: `Custa ${formatMoney(promoteCost)}`, effect: '+5–16 HYPE · +3 PRESSÃO', action: 'promote', disabled: state.player.money < promoteCost }] : []),
     { key: 'F', title: 'Pegar um freelance', detail: 'O projeto fica parado', effect: '+CAIXA · −19 EN', action: 'work', disabled: state.player.energy < 15 },
     { key: 'D', title: 'Descansar', detail: 'O prazo anda sem você', effect: '+30–44 EN', action: 'rest' },

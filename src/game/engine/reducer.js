@@ -3,7 +3,7 @@ import { GENRES, PLATFORMS, SCALES, STATS, labelOf } from '../data/catalog.js'
 import { EQUIPMENT, TRAITS } from '../data/traits.js'
 import { CULTURES, OFFICES } from '../data/team.js'
 import { applyEffects } from './effects.js'
-import { calculateRelease } from './scoring.js'
+import { calculateQuality, calculateRelease } from './scoring.js'
 import { createInitialState } from './state.js'
 import { addHistory, advanceDate, dateLabel, queueProjectEvent, tickWorld } from './world.js'
 import { clamp, clone, makeId, randomChoice, randomInt } from './utils.js'
@@ -19,6 +19,7 @@ import { attachCommissionToProject, minimumScaleMet, pitchCompany, recordCorpora
 import { launchPlanMechanics, marketingForYear } from '../data/marketingEras.js'
 import { createCreatorCoverage } from '../data/creatorCoverage.js'
 import { GAME_EVENTS, attendedEventKey, eventExistsInYear } from '../data/gameEvents.js'
+import { phaseForId, projectPhase, projectPromiseCost, promiseFit, promiseForId, promiseScopeMonths } from '../data/projectPromises.js'
 
 function franchiseExpectation(state, franchiseId) {
   const games = state.games.filter(game => game.franchiseId === franchiseId)
@@ -35,7 +36,11 @@ function startProject(state, payload) {
   if (!platform || !platformAtDate(platform, state.date)) return state
   if ((scale.officeLevel ?? 0) > state.studio.officeLevel || (scale.teamSize ?? 0) > state.studio.team.length) return state
   const era = getEra(state.date.year)
-  const estimatedCost = Math.round(scale.cost * era.costMultiplier * (1 + state.studio.team.length * 0.08))
+  const promise = promiseForId(payload.promiseId)
+  if (state.date.year < promise.fromYear) return state
+  const baseCost = Math.round(scale.cost * era.costMultiplier * (1 + state.studio.team.length * 0.08))
+  const scopeMonths = promiseScopeMonths(promise.id, payload.scale)
+  const estimatedCost = projectPromiseCost(baseCost, scale.months, promise.id, payload.scale)
   if (state.player.money < estimatedCost * 0.25) return state
   const trait = TRAITS.find(item => item.id === state.player.traitId)
   const culture = CULTURES.find(item => item.id === state.studio.cultureId)
@@ -63,12 +68,20 @@ function startProject(state, payload) {
     expectation: franchiseExpectation(state, franchiseId),
     started: dateLabel(state.date),
     progress: 0,
-    totalMonths: scale.months + (trait?.modifiers.projectMonths ?? 0) + (culture?.modifiers.months ?? 0) - Math.min(3, Math.floor(state.studio.team.length / 5)),
+    totalMonths: Math.max(2, scale.months + scopeMonths + (trait?.modifiers.projectMonths ?? 0) + (culture?.modifiers.months ?? 0) - Math.min(3, Math.floor(state.studio.team.length / 5))),
     estimatedCost,
     costSpent: 0,
     quality: 0,
-    innovation: 0,
-    reach: state.corporate.partnerships.reduce((sum, item) => sum + item.reach, 0),
+    innovation: promise.innovation,
+    reach: state.corporate.partnerships.reduce((sum, item) => sum + item.reach, 0) + promise.reach,
+    promiseId: promise.id,
+    promiseName: promise.label,
+    promiseAudience: promise.audience,
+    promiseFit: promiseFit(promise, payload.genre, payload.focus),
+    scopeMonths,
+    bugs: 0,
+    playtest: null,
+    phaseHistory: ['prototype'],
     pressure: 8,
     hype: franchise ? Math.round(franchiseExpectation(state, franchiseId) / 5) : 0,
     announced: false,
@@ -88,7 +101,7 @@ function startProject(state, payload) {
   }
   if (commission) attachCommissionToProject(state, state.currentProject)
   state.player.career.projectsStarted += 1
-  addHistory(state, `Começou ${state.currentProject.title}`, `${labelOf(state.world.knownGenres, state.currentProject.genre)} para ${PLATFORMS.find(item => item.id === payload.platform)?.label}.`, { highlight: true, kind: 'project' })
+  addHistory(state, `Começou ${state.currentProject.title}`, `${labelOf(state.world.knownGenres, state.currentProject.genre)} para ${PLATFORMS.find(item => item.id === payload.platform)?.label}. Promessa: ${promise.label.toLowerCase()}.`, { highlight: true, kind: 'project' })
   return state
 }
 
@@ -101,7 +114,8 @@ function releaseProject(state, random) {
     revenue: result.revenue + (project.directSales ?? 0),
     id: makeId('game'),
     released: dateLabel(state.date),
-    trust: project.expectation && result.score < project.expectation - 10 ? 42 : 50,
+    trust: (project.expectation && result.score < project.expectation - 10 ? 42 : 50) - Math.min(10, Math.floor((project.bugs ?? 0) / 2)),
+    launchBugs: project.bugs ?? 0,
     supportEvents: [],
   }
   state.games.unshift(game)
@@ -110,9 +124,10 @@ function releaseProject(state, random) {
   state.player.followers += game.newFollowers
   state.player.reputation = clamp(state.player.reputation + Math.round((game.score - state.player.reputation) / 10), 0, 100)
   state.studio.reputation = clamp(state.studio.reputation + Math.round((game.score - state.studio.reputation) / 9), 0, 100)
-  state.player.audience.trust = clamp(state.player.audience.trust + Math.round((game.score - 65) / 9) - (project.expectation && game.score < project.expectation - 10 ? 4 : 0), 0, 100)
-  state.player.audience.hardcore += Math.round(game.newFollowers * (game.score >= 78 ? 0.42 : 0.2))
-  state.player.audience.casual += Math.round(game.newFollowers * (game.score >= 78 ? 0.58 : 0.8))
+  state.player.audience.trust = clamp(state.player.audience.trust + Math.round((game.score - 65) / 9) - (project.expectation && game.score < project.expectation - 10 ? 4 : 0) - Math.min(5, Math.floor((project.bugs ?? 0) / 3)), 0, 100)
+  const hardcoreShare = project.promiseAudience === 'hardcore' ? .68 : project.promiseAudience === 'casual' ? .25 : .46
+  state.player.audience.hardcore += Math.round(game.newFollowers * hardcoreShare)
+  state.player.audience.casual += Math.round(game.newFollowers * (1 - hardcoreShare))
   state.player.audience.genres[game.genre] = (state.player.audience.genres[game.genre] ?? 0) + game.newFollowers
   state.player.audience.platforms[game.platform] = (state.player.audience.platforms[game.platform] ?? 0) + game.newFollowers
   const supportTech = state.studio.unlockedTechs.reduce((sum, techId) => sum + (TECHS.find(item => item.id === techId)?.bonus.support ?? 0), 0)
@@ -155,14 +170,25 @@ function monthAction(state, payload, random) {
   let workedOnProject = false
 
   if (payload.action === 'develop' && project) {
-    const scale = SCALES[project.scale]
     const trait = TRAITS.find(item => item.id === state.player.traitId)
-    const monthlyCost = Math.round(project.estimatedCost / scale.months)
+    const promise = promiseForId(project.promiseId)
+    const phase = projectPhase(project)
+    const monthlyCost = Math.round(project.estimatedCost / project.totalMonths)
     const extraProgress = (trait?.modifiers.progressChance && random() < trait.modifiers.progressChance ? 0.35 : 0) + (culture?.modifiers.progress ?? 0) + state.studio.team.length * 0.08
     const healthPace = 0.75 + state.player.health / 400
     project.progress += (1 + extraProgress) * healthPace
     project.costSpent += monthlyCost
-    project.quality += randomInt(1, 4, random)
+    if (phase === 'prototype') {
+      project.quality += randomInt(2, 4, random) + Math.min(1, project.promiseFit ?? 0)
+      project.bugs += randomInt(0, Math.max(1, Math.ceil(promise.bugRisk / 2)), random)
+    } else if (phase === 'production') {
+      project.quality += randomInt(1, 4, random)
+      project.bugs += randomInt(0, Math.max(1, promise.bugRisk), random)
+    } else {
+      project.quality += randomInt(1, 2, random)
+      const fixCapacity = 2 + Math.floor((state.player.stats.programming + state.studio.team.length * 4) / 28)
+      project.bugs = Math.max(0, project.bugs - randomInt(1, fixCapacity, random))
+    }
     project.innovation += project.focus === 'innovation' ? randomInt(1, 3, random) : random() < 0.18 ? 1 : 0
     project.pressure += randomInt(6, 11, random) + (project.publisher?.pressure ?? 0) * 0.08
     state.player.money -= monthlyCost
@@ -171,7 +197,10 @@ function monthAction(state, payload, random) {
     state.studio.research += 1 + Math.floor(state.studio.team.length / 3)
     state.player.career.monthsWorked += 1
     workedOnProject = true
-    addHistory(state, `Mais um mês em ${project.title}`, `${Math.min(100, Math.round(project.progress / project.totalMonths * 100))}% concluído.`, { kind: 'project' })
+    const nextPhase = projectPhase(project)
+    if (nextPhase !== phase && !project.phaseHistory?.includes(nextPhase)) project.phaseHistory = [...(project.phaseHistory ?? []), nextPhase]
+    const phaseCopy = phase === 'prototype' ? 'A ideia já dá para jogar.' : phase === 'production' ? `${project.bugs} pendência${project.bugs === 1 ? '' : 's'} na build.` : `${project.bugs} pendência${project.bugs === 1 ? '' : 's'} antes do lançamento.`
+    addHistory(state, `${phaseForId(phase).label}: ${project.title}`, `${Math.min(100, Math.round(project.progress / project.totalMonths * 100))}% concluído. ${phaseCopy}`, { kind: 'project' })
   } else if (payload.action === 'promote' && project && project.announced) {
     const cost = 1200 + SCALES[project.scale].cost * 0.06
     const gain = randomInt(5, 11, random) + Math.round(state.player.stats.marketing / 18)
@@ -328,6 +357,38 @@ function attendGameEvent(state, eventId) {
   addHistory(state, `Estande na ${event.name}`, `${event.followers.toLocaleString('pt-BR')} pessoas novas acompanharam o estúdio${state.currentProject ? `; ${state.currentProject.title} ganhou ${event.hype} de hype` : ''}.`, { highlight: event.tier !== 'LOCAL', kind: 'event' })
 }
 
+function runPlaytest(state, random) {
+  const project = state.currentProject
+  if (!project || project.playtest || projectPhase(project) === 'prototype' || state.queue.length) return
+  const cost = Math.max(450, Math.round(SCALES[project.scale].cost * .055))
+  if (state.player.money < cost) return
+  const remainingMonths = Math.max(0, project.totalMonths - project.progress)
+  const center = clamp(calculateQuality(state, project, () => .5) + Math.round(remainingMonths * 1.35), 24, 97)
+  const uncertainty = projectPhase(project) === 'polish' ? 5 : 9
+  const drift = randomInt(-2, 2, random)
+  const min = clamp(center - uncertainty + drift, 20, 94)
+  const max = clamp(center + uncertainty + drift, min + 2, 99)
+  const issue = (project.bugs ?? 0) >= 6
+    ? 'A build engasga quando muita coisa acontece ao mesmo tempo.'
+    : (project.promiseFit ?? 0) === 0
+      ? 'A promessa ainda parece colada por cima do resto do jogo.'
+      : project.pressure > 60
+        ? 'O conteúdo está crescendo mais rápido que o acabamento.'
+        : 'O começo funciona; o miolo ainda perde ritmo.'
+  const strength = (project.promiseFit ?? 0) >= 2
+    ? `“${project.promiseName}” já aparece sem precisar explicar.`
+    : project.focus === 'story'
+      ? 'As pessoas lembraram dos personagens depois da sessão.'
+      : 'O primeiro minuto deixou claro como jogar.'
+  state.player.money -= cost
+  state.player.energy = clamp(state.player.energy - 4, 0, 100)
+  state.player.stress = clamp(state.player.stress + 2, 0, 100)
+  project.costSpent += cost
+  project.quality += 1
+  project.playtest = { min, max, issue, strength, date: dateLabel(state.date), cost }
+  addHistory(state, `Playtest de ${project.title}`, `A equipe estima uma nota entre ${min} e ${max}.`, { highlight: true, kind: 'project' })
+}
+
 export function reduceGame(currentState, action, random = Math.random) {
   if (action.type === 'RESET_CAREER') return createInitialState(action.options ?? { startYear: action.startYear }, random)
   if (!currentState) return currentState
@@ -339,6 +400,7 @@ export function reduceGame(currentState, action, random = Math.random) {
   if (action.type === 'UPGRADE_EQUIPMENT') upgradeEquipment(state)
   if (action.type === 'ANNOUNCE_PROJECT') announceProject(state)
   if (action.type === 'SET_LAUNCH_PLAN') setLaunchPlan(state, action.plan)
+  if (action.type === 'RUN_PLAYTEST') runPlaytest(state, random)
   if (action.type === 'ATTEND_GAME_EVENT') attendGameEvent(state, action.eventId)
   if (action.type === 'RENAME_PROJECT' && state.currentProject) {
     const title = String(action.title ?? '').trim().slice(0, 56)
