@@ -15,6 +15,7 @@ import { LicensesScreen } from '../screens/LicensesScreen.jsx'
 import { ChartsScreen } from '../screens/ChartsScreen.jsx'
 import { useGame } from './GameContext.jsx'
 import { StartScreen } from '../features/onboarding/StartScreen.jsx'
+import { SettingsModal } from '../features/settings/SettingsModal.jsx'
 
 const screens = {
   career: CareerScreen,
@@ -38,6 +39,7 @@ export function App() {
       <Screen />
       <NewProjectModal />
       <ResetModal />
+      <SettingsModal />
       {queueItem?.kind === 'decision' && <DecisionModal decision={queueItem} />}
       {queueItem?.kind === 'release' && <ReleaseModal gameId={queueItem.gameId} />}
       {queueItem?.kind === 'info' && <InfoModal item={queueItem} />}

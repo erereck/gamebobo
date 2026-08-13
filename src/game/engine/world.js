@@ -63,8 +63,8 @@ function tickPlatforms(state, random) {
     state.market.platforms[platform.id] = randomInt(8, 16, random)
     state.player.audience.platforms[platform.id] ??= 0
     changed = true
-    state.queue.push({
-      id: makeId('platform'), kind: 'info', tag: 'NOVA PLATAFORMA', title: `${platform.label} chegou ao mercado`,
+    if (state.settings.timelineNotices !== false) state.queue.push({
+      id: makeId('platform'), kind: 'info', timelineNotice: true, autoAdvance: true, tag: 'NOVA PLATAFORMA', title: `${platform.label} chegou ao mercado`,
       body: 'Uma base pequena, curiosa e ainda sem catálogo consolidado. Quem chegar cedo pode definir o gosto do público.',
       details: ['PÚBLICO NOVO', `ROYALTY ${Math.round(platform.royalty * 100)}%`, 'RISCO ALTO'],
     })
@@ -87,7 +87,7 @@ function tickHistoricalMilestones(state) {
   milestones.forEach(milestone => {
     state.world.seenHistoricalMilestones.push(milestone.id)
     state.world.industryNews.unshift({ id: makeId('historical-news'), year: milestone.year, title: milestone.title, body: milestone.copy, company: milestone.company, historical: true })
-    state.queue.push({ id: makeId('historical'), kind: 'info', tag: `ARQUIVO · ${milestone.company.toUpperCase()}`, title: milestone.title, body: milestone.copy, details: [`${MONTHS[milestone.month]} ${milestone.year}`, 'MARCO HISTÓRICO', 'A LINHA DO TEMPO CONTINUA'] })
+    if (state.settings.timelineNotices !== false) state.queue.push({ id: makeId('historical'), kind: 'info', timelineNotice: true, autoAdvance: true, tag: `ARQUIVO · ${milestone.company.toUpperCase()}`, title: milestone.title, body: milestone.copy, details: [`${MONTHS[milestone.month]} ${milestone.year}`, 'MARCO HISTÓRICO', 'A LINHA DO TEMPO CONTINUA'] })
     addHistory(state, milestone.title, `${milestone.company}: ${milestone.copy}`, { highlight: true, kind: 'industry' })
   })
 }
@@ -155,8 +155,8 @@ function tickEra(state) {
   const previous = state.world.eraId
   state.world.eraId = era.id
   state.world.eraStarted = state.date.year
-  state.queue.push({
-    id: makeId('era'), kind: 'info', tag: 'MUDANÇA DE ERA', title: era.name,
+  if (state.settings.timelineNotices !== false) state.queue.push({
+    id: makeId('era'), kind: 'info', timelineNotice: true, autoAdvance: true, tag: 'MUDANÇA DE ERA', title: era.name,
     body: era.description,
     details: era.keywords.map(keyword => keyword.toUpperCase()),
   })

@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createInitialState } from './state.js'
 import { PLATFORM_HISTORY, regionDate } from '../data/platformHistory.js'
+import { tickWorld } from './world.js'
 
 const fixed = () => .5
 
@@ -12,6 +13,23 @@ test('a career can begin in any supported historical decade', () => {
     assert.ok('pc' in state.market.platforms)
     assert.equal(Object.values(state.market.platforms).reduce((sum, value) => sum + value, 0), 100)
   }
+})
+
+test('historical notices can be hidden without erasing the timeline', () => {
+  const visible = createInitialState({ startYear: 1980 }, fixed)
+  visible.date = { year: 1980, month: 4 }
+  tickWorld(visible, () => 1)
+  const pacManNotice = visible.queue.find(item => item.title === 'Pac-Man chega aos arcades')
+  assert.equal(pacManNotice?.autoAdvance, true)
+  assert.equal(pacManNotice?.timelineNotice, true)
+
+  const quiet = createInitialState({ startYear: 1980 }, fixed)
+  quiet.settings.timelineNotices = false
+  quiet.date = { year: 1980, month: 4 }
+  tickWorld(quiet, () => 1)
+  assert.equal(quiet.queue.some(item => item.title === 'Pac-Man chega aos arcades'), false)
+  assert.equal(quiet.history.some(item => item.title === 'Pac-Man chega aos arcades'), true)
+  assert.equal(quiet.world.industryNews.some(item => item.title === 'Pac-Man chega aos arcades'), true)
 })
 
 test('the platform catalog has stable IDs and valid regional dates', () => {

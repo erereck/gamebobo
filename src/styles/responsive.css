@@ -89,6 +89,11 @@
   .era-hero { align-items: start; }
   .era-hero h3 { margin-top: 20px; }
   .info-sheet, .awards-sheet { padding: 36px 18px 20px; }
+  .settings-sheet { padding: 36px 18px 20px; }
+  .settings-row { align-items: flex-start; }
+  .settings-row input { margin-top: 4px; }
+  .settings-actions { align-items: stretch; flex-direction: column-reverse; }
+  .settings-actions .button { width: 100%; }
   .month-actions button, .launch-plans button, .company-rolodex > button, .rights-ledger button { min-height: 48px; }
   .chart-control-strip button, .decade-picker button { min-height: 44px; }
   .chart-row div > span, .chart-row div > small, .company-rolodex button > span, .company-rolodex button > small { font-size: 8px; }

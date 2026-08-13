@@ -12,6 +12,7 @@ export function GameProvider({ children }) {
   const [view, setView] = useState('career')
   const [projectModalOpen, setProjectModalOpen] = useState(false)
   const [resetModalOpen, setResetModalOpen] = useState(false)
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false)
 
   setDisplayCurrency(state?.settings?.currency ?? 'BRL')
 
@@ -61,7 +62,9 @@ export function GameProvider({ children }) {
     setProjectModalOpen,
     resetModalOpen,
     setResetModalOpen,
-  }), [state, sessionStarted, startCareer, continueCareer, dispatch, view, projectModalOpen, resetModalOpen])
+    settingsModalOpen,
+    setSettingsModalOpen,
+  }), [state, sessionStarted, startCareer, continueCareer, dispatch, view, projectModalOpen, resetModalOpen, settingsModalOpen])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }

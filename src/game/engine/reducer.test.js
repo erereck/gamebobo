@@ -26,6 +26,17 @@ test('currency preference changes display without changing the underlying cash',
   setDisplayCurrency('BRL')
 })
 
+test('disabling timeline notices clears only passive timeline cards', () => {
+  const original = createInitialState(fixed)
+  original.queue = [
+    { id: 'historical', kind: 'info', timelineNotice: true },
+    { id: 'decision', kind: 'decision' },
+  ]
+  const changed = reduceGame(original, { type: 'SET_TIMELINE_NOTICES', enabled: false }, fixed)
+  assert.equal(changed.settings.timelineNotices, false)
+  assert.deepEqual(changed.queue.map(item => item.id), ['decision'])
+})
+
 test('starting a project and developing advances the calendar', () => {
   let state = createInitialState(fixed)
   state = reduceGame(state, { type: 'START_PROJECT', payload: { title: 'Teste', genre: 'puzzle', theme: 'space', focus: 'gameplay', platform: 'pc', scale: 'micro' } }, fixed)

@@ -57,6 +57,8 @@ O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faix
 - Entrada da carreira: capa “Edição Zero” em CRT ao lado de uma ficha de inscrição em papel. Save existente vira “edição encontrada”; nunca usar tela de login ou onboarding em carrossel.
 - Ficha de inscrição: campos insetos, ano em fita CRT, perfis como recortes de papel e moeda em três carimbos. Botão de início só ativa com fundador e estúdio preenchidos.
 - Scrollbar: trilho em papel fundo e polegar de etiqueta vermelha, fino no documento e em superfícies roláveis; barras horizontais de navegação podem continuar ocultas quando o gesto já é evidente.
+- Aviso da linha do tempo: papel modal com fita regressiva de 8 segundos no rodapé; etiqueta vermelha perde comprimento da esquerda para a direita, pausa durante interação e nunca é usada em decisões obrigatórias.
+- Configurações: folha única aberta por `CFG` no cabeçalho; switches ampliados para som e avisos, carimbos existentes para moeda e ação destrutiva subordinada no rodapé.
 
 ## Regras
 

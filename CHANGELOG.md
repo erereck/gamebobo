@@ -6,6 +6,14 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 0.7.1 — Edição Zero — 2026-08-13
+
+- Marcos históricos, novas plataformas e mudanças de era agora exibem uma fita regressiva de oito segundos e continuam automaticamente.
+- O temporizador pausa enquanto o jogador interage com o aviso ou deixa a aba em segundo plano.
+- Novo painel `CFG` concentra som, moeda, avisos da linha do tempo e acesso à criação de outra carreira.
+- Avisos podem ser desligados sem apagar marcos do histórico nem notícias da indústria.
+- Dois testes novos cobrem a classificação temporizada e o modo silencioso da linha do tempo.
+
 ## 0.7.0 — Edição Zero — 2026-08-13
 
 - Nova capa inicial pensada para a primeira visita, sem criar save antes da confirmação do jogador.

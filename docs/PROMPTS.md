@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-009 — 2026-08-13 — Fita de leitura
+
+Pedido: fazer avisos como “Pac-Man chega aos arcades” avançarem sozinhos depois de oito segundos, mostrar o tempo numa barra e permitir desligar esses avisos nas configurações.
+
+Resultado: versão 0.7.1.
+
 ## P-008 — 2026-08-13 — Edição Zero
 
 Pedido: criar um menu inicial orientado a novos jogadores, separar claramente nova carreira e carregamento do save, permitir personalizar a carreira, substituir scrollbars padrão e adicionar alternância entre real, dólar e euro.

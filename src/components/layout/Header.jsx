@@ -4,7 +4,7 @@ import { CURRENCIES } from '../../game/engine/utils.js'
 import { useGame } from '../../app/GameContext.jsx'
 
 export function Header() {
-  const { state, dispatch, setResetModalOpen } = useGame()
+  const { state, dispatch, setSettingsModalOpen } = useGame()
   const currencyCodes = Object.keys(CURRENCIES)
   const currentCurrency = state.settings.currency ?? 'BRL'
   const nextCurrency = currencyCodes[(currencyCodes.indexOf(currentCurrency) + 1) % currencyCodes.length]
@@ -29,7 +29,7 @@ export function Header() {
         <button type="button" onClick={() => dispatch({ type: 'TOGGLE_SOUND' })} aria-label="Alternar sons">
           SOM {state.settings.sound ? '✓' : '—'}
         </button>
-        <button type="button" onClick={() => setResetModalOpen(true)} aria-label="Recomeçar carreira">NOVA</button>
+        <button type="button" onClick={() => setSettingsModalOpen(true)} aria-label="Abrir configurações">CFG</button>
       </div>
     </header>
   )

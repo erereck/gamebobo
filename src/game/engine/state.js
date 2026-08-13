@@ -111,7 +111,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
     ],
     queue: [],
     seenPersonalEvents: [],
-    settings: { sound: true, currency },
+    settings: { sound: true, currency, timelineNotices: true },
   }
   generateOpportunities(state, random)
   return state

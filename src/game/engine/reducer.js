@@ -355,6 +355,10 @@ export function reduceGame(currentState, action, random = Math.random) {
   if (action.type === 'RESPOND_CORPORATE_OFFER') respondCorporateOffer(state, action.offerId, action.response, random)
   if (action.type === 'TOGGLE_SOUND') state.settings.sound = !state.settings.sound
   if (action.type === 'SET_CURRENCY' && ['BRL', 'USD', 'EUR'].includes(action.currency)) state.settings.currency = action.currency
+  if (action.type === 'SET_TIMELINE_NOTICES') {
+    state.settings.timelineNotices = Boolean(action.enabled)
+    if (!state.settings.timelineNotices) state.queue = state.queue.filter(item => !item.timelineNotice)
+  }
   state.meta.version = currentState.meta.version
   return state
 }
