@@ -1,0 +1,24 @@
+{
+  "name": "Pacote de exemplo",
+  "version": 1,
+  "licenses": [
+    {
+      "id": "capitao-borracha",
+      "name": "Capitão Borracha",
+      "owner": "Oficina do Bairro",
+      "kind": "character",
+      "availableFrom": 1980,
+      "popularity": 44,
+      "prestige": 31,
+      "minReputation": 12,
+      "minTrophies": 0,
+      "baseCost": 420000,
+      "royalty": 0.09,
+      "durationYears": 3,
+      "genres": ["action", "puzzle"],
+      "themes": ["crime"],
+      "audiences": ["família"],
+      "clauses": ["heroIntegrity", "familyRating", "visualApproval"]
+    }
+  ]
+}

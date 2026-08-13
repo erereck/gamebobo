@@ -1,0 +1,22 @@
+{
+  "name": "gamebobo",
+  "private": true,
+  "version": "0.6.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test src/game/engine/*.test.js",
+    "version": "node scripts/bump-version.mjs",
+    "prompt": "node scripts/log-prompt.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.7.0",
+    "vite": "6.4.3"
+  }
+}

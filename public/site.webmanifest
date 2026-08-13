@@ -1,0 +1,15 @@
+{
+  "name": "Gamebobo",
+  "short_name": "Gamebobo",
+  "description": "Um jogo sobre fazer jogos e conviver com o resultado.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#d7c9aa",
+  "theme_color": "#14243b",
+  "lang": "pt-BR",
+  "orientation": "any",
+  "icons": [
+    { "src": "gamebobo-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

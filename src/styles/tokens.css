@@ -1,0 +1,25 @@
+:root {
+  --desk: #d7c9aa;
+  --desk-dark: #b7a47f;
+  --paper: #f3ecd9;
+  --paper-bright: #fffaf0;
+  --paper-deep: #e4d8ba;
+  --ink: #17253b;
+  --ink-soft: #526074;
+  --ink-faint: #817f75;
+  --crt: #14243b;
+  --crt-raised: #1d314d;
+  --phosphor: #b7df68;
+  --phosphor-deep: #739d3b;
+  --sticker: #d85240;
+  --danger: #a8392d;
+  --line: rgba(23, 37, 59, 0.17);
+  --line-strong: rgba(23, 37, 59, 0.34);
+  --line-dark: rgba(255, 255, 255, 0.12);
+  --shadow-small: 0 1px 0 rgba(255,255,255,.46), 0 2px 4px rgba(52,42,24,.16);
+  --shadow-medium: 0 1px 0 rgba(255,255,255,.5), 0 8px 24px rgba(52,42,24,.2);
+  --radius-small: 3px;
+  --radius-medium: 7px;
+  --radius-large: 11px;
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+}
