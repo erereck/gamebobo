@@ -22,12 +22,13 @@ export function StudioScreen() {
   const nextOffice = OFFICES[state.studio.officeLevel + 1]
   const audience = state.player.audience
   const segments = [['Hardcore', audience.hardcore], ['Casual', audience.casual], ['Nostálgicos', audience.nostalgic], ['Confiança', `${audience.trust}/100`]]
+  const founderInitials = state.player.name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase()
   return (
     <section className="screen" aria-labelledby="studio-title">
       <header className="screen-heading"><div><p className="overline">QUEM FAZ OS JOGOS</p><h2 id="studio-title">{state.studio.name}</h2></div><p>{office.name}. Custo fixo de {formatMoney(state.studio.monthlyBurn)} por mês.</p></header>
       <div className="studio-grid">
         <section className="profile-sheet">
-          <div className="profile-head"><div className="portrait-placeholder">EL</div><div><span>FUNDADOR · {state.player.health}% SAÚDE</span><h3>{state.player.name}, {state.player.age}</h3><p>{trait.name}: {trait.description}</p></div></div>
+          <div className="profile-head"><div className="portrait-placeholder">{founderInitials}</div><div><span>FUNDADOR · {state.player.health}% SAÚDE</span><h3>{state.player.name}, {state.player.age}</h3><p>{trait.name}: {trait.description}</p></div></div>
           <div className="skill-list">{STATS.map(stat => <div key={stat.id}><span>{stat.label}</span><div><i style={{ width: `${state.player.stats[stat.id]}%` }} /></div><strong>{state.player.stats[stat.id]}</strong></div>)}</div>
         </section>
         <div className="studio-side">

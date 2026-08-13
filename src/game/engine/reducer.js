@@ -297,7 +297,8 @@ function setLaunchPlan(state, plan) {
 }
 
 export function reduceGame(currentState, action, random = Math.random) {
-  if (action.type === 'RESET_CAREER') return createInitialState({ startYear: action.startYear }, random)
+  if (action.type === 'RESET_CAREER') return createInitialState(action.options ?? { startYear: action.startYear }, random)
+  if (!currentState) return currentState
   const state = clone(currentState)
   if (action.type === 'START_PROJECT') startProject(state, action.payload)
   if (action.type === 'MONTH_ACTION') monthAction(state, action.payload, random)
@@ -353,6 +354,7 @@ export function reduceGame(currentState, action, random = Math.random) {
   if (action.type === 'REQUEST_PARTNERSHIP') requestPartnership(state, action.companyId, random)
   if (action.type === 'RESPOND_CORPORATE_OFFER') respondCorporateOffer(state, action.offerId, action.response, random)
   if (action.type === 'TOGGLE_SOUND') state.settings.sound = !state.settings.sound
+  if (action.type === 'SET_CURRENCY' && ['BRL', 'USD', 'EUR'].includes(action.currency)) state.settings.currency = action.currency
   state.meta.version = currentState.meta.version
   return state
 }

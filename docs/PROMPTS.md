@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-008 — 2026-08-13 — Edição Zero
+
+Pedido: criar um menu inicial orientado a novos jogadores, separar claramente nova carreira e carregamento do save, permitir personalizar a carreira, substituir scrollbars padrão e adicionar alternância entre real, dólar e euro.
+
+Resultado: versão 0.7.0.
+
 ## P-007 — 2026-08-13 — Edição de Bolso
 
 Pedido: criar o repositório público, publicar o jogo no GitHub Pages e validar a experiência responsiva com prioridade absoluta para celulares.

@@ -1,5 +1,4 @@
 import { VERSION_INFO as versionInfo } from '../../version.js'
-import { createInitialState } from '../engine/state.js'
 import { hydrateV6, migrateV1, migrateV2, migrateV3, migrateV4, migrateV5 } from './migrate.js'
 
 const SAVE_KEY = 'gamebobo-save'
@@ -19,10 +18,11 @@ export function loadGame() {
   } catch (error) {
     console.warn('Save ignorado porque não pôde ser lido.', error)
   }
-  return createInitialState()
+  return null
 }
 
 export function saveGame(state) {
+  if (!state) return
   const saved = {
     ...state,
     meta: { ...state.meta, lastSavedAt: new Date().toISOString(), version: versionInfo.version },

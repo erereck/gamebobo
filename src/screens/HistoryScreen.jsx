@@ -1,6 +1,6 @@
 import { useGame } from '../app/GameContext.jsx'
 import { getCareerRecords, getFranchises } from '../game/engine/selectors.js'
-import { formatMoney, formatNumber } from '../game/engine/utils.js'
+import { formatCurrencyCopy, formatMoney, formatNumber } from '../game/engine/utils.js'
 
 export function HistoryScreen() {
   const { state } = useGame()
@@ -21,7 +21,7 @@ export function HistoryScreen() {
       <section className="trophy-cabinet"><header><p className="overline">PRÊMIOS</p><h3>{state.awards.trophies.length} troféus · {state.awards.nominations.length} indicações</h3></header>{state.awards.trophies.length ? <div>{state.awards.trophies.map(trophy => <article key={trophy.id}><span>{trophy.year}</span><strong>{trophy.category}</strong><small>{trophy.gameTitle}</small></article>)}</div> : <p>A estante ainda está livre.</p>}</section>
       {franchises.length > 0 && <section className="legacy-franchises"><p className="overline">FRANQUIAS</p>{franchises.map(item => <div key={item.id}><strong>{item.name}</strong><span>{item.games.length} {item.games.length === 1 ? 'jogo' : 'jogos'}</span><em>{formatNumber(item.sales)} cópias</em></div>)}</section>}
       <section className="leadership-chain"><header><p className="overline">QUEM CARREGOU A CHAVE</p><h3>{state.studio.leaders.length} {state.studio.leaders.length === 1 ? 'geração' : 'gerações'} em {state.studio.name}</h3></header><div>{state.studio.leaders.map((leader, index) => <article key={`${leader.name}-${leader.from}`} className={leader.to == null ? 'is-current' : ''}><span>G{leader.generation ?? index + 1}</span><strong>{leader.name}</strong><small>{leader.from}—{leader.to ?? 'agora'} · {leader.legacy}</small></article>)}</div></section>
-      <section className="history-ledger">{[...state.history].reverse().map(item => <article key={item.id} className={item.highlight ? 'is-highlight' : ''}><time>{item.date}</time><span aria-hidden="true" /><div><h3>{item.title}</h3><p>{item.body}</p></div></article>)}</section>
+      <section className="history-ledger">{[...state.history].reverse().map(item => <article key={item.id} className={item.highlight ? 'is-highlight' : ''}><time>{item.date}</time><span aria-hidden="true" /><div><h3>{item.title}</h3><p>{formatCurrencyCopy(item.body)}</p></div></article>)}</section>
     </section>
   )
 }

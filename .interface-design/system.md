@@ -54,6 +54,9 @@ O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faix
 - Mesa corporativa: valuation em carta dominante, fichário estreito de empresas e um dossiê de relação; proposta de aquisição usa CRT porque altera a estrutura do save.
 - Relação empresarial: quatro marcos na mesma régua — contato, parceria, IP confiada e aquisição. Não usar XP, medalhas ou cores por companhia.
 - Brief encomendado: fita CRT com IP, nota, prazo e bônus; no formulário, a licença obrigatória recebe “BRIEF” e não pode ser desmarcada.
+- Entrada da carreira: capa “Edição Zero” em CRT ao lado de uma ficha de inscrição em papel. Save existente vira “edição encontrada”; nunca usar tela de login ou onboarding em carrossel.
+- Ficha de inscrição: campos insetos, ano em fita CRT, perfis como recortes de papel e moeda em três carimbos. Botão de início só ativa com fundador e estúdio preenchidos.
+- Scrollbar: trilho em papel fundo e polegar de etiqueta vermelha, fino no documento e em superfícies roláveis; barras horizontais de navegação podem continuar ocultas quando o gesto já é evidente.
 
 ## Regras
 

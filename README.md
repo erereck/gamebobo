@@ -2,7 +2,7 @@
 
 Um jogo de carreira sobre fazer jogos e conviver com o resultado. A meta não é encontrar uma fórmula perfeita: é terminar o save com histórias que só aconteceram naquela linha do tempo.
 
-Versão atual: **0.6.1 — Edição de Bolso**.
+Versão atual: **0.7.0 — Edição Zero**.
 
 ## Começar
 
@@ -88,6 +88,8 @@ Se você não sabe onde colocar uma mudança, consulte [docs/ARCHITECTURE.md](do
 | cor, espaço ou tipografia | `src/styles/tokens.css` e `.interface-design/system.md` |
 | versão mostrada no jogo | rode `npm run version`; não edite os arquivos gerados à mão |
 | pacote externo de IPs | `docs/LICENSE_PACKS.md` e o exemplo em `public/content-packs/` |
+| entrada, continuar save e ficha de carreira | `src/features/onboarding/` e `src/styles/onboarding.css` |
+| moedas e conversão de exibição | `src/game/engine/utils.js` e `state.settings.currency` |
 
 ## Regra de dependência
 

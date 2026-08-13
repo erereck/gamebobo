@@ -13,11 +13,31 @@ export const makeId = (prefix = 'id') => {
 
 export const clone = value => structuredClone(value)
 
-export const formatMoney = value => new Intl.NumberFormat('pt-BR', {
+export const CURRENCIES = Object.freeze({
+  BRL: { code: 'BRL', label: 'Real', short: 'R$', locale: 'pt-BR', rate: 1 },
+  USD: { code: 'USD', label: 'Dólar', short: '$', locale: 'pt-BR', rate: .18 },
+  EUR: { code: 'EUR', label: 'Euro', short: '€', locale: 'pt-BR', rate: .16 },
+})
+
+let displayCurrency = 'BRL'
+
+export const setDisplayCurrency = currency => {
+  displayCurrency = CURRENCIES[currency] ? currency : 'BRL'
+}
+
+export const formatMoney = (value, currency = displayCurrency) => {
+  const selected = CURRENCIES[currency] ?? CURRENCIES.BRL
+  return new Intl.NumberFormat(selected.locale, {
   style: 'currency',
-  currency: 'BRL',
+  currency: selected.code,
   maximumFractionDigits: 0,
-}).format(Math.round(value))
+  }).format(Math.round(value * selected.rate))
+}
+
+export const formatCurrencyCopy = (copy, currency = displayCurrency) => {
+  if (!copy || currency === 'BRL') return copy
+  return copy.replace(/R\$\s?(\d{1,3}(?:\.\d{3})+|\d+)/g, (_, rawValue) => formatMoney(Number(rawValue.replaceAll('.', '')), currency))
+}
 
 export const formatNumber = value => new Intl.NumberFormat('pt-BR', {
   notation: Math.abs(value) >= 100_000 ? 'compact' : 'standard',

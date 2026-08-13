@@ -14,6 +14,7 @@ import { IndustryScreen } from '../screens/IndustryScreen.jsx'
 import { LicensesScreen } from '../screens/LicensesScreen.jsx'
 import { ChartsScreen } from '../screens/ChartsScreen.jsx'
 import { useGame } from './GameContext.jsx'
+import { StartScreen } from '../features/onboarding/StartScreen.jsx'
 
 const screens = {
   career: CareerScreen,
@@ -27,7 +28,8 @@ const screens = {
 }
 
 export function App() {
-  const { state, view } = useGame()
+  const { state, view, sessionStarted } = useGame()
+  if (!sessionStarted) return <StartScreen />
   const Screen = screens[view] ?? CareerScreen
   const queueItem = state.queue[0]
 

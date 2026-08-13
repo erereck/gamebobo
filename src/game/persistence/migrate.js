@@ -186,6 +186,7 @@ export function hydrateV6(oldState) {
   }
   state.studio.parentCompany ??= null
   state.studio.autonomy ??= 100
+  state.settings = { ...fresh.settings, ...(oldState.settings ?? {}) }
   if (state.currentProject) state.currentProject = { corporateCommissionId: null, ...state.currentProject }
   state.games = state.games.map(game => ({ corporateCommissionId: null, ...game }))
   return state

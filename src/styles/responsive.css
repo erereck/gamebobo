@@ -20,7 +20,8 @@
 
 @media (max-width: 620px) {
   .game-shell { width: 100%; margin: 0; }
-  .masthead { padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left)); border-radius: 0; }
+  .masthead { padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left)); gap: 8px; border-radius: 0; }
+  .brand-lockup { gap: 8px; }
   .brand-disk { width: 40px; height: 40px; }
   .brand-lockup h1 { font-size: 18px; }
   .brand-lockup p, .version-chip { display: none; }
@@ -96,7 +97,7 @@
 }
 
 @media (max-width: 380px) {
-  .brand-lockup h1 { font-size: 16px; }
+  .masthead .brand-lockup h1 { display: none; }
   .header-tools { gap: 4px; }
   .header-tools button { min-width: 44px; }
   .screen-heading h2 { font-size: 30px; }

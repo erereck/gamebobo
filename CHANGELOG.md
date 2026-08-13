@@ -6,6 +6,17 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 0.7.0 — Edição Zero — 2026-08-13
+
+- Nova capa inicial pensada para a primeira visita, sem criar save antes da confirmação do jogador.
+- Save existente aparece como uma edição encontrada, com fundador, estúdio, data, caixa e progresso antes de continuar.
+- Ficha de carreira permite escolher nome, estúdio, idade, ano entre 1980 e 2020, perfil inicial e moeda.
+- A mesma ficha completa substitui o antigo reinício limitado apenas ao ano.
+- Reais, dólares e euros podem ser alternados durante a carreira sem alterar o balanceamento interno.
+- Barras de rolagem próprias usam papel e etiqueta vermelha em vez do estilo padrão do navegador.
+- Identidade do fundador agora gera iniciais a partir do nome escolhido.
+- Dois testes novos cobrem personalização e moeda; entrada e continuação foram auditadas em 320 e 390 px.
+
 ## 0.6.1 — Edição de Bolso — 2026-08-13
 
 - Publicação estática preparada para GitHub Pages com deploy automático, teste e build a cada envio para `main`.

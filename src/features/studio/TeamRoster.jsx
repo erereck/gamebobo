@@ -5,11 +5,12 @@ import { Button } from '../../components/ui/Button.jsx'
 
 export function TeamRoster() {
   const { state, dispatch } = useGame()
+  const founderInitials = state.player.name.split(' ').filter(Boolean).map(part => part[0]).join('').slice(0, 2).toUpperCase()
   return (
     <section className="team-roster">
       <header><div><p className="overline">EQUIPE</p><h3>{state.studio.team.length ? `${state.studio.team.length + 1} pessoas fazendo jogo` : 'Ainda é só você'}</h3></div><span>MORAL {state.studio.morale}%</span></header>
       <div className="team-list">
-        <article className="team-member founder"><div className="person-avatar">EL</div><div><strong>{state.player.name}</strong><span>Fundador · Geral</span><small>Não recebe salário. Ainda.</small></div></article>
+        <article className="team-member founder"><div className="person-avatar">{founderInitials}</div><div><strong>{state.player.name}</strong><span>Fundador · Geral</span><small>Não recebe salário. Ainda.</small></div></article>
         {state.studio.team.map(person => {
           const role = ROLES.find(item => item.id === person.roleId)
           const personality = PERSONALITIES.find(item => item.id === person.personalityId)

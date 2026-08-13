@@ -16,7 +16,11 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
   const options = typeof optionsOrRandom === 'function' ? {} : optionsOrRandom
   const random = typeof optionsOrRandom === 'function' ? optionsOrRandom : maybeRandom
   const startYear = clamp(Number(options.startYear) || 2003, 1980, 2020)
-  const trait = randomChoice(TRAITS, random)
+  const trait = TRAITS.find(item => item.id === options.traitId) ?? randomChoice(TRAITS, random)
+  const playerName = String(options.playerName || 'Erick').trim().slice(0, 28) || 'Erick'
+  const studioName = String(options.studioName || 'EriLab').trim().slice(0, 32) || 'EriLab'
+  const playerAge = clamp(Number(options.age) || 21, 16, 60)
+  const currency = ['BRL', 'USD', 'EUR'].includes(options.currency) ? options.currency : 'BRL'
   const stats = { programming: 52, art: 24, design: 61, marketing: 18, charisma: 40 }
   if (trait.modifiers.programming) stats.programming += trait.modifiers.programming
   if (trait.modifiers.charisma) stats.charisma += trait.modifiers.charisma
@@ -33,8 +37,8 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
     },
     date: { month: 0, year: startYear },
     player: {
-      name: 'Erick',
-      age: 21,
+      name: playerName,
+      age: playerAge,
       money: 12800,
       energy: 100,
       stress: 8,
@@ -75,7 +79,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
       technologyLevel: Math.max(1, getEra(startYear).techCap - 1),
     },
     studio: {
-      name: 'EriLab',
+      name: studioName,
       founded: startYear,
       officeLevel: OFFICES[0].level,
       cultureId: CULTURES[0].id,
@@ -91,7 +95,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
       autonomy: 100,
       morale: 68,
       reputation: 0,
-      leaders: [{ name: 'Erick', generation: 1, from: startYear, to: null, legacy: 'Fundador' }],
+      leaders: [{ name: playerName, generation: 1, from: startYear, to: null, legacy: 'Fundador' }],
     },
     opportunities: { contracts: [], publisherOffers: [] },
     awards: { trophies: [], nominations: [], processedYears: [] },
@@ -107,7 +111,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
     ],
     queue: [],
     seenPersonalEvents: [],
-    settings: { sound: true },
+    settings: { sound: true, currency },
   }
   generateOpportunities(state, random)
   return state
