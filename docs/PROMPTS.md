@@ -1,5 +1,17 @@
 # Registro de prompts
 
+## P-018 — 2026-08-13 — Demanda de Verdade
+
+Pedido: Tornar as premiações mais lentas e compreensíveis com um botão CONTINUAR neutro em todas as etapas, sem revelar quantos envelopes faltam, e recalibrar vendas de forma sistêmica usando a referência de um Mega Drive 94/100 em 1991, aplicando a mesma lógica a eras, escalas, distribuição, editoras, rivais, receita e fenômenos raros.
+
+Resultado: versão 0.11.0. A premiação passou ao ritmo manual com um botão neutro e sem spoilers de progresso; vendas de jogador e rivais foram reunidas numa curva comercial histórica, calibrada pela referência Mega Drive 94/100 e protegida por regressões de distribuição, margem e fenômenos raros.
+
+## P-017 — 2026-08-13 — Fita de Bolso
+
+Pedido: Remover os atalhos de moeda e som do HUD, mantendo ambos nas configurações, e permitir rolagem horizontal da faixa mobile para alcançar saúde, seguidores e reputação.
+
+Resultado: versão 0.10.4. Moeda e som ficaram apenas nas configurações, o cabeçalho recuperou espaço e a faixa de carreira mobile passou a rolar horizontalmente sem esconder saúde, seguidores ou reputação.
+
 ## P-016 — 2026-08-13 — Noite dos Envelopes
 
 Pedido: Corrigir a tela de prêmios presa no celular, dramatizar categorias com Jogo do Ano por último, remover Melhor Indie antes de 2004, acelerar retorno ao topo, prolongar animações numéricas e corrigir vendas 99/100 e rivais com milhões inventados.

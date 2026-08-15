@@ -7,6 +7,7 @@ import { teamContribution } from './studio.js'
 import { clamp, randomInt } from './utils.js'
 import { projectLicenseReadout } from './licensing.js'
 import { promiseForId } from '../data/projectPromises.js'
+import { audienceCeiling, operatingShare, qualityDemand, SALES_SCALE_REACH } from './sales-model.js'
 
 export function calculateQuality(state, project, random = Math.random) {
   const focus = FOCUSES.find(item => item.id === project.focus)
@@ -63,16 +64,16 @@ export function calculateRelease(state, project, random = Math.random) {
   const angle = project.focus === marketAngle?.focus ? 1.14 : 1
   const platformShare = state.market.platforms[project.platform] ?? 33
   const platformMultiplier = 0.72 + platformShare / 100
-  const audienceMultiplier = 1 + Math.log10(1 + state.player.followers / 500) * .65
+  const audienceMultiplier = 1 + Math.min(.85, Math.log10(1 + state.player.followers / 1000) * .32)
   const culture = CULTURES.find(item => item.id === state.studio.cultureId)
   const marketingMultiplier = 0.78 + state.player.stats.marketing / 135 + (culture?.modifiers.marketing ?? 0) / 45
-  const qualityCurve = Math.max(180, Math.max(0, score - 42) ** 2 * 4.2)
+  const qualityCurve = qualityDemand(score, state.date.year)
   const era = getEra(state.date.year)
   const projectReach = 1 + (project.reach ?? 0)
   const publisherReach = project.publisher?.reach ?? 1
   const publisherStyle = project.publisher?.style
   const publisherFit = publisherStyle === 'mass'
-    ? (['large', 'blockbuster'].includes(project.scale) || project.launchPlan === 'campaign' ? 1.12 : 0.84)
+    ? (['large', 'blockbuster'].includes(project.scale) ? 1.12 : project.launchPlan === 'campaign' ? .62 : .56)
     : publisherStyle === 'indie'
       ? (['micro', 'small'].includes(project.scale) ? 1.08 : 0.96)
       : publisherStyle === 'casual'
@@ -83,19 +84,20 @@ export function calculateRelease(state, project, random = Math.random) {
   const franchiseFatigue = project.isSequel ? Math.max(0.72, 1 - Math.max(0, (project.sequelNumber ?? 2) - 3) * 0.08) : 1
   const licensed = projectLicenseReadout(state, project)
   const launchMultiplier = project.launchPlan === 'campaign' ? 1.3 : project.launchPlan === 'creator' ? 1.22 : project.launchPlan === 'early' ? 1.12 : project.launchPlan === 'shadow' ? 0.88 : 1
-  const ordinarySales = qualityCurve * scale.reach * era.indieReach * projectReach * publisherReach * publisherFit * hypeMultiplier * expectationPenalty * franchiseFatigue * licensed.reachMultiplier * launchMultiplier * trend * angle * platformMultiplier * audienceMultiplier * marketingMultiplier * randomInt(82, 118, random) / 100
-  const criticalDiscovery = score >= 90 ? ((score - 89) ** 3) * 650 * era.indieReach * scale.reach * platformMultiplier : 0
+  const salesScaleReach = SALES_SCALE_REACH[project.scale] ?? scale.reach
+  const ordinarySales = qualityCurve * salesScaleReach * era.indieReach * projectReach * publisherReach * publisherFit * hypeMultiplier * expectationPenalty * franchiseFatigue * licensed.reachMultiplier * launchMultiplier * trend * angle * platformMultiplier * audienceMultiplier * marketingMultiplier * randomInt(82, 118, random) / 100
   const breakoutChance = score >= 78 ? clamp((score - 77) * .00045 + (project.innovation ?? 0) * .0001 + (project.hype ?? 0) * .000025, 0, .018) : 0
   const breakout = random() < breakoutChance
   const phenomenon = breakout && score >= 88 && random() < .006 + Math.max(0, score - 94) * .002
-  const breakoutMultiplier = phenomenon ? 40 * (60 ** random()) : breakout ? randomInt(250, 750, random) / 100 : 1
-  const marketCeiling = state.date.year < 1985 ? 1_000_000 : state.date.year < 1995 ? 8_000_000 : state.date.year < 2005 ? 35_000_000 : state.date.year < 2015 ? 180_000_000 : 500_000_000
-  const sales = Math.min(marketCeiling, Math.round(Math.max(ordinarySales * breakoutMultiplier, criticalDiscovery)))
+  const breakoutMultiplier = phenomenon ? 2.2 * (8 ** random()) : breakout ? randomInt(140, 260, random) / 100 : 1
+  const marketCeiling = audienceCeiling(state.date.year)
+  const sales = Math.min(marketCeiling, Math.round(ordinarySales * breakoutMultiplier))
   const gross = sales * scale.price
   const publisherCut = project.publisher?.royalty ?? 0
   const effectiveRoyalty = Math.min(0.98, platform.royalty + (project.directMargin ?? 0))
   const netRoyalty = Math.max(.12, effectiveRoyalty * (1 - publisherCut) - (project.licenseRoyalty ?? licensed.royalty))
-  const revenue = Math.round(gross * netRoyalty * (1 - Math.min(0.75, state.studio.equity ?? 0)))
+  const studioRoyalty = netRoyalty * operatingShare(state.date.year, platform.type)
+  const revenue = Math.round(gross * studioRoyalty * (1 - Math.min(0.75, state.studio.equity ?? 0)))
   const newFollowers = Math.round(sales * (score / 100) * (phenomenon ? .06 : breakout ? .1 : .14))
   const reviews = createReviews(score, project, state.date.year, random)
   const leadReview = primaryReview(reviews)
@@ -108,7 +110,8 @@ export function calculateRelease(state, project, random = Math.random) {
     newFollowers,
     initialFollowers: newFollowers,
     price: scale.price,
-    royalty: netRoyalty,
+    royalty: studioRoyalty,
+    netRoyalty,
     platformRoyalty: effectiveRoyalty,
     quote: leadReview.quote,
     reviews,

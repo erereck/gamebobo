@@ -3,6 +3,7 @@ import { COMPETITOR_BLUEPRINTS, GAME_NAME_ENDS, GAME_NAME_STARTS } from '../data
 import { platformAtDate } from '../data/platformHistory.js'
 import { makeId, randomChoice, randomInt } from './utils.js'
 import { STARTUP_STUDIOS } from '../data/startupStudios.js'
+import { audienceCeiling, qualityDemand } from './sales-model.js'
 
 export const availablePlatforms = (year, month = 11) => PLATFORMS.filter(platform => platformAtDate(platform, { year, month }))
 
@@ -50,11 +51,10 @@ export function generateCompetitorLaunch(competitor, date, knownGenres = GENRES,
   const breakoutChance = (.018 + Math.min(.09, (competitor.momentum ?? 0) / 1100)) * (releaseYear < 1985 ? .42 : releaseYear < 1995 ? .72 : 1)
   const breakout = Boolean(competitor.cohort && random() < breakoutChance)
   const score = breakout ? randomInt(88, 98, random) : randomInt(58, competitor.cohort ? 92 : 96, random)
-  const eraFactor = releaseYear < 1985 ? .07 : releaseYear < 1990 ? .14 : releaseYear < 1995 ? .26 : releaseYear < 2000 ? .42 : releaseYear < 2005 ? .62 : releaseYear < 2010 ? .82 : releaseYear < 2015 ? 1 : 1.18
-  const marketCeiling = releaseYear < 1985 ? 450_000 : releaseYear < 1990 ? 1_500_000 : releaseYear < 1995 ? 4_000_000 : releaseYear < 2000 ? 8_000_000 : releaseYear < 2005 ? 15_000_000 : releaseYear < 2010 ? 25_000_000 : releaseYear < 2015 ? 40_000_000 : 65_000_000
   const studioReach = competitor.cohort ? .24 + Math.min(.76, studioAge / 8) : .72 + Math.min(.28, studioAge / 20)
-  const baseSales = Math.round((score ** 2.18) * randomInt(8, 44, random) * eraFactor * studioReach)
-  const sales = Math.min(marketCeiling, Math.round(baseSales * (breakout ? randomInt(220, 560, random) / 100 : 1)))
+  const distribution = randomInt(18, 72, random) / 100
+  const baseSales = qualityDemand(score, releaseYear) * studioReach * distribution
+  const sales = Math.min(audienceCeiling(releaseYear), Math.round(baseSales * (breakout ? randomInt(220, 560, random) / 100 : 1)))
   return {
     id: makeId('rival-game'),
     title,

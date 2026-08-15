@@ -100,7 +100,7 @@ test('a phenomenon is possible but obeys the audience ceiling of its era', () =>
   assert.equal(early.sales, 1_000_000)
 })
 
-test('a 99-point Mega Drive game earns critical discovery without needing a breakout', () => {
+test('a 99-point Mega Drive game earns demand from quality without needing a breakout', () => {
   const state = createInitialState({ startYear: 1991, traitId: 'perfectionist' }, fixed)
   state.player.stats = { programming: 100, design: 100, art: 100, marketing: 70, charisma: 50 }
   state.market.genre = 'action'
@@ -121,6 +121,35 @@ test('a 99-point Mega Drive game earns critical discovery without needing a brea
   assert.equal(release.score, 99)
   assert.equal(release.breakout, false)
   assert.ok(release.sales >= 150_000)
+})
+
+test('a 94-point Mega Drive game follows distribution tiers instead of a lottery floor', () => {
+  const makeState = marketing => {
+    const state = createInitialState({ startYear: 1991, traitId: 'perfectionist' }, fixed)
+    state.player.stats = { programming: 80, design: 80, art: 70, marketing, charisma: 50 }
+    state.market.genre = 'action'
+    state.market.angle = 'hard'
+    state.market.platforms['mega-drive'] = 20
+    return state
+  }
+  const project = {
+    ...standardProject,
+    genre: 'action', focus: 'gameplay', platform: 'mega-drive', quality: 8,
+    innovation: 8, pressure: 10, promiseId: 'precise-controls', promiseFit: 2,
+    launchPlan: 'standard',
+  }
+  const weak = calculateRelease(makeState(20), { ...project, quality: 11, launchPlan: 'shadow' }, fixed)
+  const standard = calculateRelease(makeState(70), project, fixed)
+  const campaign = calculateRelease(makeState(70), { ...project, launchPlan: 'campaign', hype: 14 }, fixed)
+  const majorPublisher = calculateRelease(makeState(70), { ...project, launchPlan: 'campaign', hype: 14, publisher: { reach: 2.4, royalty: .42, style: 'mass' } }, fixed)
+  const lifetime = release => Math.round(release.sales * 1.427)
+
+  assert.ok([weak, standard, campaign, majorPublisher].every(release => release.score === 94))
+  assert.ok(lifetime(weak) >= 300_000 && lifetime(weak) <= 600_000)
+  assert.ok(lifetime(standard) >= 700_000 && lifetime(standard) <= 1_000_000)
+  assert.ok(lifetime(campaign) >= 1_000_000 && lifetime(campaign) <= 1_400_000)
+  assert.ok(lifetime(majorPublisher) >= 1_500_000 && lifetime(majorPublisher) <= 2_300_000)
+  assert.ok(weak.sales < standard.sales && standard.sales < campaign.sales && campaign.sales < majorPublisher.sales)
 })
 
 test('press coverage follows history and stays close to the underlying quality', () => {

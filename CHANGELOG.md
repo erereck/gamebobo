@@ -6,6 +6,26 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 0.11.0 — Promessa da Capa — 2026-08-13
+
+- Curva comercial histórica e premiações no ritmo do jogador.
+- A cerimônia deixa de avançar sozinha: cada envelope espera o jogador e usa sempre o mesmo `CONTINUAR`, sem contador, aviso de último envelope ou texto de encerramento que antecipe a surpresa.
+- A abertura dura 680 ms, o confete 1,1 s e o botão bloqueia toques repetidos durante 900 ms; depois disso, não existe cronômetro obrigando a leitura.
+- Vendas agora partem de uma demanda contínua por nota, interpolada historicamente de 1980 a 2040, e só depois aplicam escala, era, plataforma, público, divulgação, editora, IP e variação comercial.
+- Jogador e rivais compartilham `sales-model.js`; a progressão histórica e os tetos de público deixaram de existir em fórmulas paralelas.
+- Um Mega Drive 94/100 em 1991 ganhou quatro regressões lifetime: 300–600 mil com alcance fraco, 700 mil–1 milhão com distribuição normal, 1–1,4 milhão com campanha e 1,5–2,3 milhões com grande editora.
+- Breakouts comuns foram separados de fenômenos culturais. Em 100 mil blockbusters 97/100 ideais, nove passaram de 100 milhões, dois de 300 milhões e o máximo chegou a 412,9 milhões.
+- Receita passou a descontar operação, fabricação, varejo, devoluções e suporte além de plataforma, editora e licenças, mantendo números de cópias reconhecíveis sem destruir a economia rápida da carreira.
+- A auditoria completa cobriu cinco eras, cinco escalas, onze promessas, culturas, planos, rivais, carreiras de dez anos e a cauda rara; os 63 testes e a build passaram.
+
+## 0.10.4 — Promessa da Capa — 2026-08-13
+
+- Cabeçalho enxuto e faixa de carreira rolável no mobile.
+- Moeda e música deixam de competir com a data no HUD; os controles completos continuam disponíveis na folha de configurações.
+- Em telas de até 620 px, a fita mostra primeiro identidade, caixa, energia e estresse e deixa Saúde parcialmente à vista como convite ao gesto horizontal.
+- Saúde, seguidores e reputação permanecem na mesma fita e podem ser alcançados integralmente, com snap suave e scrollbar própria do Gamebobo.
+- Verificado em 390 px: 676 px de conteúdo percorrem uma janela de 380 px e o último indicador termina completamente visível; build e 60 testes passaram.
+
 ## 0.10.3 — Promessa da Capa — 2026-08-13
 
 - Cerimônia de prêmios em envelopes, rolagem mobile corrigida e economia de vendas e leilões coerente.

@@ -2,7 +2,7 @@
 
 Um jogo de carreira sobre fazer jogos e conviver com o resultado. A meta não é encontrar uma fórmula perfeita: é terminar o save com histórias que só aconteceram naquela linha do tempo.
 
-Versão atual: **0.10.3 — Promessa da Capa**.
+Versão atual: **0.11.0 — Promessa da Capa**.
 
 ## Começar
 
@@ -84,7 +84,7 @@ Se você não sabe onde colocar uma mudança, consulte [docs/ARCHITECTURE.md](do
 | prêmios anuais e cerimônia | `src/game/data/awards.js`, `src/game/engine/awards.js` e `src/features/awards/AwardsModal.jsx` |
 | eventos entre estúdios, equipe ou franquias | `competitorEvents.js`, `studioEvents.js` ou `franchiseEvents.js` |
 | gêneros que podem nascer no save | `src/game/data/hybridGenres.js` |
-| nota e vendas | `src/game/engine/scoring.js` |
+| nota, demanda histórica, vendas e margem | `src/game/engine/scoring.js` e `src/game/engine/sales-model.js` |
 | metas, percentis e auditoria de balanceamento | `docs/BALANCE.md` e `scripts/balance-audit.mjs` |
 | passagem do mês e mercado | `src/game/engine/world.js` |
 | ações disponíveis | `src/game/engine/reducer.js` e `src/features/career/MonthActions.jsx` |

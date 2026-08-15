@@ -165,6 +165,28 @@ for (const [year, plan] of [[2003, 'shadow'], [2003, 'standard'], [2003, 'campai
 console.log('\nPLANOS DE LANÇAMENTO')
 console.table(plans)
 
+const fixed = () => .5
+const megaState = marketing => {
+  const state = createInitialState({ startYear: 1991, traitId: 'perfectionist' }, fixed)
+  state.player.stats = { programming: 80, design: 80, art: 70, marketing, charisma: 50 }
+  state.market.genre = 'action'
+  state.market.angle = 'hard'
+  state.market.platforms['mega-drive'] = 20
+  return state
+}
+const megaProject = { title: 'Referência 94', genre: 'action', focus: 'gameplay', scale: 'micro', platform: 'mega-drive', quality: 8, innovation: 8, pressure: 10, bugs: 0, reach: 0, hype: 0, promiseId: 'precise-controls', promiseFit: 2, launchPlan: 'standard' }
+const megaScenarios = [
+  ['alcance fraco', megaState(20), { ...megaProject, quality: 11, launchPlan: 'shadow' }],
+  ['distribuição razoável', megaState(70), megaProject],
+  ['campanha', megaState(70), { ...megaProject, launchPlan: 'campaign', hype: 14 }],
+  ['grande editora', megaState(70), { ...megaProject, launchPlan: 'campaign', hype: 14, publisher: { reach: 2.4, royalty: .42, style: 'mass' } }],
+].map(([cenário, state, project]) => {
+  const release = calculateRelease(state, project, fixed)
+  return { cenário, nota: release.score, primeiroMês: number(release.sales), lifetimeProjetado: number(release.sales * 1.427), receitaInicial: number(release.revenue) }
+})
+console.log('\nREFERÊNCIA COMERCIAL · MEGA DRIVE 94/100 · 1991')
+console.table(megaScenarios)
+
 const rareRandom = seeded(seed++)
 const rareState = createInitialState({ startYear: 2020, traitId: 'visionary' }, rareRandom)
 rareState.player.followers = 90000
