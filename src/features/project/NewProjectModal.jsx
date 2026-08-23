@@ -12,6 +12,7 @@ import { availableProductionUnits, calculateProjectPlan, projectCapacity, projec
 import { Button } from '../../components/ui/Button.jsx'
 import { Modal } from '../../components/ui/Modal.jsx'
 import { Icon } from '../../components/ui/Icon.jsx'
+import { CompactMultiChoice } from './CompactMultiChoice.jsx'
 
 const suggestions = ['Cubo de Domingo', 'Neon Futebol', 'Quarto 12', 'Manual do Fim', 'Cidade Baixa', 'Depois da Aula']
 const freshForm = () => ({
@@ -132,6 +133,10 @@ export function NewProjectModal() {
     toggleSource(game)
     if (form.projectType !== 'collection') inheritGame(game)
   }
+  const platformBlockedByPort = platform => type.id === 'port' && form.sourceGameIds.some(id => {
+    const source = state.games.find(game => game.id === id)
+    return (source?.platforms?.length ? source.platforms : [source?.platform]).includes(platform.id)
+  })
 
   const submit = event => {
     event.preventDefault()
@@ -158,20 +163,23 @@ export function NewProjectModal() {
 
           {(type.requiresSource || type.minSources) && <SourcePicker games={state.games} selectedIds={form.sourceGameIds} collection={type.id === 'collection'} onToggle={sourceChanged} />}
 
-          <MultiChoice number="04" label="GÊNEROS · ATÉ 2" value={form.genres} options={state.world.knownGenres} onToggle={id => toggleFromList('genres', id)} />
-          <MultiChoice number="05" label="TEMAS · ATÉ 2" value={form.themes} options={THEMES} onToggle={id => toggleFromList('themes', id)} />
+          <CompactMultiChoice number="04" label="GÊNEROS · ATÉ 2" value={form.genres} options={state.world.knownGenres} onToggle={id => toggleFromList('genres', id)} max={2} />
+          <CompactMultiChoice number="05" label="TEMAS · ATÉ 2" value={form.themes} options={THEMES} onToggle={id => toggleFromList('themes', id)} max={2} />
           <ChoiceGroup number="06" label="FOCO" name="focus" value={form.focus} options={FOCUSES} onChange={update} />
           <PromisePicker options={promiseOptions} value={form.promiseId} genre={primaryGenre} focus={form.focus} scaleId={form.scale} onChange={value => update('promiseId', value)} />
           <ChoiceGroup number="08" label="ESCALA" name="scale" value={form.scale} options={availableScales} onChange={update} />
 
-          <fieldset className="choice-field full-field"><legend>09 · PLATAFORMAS · ATÉ 4</legend><p>A primeira marcada é a plataforma principal. Cada extra amplia mercado e escopo.</p><div className="choice-grid">{availablePlatforms.map(platform => {
-            const checked = form.platforms.includes(platform.id)
-            const blockedByPort = type.id === 'port' && form.sourceGameIds.some(id => {
-              const source = state.games.find(game => game.id === id)
-              return (source?.platforms?.length ? source.platforms : [source?.platform]).includes(platform.id)
-            })
-            return <label key={platform.id} className={`choice-chip ${blockedByPort ? 'is-disabled' : ''}`}><input type="checkbox" checked={checked} disabled={blockedByPort || (!checked && form.platforms.length >= 4)} onChange={() => togglePlatform(platform.id)} /><span>{platform.label}</span></label>
-          })}</div></fieldset>
+          <CompactMultiChoice
+            number="09"
+            label="PLATAFORMAS · ATÉ 4"
+            value={form.platforms}
+            options={availablePlatforms}
+            onToggle={togglePlatform}
+            max={4}
+            fullField
+            isOptionDisabled={platformBlockedByPort}
+            note="A primeira marcada é a plataforma principal. Cada extra amplia mercado e escopo."
+          />
 
           {form.platforms.length > 1 && <fieldset className="delegation-picker full-field"><legend>10 · PORTS PARALELOS</legend><p>Delegar reduz o atraso do multiplataforma. Capacidade atual: {delegationCapacity}.</p><div>{form.platforms.slice(1).map(id => {
             const platform = PLATFORMS.find(item => item.id === id)
@@ -205,10 +213,6 @@ export function NewProjectModal() {
 
 function ChoiceGroup({ number, label, name, value, options, onChange, descriptions = false }) {
   return <fieldset className="choice-field"><legend>{number} · {label}</legend><select className="choice-select-mobile" aria-label={`${number} · ${label}`} value={value} onChange={event => onChange(name, event.target.value)}>{options.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}</select><div className="choice-grid">{options.map(option => <label key={option.id} className="choice-chip"><input type="radio" name={name} value={option.id} checked={value === option.id} onChange={() => onChange(name, option.id)} /><span>{option.label}{descriptions && option.description ? <small>{option.description}</small> : null}</span></label>)}</div></fieldset>
-}
-
-function MultiChoice({ number, label, value, options, onToggle }) {
-  return <fieldset className="choice-field"><legend>{number} · {label}</legend><div className="choice-grid">{options.map(option => <label key={option.id} className="choice-chip"><input type="checkbox" checked={value.includes(option.id)} disabled={!value.includes(option.id) && value.length >= 2} onChange={() => onToggle(option.id)} /><span>{option.label}</span></label>)}</div></fieldset>
 }
 
 function SourcePicker({ games, selectedIds, collection, onToggle }) {
