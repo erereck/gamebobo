@@ -1,4 +1,4 @@
-import { GAME_EVENTS, attendedEventKey, eventsThisMonth } from '../data/gameEvents.js'
+import { GAME_EVENTS, attendedEventKey, eventExistsInYear, eventsThisMonth } from '../data/gameEvents.js'
 import { INDUSTRY_SHOCKS } from '../data/industryShocks.js'
 import { clamp, makeId } from './utils.js'
 import { addHistory, dateLabel } from './world.js'
@@ -61,7 +61,8 @@ export function tickExpansion(state) {
 
 export function attendShowcase(state, eventId, targetId) {
   const event = GAME_EVENTS.find(item => item.id === eventId)
-  if (!event || state.player.reputation < event.minReputation || state.player.money < event.cost || state.player.energy < 8) return null
+  if (!event || !eventExistsInYear(event, state.date.year) || !event.months.includes(state.date.month)) return null
+  if (state.player.reputation < event.minReputation || state.player.money < event.cost || state.player.energy < 8) return null
   const key = attendedEventKey(event, state.date.year)
   if (state.world.attendedEvents?.includes(key)) return null
   const project = [state.currentProject, ...(state.parallelProjects ?? [])].find(item => item?.id === targetId)
