@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-019 — 2026-08-23 — Linha de Produção
+
+Pedido: Expandir o Gamebobo com ports e coletâneas misturáveis, remakes, remasters, spinoffs, produção simultânea, aquisição de estúdios, mais escritórios, demos, recusa de editoras, recrutamento progressivamente mais caro, mistura de gêneros e temas, eventos como E3 com escolha do jogo divulgado, herança automática de franquia, acessórios e motion controls, multiplataforma com delegação, GOTY anual com jogos reais e lançamentos para fliperama.
+
+Resultado: versão 0.12.0. O projeto ganhou um pipeline único para edições e múltiplas plataformas, equipes paralelas e estúdios subsidiários, periféricos históricos, demos, showcases mensais, choques de mercado, carreira de franquia mais rica, recrutamento escalável, arcade e uma premiação anual que sempre registra o vencedor da indústria.
+
 ## P-018 — 2026-08-13 — Demanda de Verdade
 
 Pedido: Tornar as premiações mais lentas e compreensíveis com um botão CONTINUAR neutro em todas as etapas, sem revelar quantos envelopes faltam, e recalibrar vendas de forma sistêmica usando a referência de um Mega Drive 94/100 em 1991, aplicando a mesma lógica a eras, escalas, distribuição, editoras, rivais, receita e fenômenos raros.
