@@ -1,0 +1,49 @@
+.save-manager { min-width: 0; }
+.save-manager-sheet { position: relative; min-height: 100%; padding: 44px 34px 32px; }
+.save-manager-heading { padding: 0 0 18px; border-bottom: 1px dashed var(--line-strong); }
+.save-manager-heading h2 { margin: 7px 0 6px; font: 900 34px/.95 "Arial Black", sans-serif; letter-spacing: -.055em; }
+.save-manager-heading > p:last-child { margin: 0; color: var(--ink-soft); font: italic 11px/1.4 Georgia, serif; }
+.save-slot-grid { margin-top: 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.save-slot { min-width: 0; min-height: 78px; padding: 10px 12px; display: flex; flex-direction: column; align-items: flex-start; text-align: left; color: var(--ink); background: rgba(255,255,255,.24); border: 1px solid var(--line); border-radius: var(--radius-small); cursor: pointer; transition: transform .12s ease, border-color .12s ease, background .12s ease; }
+.save-slot:hover { transform: translateY(-1px); border-color: var(--line-strong); }
+.save-slot.is-selected { color: var(--paper-bright); background: var(--crt-raised); border-color: var(--crt); box-shadow: inset 4px 0 var(--phosphor); }
+.save-slot.is-empty { background: rgba(255,255,255,.12); }
+.save-slot.is-empty.is-selected { background: var(--crt-raised); }
+.save-slot > span { color: var(--ink-faint); font: 700 7px/1 "Courier New", monospace; letter-spacing: .1em; }
+.save-slot.is-selected > span { color: #91a0ae; }
+.save-slot > strong { max-width: 100%; margin-top: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 900 13px/1 "Arial Black", sans-serif; }
+.save-slot > small { max-width: 100%; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-soft); font: 700 8px/1.2 "Courier New", monospace; }
+.save-slot > em { margin-top: auto; padding-top: 7px; color: var(--ink-faint); font: normal 700 7px/1 "Courier New", monospace; }
+.save-slot.is-selected > small, .save-slot.is-selected > em { color: #b6c0c9; }
+.slot-detail, .slot-setup { margin-top: 18px; padding: 18px; background: var(--paper-deep); border: 1px solid var(--line); }
+.slot-detail > span, .slot-detail-title > span { color: var(--sticker); font: 700 8px/1 "Courier New", monospace; letter-spacing: .08em; }
+.slot-detail h2 { margin: 8px 0 5px; font: 900 30px/.95 "Arial Black", sans-serif; letter-spacing: -.05em; }
+.slot-detail > p:not(.continue-founder) { max-width: 460px; margin: 8px 0 18px; color: var(--ink-soft); font: italic 10px/1.45 Georgia, serif; }
+.slot-detail dl { width: 100%; margin: 18px 0; display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); }
+.slot-detail dl div { min-width: 0; padding: 10px; border-right: 1px dashed var(--line); }
+.slot-detail dl div:last-child { border-right: 0; }
+.slot-detail dt { color: var(--ink-faint); font: 700 7px/1 "Courier New", monospace; }
+.slot-detail dd { margin: 6px 0 0; overflow: hidden; text-overflow: ellipsis; font: 900 13px/1 "Arial Black", sans-serif; font-variant-numeric: tabular-nums; }
+.slot-detail-actions { display: flex; justify-content: space-between; gap: 8px; }
+.slot-detail-title { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--line-strong); }
+.slot-detail-title strong { display: block; margin-top: 7px; font: 900 22px/1 "Arial Black", sans-serif; letter-spacing: -.04em; }
+.slot-setup .career-setup-form { margin-top: 12px; }
+
+@media (max-width: 800px) {
+  .save-manager-sheet { padding: 40px 28px 28px; }
+  .save-slot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 560px) {
+  .save-manager-sheet { padding: 42px 14px max(24px, env(safe-area-inset-bottom)); }
+  .save-manager-heading h2 { font-size: 29px; }
+  .save-slot-grid { grid-template-columns: 1fr; gap: 5px; }
+  .save-slot { min-height: 70px; }
+  .slot-detail, .slot-setup { padding: 14px; }
+  .slot-detail dl { grid-template-columns: repeat(2, 1fr); }
+  .slot-detail dl div { border-bottom: 1px dashed var(--line); }
+  .slot-detail dl div:nth-child(2n) { border-right: 0; }
+  .slot-detail dl div:nth-last-child(-n + 2) { border-bottom: 0; }
+  .slot-detail-actions { align-items: stretch; flex-direction: column-reverse; }
+  .slot-detail-actions .button { width: 100%; }
+}

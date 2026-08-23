@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-020 — 2026-08-23 — Dez Slots
+
+Pedido: Adicionar suporte a múltiplos saves locais, com até dez carreiras independentes, e publicar como versão 0.12.1.
+
+Resultado: versão 0.12.1. O save único virou um gerenciador de dez slots com criação, continuação, exclusão, troca pelo menu de configurações, autosave preso ao slot ativo e migração automática da carreira antiga para o slot 1. Testes protegem isolamento entre slots, exclusão e compatibilidade com saves anteriores.
+
 ## P-019 — 2026-08-23 — Linha de Produção
 
 Pedido: Expandir o Gamebobo com ports e coletâneas misturáveis, remakes, remasters, spinoffs, produção simultânea, aquisição de estúdios, mais escritórios, demos, recusa de editoras, recrutamento progressivamente mais caro, mistura de gêneros e temas, eventos como E3 com escolha do jogo divulgado, herança automática de franquia, acessórios e motion controls, multiplataforma com delegação, GOTY anual com jogos reais e lançamentos para fliperama.

@@ -5,8 +5,8 @@ import { CURRENCIES } from '../../game/engine/utils.js'
 import { MusicPlayer } from './MusicPlayer.jsx'
 
 export function SettingsModal() {
-  const { state, dispatch, settingsModalOpen, setSettingsModalOpen, setResetModalOpen } = useGame()
-  const openNewCareer = () => {
+  const { state, activeSlot, dispatch, settingsModalOpen, setSettingsModalOpen, setResetModalOpen, returnToSaveSelect } = useGame()
+  const resetCurrentSlot = () => {
     setSettingsModalOpen(false)
     setResetModalOpen(true)
   }
@@ -14,7 +14,7 @@ export function SettingsModal() {
     <Modal open={settingsModalOpen} onClose={() => setSettingsModalOpen(false)} className="settings-modal" label="Configurações">
       <div className="settings-sheet">
         <span className="event-tag">PAINEL DO GABINETE</span>
-        <p className="overline">CONFIGURAÇÕES</p>
+        <p className="overline">CONFIGURAÇÕES · SLOT {String(activeSlot).padStart(2, '0')}</p>
         <h2 className="settings-title">Do seu jeito.</h2>
         <p className="settings-intro">Preferências ficam guardadas junto desta carreira neste navegador.</p>
 
@@ -34,7 +34,7 @@ export function SettingsModal() {
           </fieldset>
         </div>
 
-        <div className="settings-actions"><Button onClick={openNewCareer}>COMEÇAR OUTRA CARREIRA</Button><Button variant="primary" onClick={() => setSettingsModalOpen(false)}>FECHAR</Button></div>
+        <div className="settings-actions"><Button onClick={resetCurrentSlot}>REINICIAR ESTE SLOT</Button><Button onClick={returnToSaveSelect}>GERENCIAR SAVES</Button><Button variant="primary" onClick={() => setSettingsModalOpen(false)}>FECHAR</Button></div>
       </div>
     </Modal>
   )
