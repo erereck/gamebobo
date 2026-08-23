@@ -47,10 +47,15 @@ export function processAwards(state, year, random = Math.random) {
   AWARD_CATEGORIES.filter(category => year >= (category.fromYear ?? 1980)).forEach(category => {
     if (category.id === 'goty') {
       const pool = [...playerGames, ...competitorCandidates(state, year), ...realCandidates(year)]
-      const ranked = pool.map(game => ({ game, value: category.score(game) + randomInt(-7, 7, random) })).sort((a, b) => b.value - a.value)
-      const winner = ranked[0]
-      const bestPlayer = ranked.find(item => item.game.source === 'player')
-      const playerNominated = Boolean(bestPlayer && bestPlayer.value >= winner.value - 13)
+      const variance = category.variance ?? 3
+      const minScore = category.minScore ?? 0
+      const nominationWindow = category.nominationWindow ?? 10
+      const ranked = pool.map(game => ({ game, value: category.score(game) + randomInt(-variance, variance, random) })).sort((a, b) => b.value - a.value)
+      const eligible = ranked.filter(item => (item.game.score ?? 0) >= minScore)
+      const winner = eligible[0] ?? ranked[0]
+      const bestEligiblePlayer = ranked.find(item => item.game.source === 'player' && (item.game.score ?? 0) >= minScore)
+      const bestPlayer = bestEligiblePlayer ?? ranked.find(item => item.game.source === 'player')
+      const playerNominated = Boolean(bestEligiblePlayer && bestEligiblePlayer.value >= winner.value - nominationWindow)
       const won = winner.game.source === 'player'
       const result = {
         categoryId: category.id,
@@ -62,9 +67,10 @@ export function processAwards(state, year, random = Math.random) {
         winnerTitle: winner.game.title,
         winnerStudio: winner.game.studio,
         winnerSource: winner.game.source,
+        winnerScore: winner.game.score,
       }
       results.push(result)
-      state.awards.yearlyWinners.push({ id: makeId('goty'), year, gameId: winner.game.id, gameTitle: winner.game.title, studio: winner.game.studio, source: winner.game.source })
+      state.awards.yearlyWinners.push({ id: makeId('goty'), year, gameId: winner.game.id, gameTitle: winner.game.title, studio: winner.game.studio, source: winner.game.source, score: winner.game.score })
       if (playerNominated) state.awards.nominations.push({ ...result, id: makeId('nomination'), year })
       if (won) state.awards.trophies.push({ ...result, id: makeId('trophy'), year })
       return
