@@ -34,7 +34,18 @@ test('a 77/100 blockbuster cannot buy GOTY with enormous sales', () => {
   assert.notEqual(goty.winnerSource, 'player')
   assert.equal(goty.won, false)
   assert.equal(goty.nominated, false)
-  assert.ok(goty.winnerScore >= 80)
+  assert.ok(goty.winnerScore >= 82)
+})
+
+test('an 81/100 phenomenon may be nominated but still cannot win GOTY', () => {
+  const state = isolated2015()
+  state.games = [playerGame(81, 500_000_000)]
+
+  const goty = processAwards(state, 2015, fixed).find(result => result.categoryId === 'goty')
+
+  assert.notEqual(goty.winnerSource, 'player')
+  assert.equal(goty.won, false)
+  assert.equal(goty.nominated, true)
 })
 
 test('an exceptional 99/100 player release can still beat the real benchmark', () => {
