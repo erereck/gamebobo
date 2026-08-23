@@ -20,9 +20,8 @@ import { acceptLicenseOffer, importLicensePack, licenseFromState, maybeQueueLice
 import { attachCommissionToProject, minimumScaleMet, pitchCompany, recordCorporateRelease, requestPartnership, resolveCorporateRelease, respondCorporateOffer, tickCorporate } from './corporate.js'
 import { launchPlanMechanics, marketingForYear } from '../data/marketingEras.js'
 import { createCreatorCoverage } from '../data/creatorCoverage.js'
-import { GAME_EVENTS } from '../data/gameEvents.js'
-import { phaseForId, projectPhase, projectPromiseCost, promiseFit, promiseForId, promiseScopeMonths } from '../data/projectPromises.js'
-import { acquireSubsidiary, advanceDelegatedProject, availableProductionUnits, calculateProjectPlan, productionUnits, projectCapacity, projectCount, projectPlatforms } from './production.js'
+import { phaseForId, projectPhase, promiseFit, promiseForId, promiseScopeMonths } from '../data/projectPromises.js'
+import { acquireSubsidiary, advanceDelegatedProject, availableProductionUnits, calculateProjectPlan, projectCapacity, projectCount, projectPlatforms } from './production.js'
 import { attendShowcase, tickExpansion } from './expansionTick.js'
 
 function franchiseExpectation(state, franchiseId) {
@@ -54,7 +53,6 @@ function startProject(state, payload) {
   if (!unit.subsidiaryId && ((scale.officeLevel ?? 0) > state.studio.officeLevel || (scale.teamSize ?? 0) > state.studio.team.length)) return state
   if (unit.subsidiaryId && payload.scale === 'blockbuster' && unit.skill < 82) return state
 
-  const era = getEra(state.date.year)
   const promise = promiseForId(payload.promiseId)
   if (state.date.year < promise.fromYear) return state
   const type = projectTypeForId(payload.projectType)
@@ -73,7 +71,7 @@ function startProject(state, payload) {
   const culture = CULTURES.find(item => item.id === state.studio.cultureId)
   const teamCompression = unit.main ? Math.min(3, Math.floor(state.studio.team.length / 5)) : 0
   const totalMonths = Math.max(2, plan.totalMonths + (trait?.modifiers.projectMonths ?? 0) + (culture?.modifiers.months ?? 0) - teamCompression)
-  const estimatedCost = Math.round(plan.estimatedCost * (totalMonths / Math.max(1, plan.totalMonths)) * (1 + Math.max(0, era.costMultiplier - 1) * .04))
+  const estimatedCost = plan.estimatedCost
   if (state.player.money < estimatedCost * .25) return state
 
   const sourceFranchise = sources.find(game => game.franchiseId)
@@ -216,7 +214,6 @@ function releaseProject(state, project, random) {
   const releaseTitle = game.phenomenon ? `${game.title} virou um fenômeno` : game.breakout ? `${game.title} estourou` : `${game.title} saiu com nota ${game.score}`
   const releaseBody = game.phenomenon ? `${game.sales.toLocaleString('pt-BR')} cópias no primeiro mês. A linha do tempo acabou de mudar.` : `${game.sales.toLocaleString('pt-BR')} cópias no primeiro mês em ${(game.platforms ?? [game.platform]).length} plataforma${(game.platforms ?? [game.platform]).length > 1 ? 's' : ''}.`
   addHistory(state, releaseTitle, releaseBody, { highlight: true, kind: 'release' })
-  promoteParallelProject(state)
   return game
 }
 
@@ -333,7 +330,10 @@ function monthAction(state, payload, random) {
 
   const currentFinished = state.currentProject && state.currentProject.progress >= state.currentProject.totalMonths
   if (currentFinished) releaseProject(state, state.currentProject, random)
-  delegatedFinished.filter(project => (state.parallelProjects ?? []).some(item => item.id === project.id)).forEach(project => releaseProject(state, project, random))
+  delegatedFinished.forEach(project => {
+    if ((state.parallelProjects ?? []).some(item => item.id === project.id)) releaseProject(state, project, random)
+  })
+  promoteParallelProject(state)
 
   generateOpportunities(state, random)
   processYearEnd(state, random)
