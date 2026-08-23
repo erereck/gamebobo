@@ -1,32 +1,50 @@
 import { CULTURES, OFFICES, PERSONALITIES, ROLES, TEAM_NAMES, TEAM_SURNAMES } from '../data/team.js'
 import { TECHS, getEra } from '../data/eras.js'
+import { subsidiaryForId } from '../data/subsidiaryStudios.js'
 import { clamp, makeId, randomChoice, randomInt } from './utils.js'
 
-export function generateCandidate(state, random = Math.random) {
+export function laborMarketMultiplier(state) {
+  const years = Math.max(0, state.date.year - 1980)
+  const time = 1 + years * .024
+  const company = 1 + state.studio.team.length * .035 + state.studio.officeLevel * .025 + (state.studio.subsidiaries?.length ?? 0) * .08
+  return time * company
+}
+
+export function hiringSearchCost(state, priority = false) {
+  const base = 420 + state.studio.team.length * 210 + state.studio.officeLevel * 170
+  const time = 1 + Math.max(0, state.date.year - 1980) * .035
+  const reputation = 1 + state.studio.reputation / 240
+  const cost = base * time * reputation * (priority ? 4.6 : 1)
+  return Math.max(500, Math.round(cost / 50) * 50)
+}
+
+export function generateCandidate(state, random = Math.random, priority = false) {
   const role = randomChoice(ROLES, random)
   const personality = randomChoice(PERSONALITIES, random)
-  const skill = randomInt(38, 76, random) + Math.min(12, Math.floor((state.date.year - 2003) / 3))
-  const salary = Math.round(role.salary * (0.72 + skill / 100) / 100 * 100)
+  const marketSkill = Math.min(14, Math.floor(Math.max(0, state.date.year - 1980) / 5))
+  const skill = randomInt(priority ? 50 : 38, priority ? 84 : 76, random) + marketSkill
+  const salary = Math.round(role.salary * (0.72 + skill / 100) * laborMarketMultiplier(state) / 100 * 100)
   return {
     id: makeId('person'),
     name: `${randomChoice(TEAM_NAMES, random)} ${randomChoice(TEAM_SURNAMES, random)}`,
     roleId: role.id,
     personalityId: personality.id,
-    skill: clamp(skill, 30, 94),
-    potential: clamp(skill + randomInt(5, 22, random), 45, 99),
+    skill: clamp(skill, 30, priority ? 97 : 94),
+    potential: clamp(skill + randomInt(priority ? 8 : 5, priority ? 24 : 22, random), 45, 99),
     salary,
     morale: randomInt(58, 82, random),
     energy: 100,
-    loyalty: randomInt(42, 78, random),
+    loyalty: randomInt(priority ? 50 : 42, 78, random),
     months: 0,
     projects: 0,
     awards: 0,
+    headhunted: priority,
   }
 }
 
-export function refreshCandidates(state, random = Math.random) {
-  const count = Math.max(2, Math.min(5, OFFICES[state.studio.officeLevel].capacity + 1))
-  state.studio.candidates = Array.from({ length: count }, () => generateCandidate(state, random))
+export function refreshCandidates(state, random = Math.random, priority = false) {
+  const count = Math.max(2, Math.min(priority ? 7 : 5, OFFICES[state.studio.officeLevel].capacity + (priority ? 2 : 1)))
+  state.studio.candidates = Array.from({ length: count }, () => generateCandidate(state, random, priority))
 }
 
 export function hireCandidate(state, candidateId) {
@@ -64,7 +82,8 @@ export function calculateMonthlyBurn(state) {
   const office = OFFICES[state.studio.officeLevel]
   const salaries = state.studio.team.reduce((sum, person) => sum + person.salary, 0)
   const debt = state.studio.debt.reduce((sum, item) => sum + item.payment, 0)
-  return Math.round(office.monthly + salaries + debt)
+  const subsidiaries = (state.studio.subsidiaries ?? []).reduce((sum, owned) => sum + (subsidiaryForId(owned.studioId)?.monthly ?? 0), 0)
+  return Math.round(office.monthly + salaries + debt + subsidiaries)
 }
 
 export function tickStudio(state, workedOnProject, random = Math.random) {

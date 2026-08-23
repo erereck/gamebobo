@@ -10,6 +10,15 @@ export const GENRES = [
   { id: 'stealth', label: 'Furtividade' },
   { id: 'fighting', label: 'Luta' },
   { id: 'racing', label: 'Corrida' },
+  { id: 'platformer', label: 'Plataforma' },
+  { id: 'shooter', label: 'Tiro' },
+  { id: 'rhythm', label: 'Ritmo' },
+  { id: 'visual-novel', label: 'Visual novel' },
+  { id: 'management', label: 'Gerenciamento' },
+  { id: 'sandbox', label: 'Sandbox' },
+  { id: 'survival', label: 'Sobrevivência' },
+  { id: 'roguelike', label: 'Roguelike' },
+  { id: 'party', label: 'Party game' },
 ]
 
 export const THEMES = [
@@ -28,6 +37,17 @@ export const THEMES = [
   { id: 'music', label: 'Música' },
   { id: 'politics', label: 'Política' },
   { id: 'vehicles', label: 'Veículos' },
+  { id: 'post-apocalypse', label: 'Pós-apocalipse' },
+  { id: 'superhero', label: 'Super-heróis' },
+  { id: 'detective', label: 'Detetive' },
+  { id: 'military', label: 'Militar' },
+  { id: 'pirates', label: 'Piratas' },
+  { id: 'western', label: 'Faroeste' },
+  { id: 'mecha', label: 'Mecha' },
+  { id: 'monsters', label: 'Monstros' },
+  { id: 'time-travel', label: 'Viagem no tempo' },
+  { id: 'slice-of-life', label: 'Cotidiano' },
+  { id: 'occult', label: 'Ocultismo' },
 ]
 
 export const FOCUSES = [
@@ -46,8 +66,8 @@ export const SCALES = {
   micro: { id: 'micro', label: 'Micro', months: 3, cost: 3600, reach: 0.62, price: 14 },
   small: { id: 'small', label: 'Pequeno', months: 5, cost: 9200, reach: 1, price: 26 },
   medium: { id: 'medium', label: 'Médio', months: 8, cost: 24800, reach: 1.62, price: 42 },
-  large: { id: 'large', label: 'Grande', months: 13, cost: 96000, reach: 2.65, price: 58, officeLevel: 2, teamSize: 4 },
-  blockbuster: { id: 'blockbuster', label: 'Arrasa-quarteirão', months: 20, cost: 480000, reach: 4.5, price: 72, officeLevel: 3, teamSize: 10 },
+  large: { id: 'large', label: 'Grande', months: 13, cost: 96000, reach: 2.65, price: 58, officeLevel: 4, teamSize: 4 },
+  blockbuster: { id: 'blockbuster', label: 'Arrasa-quarteirão', months: 20, cost: 480000, reach: 4.5, price: 72, officeLevel: 6, teamSize: 10 },
 }
 
 export const STATS = [

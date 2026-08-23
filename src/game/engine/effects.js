@@ -52,9 +52,11 @@ export function applyEffects(state, effects = {}, context = {}, random = Math.ra
   }
   if (effects.restructure === 'restart') {
     state.currentProject = null
+    state.parallelProjects = []
     state.currentContract = null
     state.studio.officeLevel = 0
     state.studio.team = []
+    state.studio.subsidiaries = []
     state.studio.debt = []
     state.studio.equity = 0
     state.studio.monthlyBurn = 0

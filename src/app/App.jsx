@@ -4,6 +4,7 @@ import { NewProjectModal } from '../features/project/NewProjectModal.jsx'
 import { ReleaseModal } from '../features/release/ReleaseModal.jsx'
 import { ResetModal } from '../features/settings/ResetModal.jsx'
 import { InfoModal } from '../features/events/InfoModal.jsx'
+import { ShowcaseModal } from '../features/events/ShowcaseModal.jsx'
 import { AwardsModal } from '../features/awards/AwardsModal.jsx'
 import { CareerScreen } from '../screens/CareerScreen.jsx'
 import { HistoryScreen } from '../screens/HistoryScreen.jsx'
@@ -43,6 +44,7 @@ export function App() {
       {queueItem?.kind === 'decision' && <DecisionModal decision={queueItem} />}
       {queueItem?.kind === 'release' && <ReleaseModal gameId={queueItem.gameId} />}
       {queueItem?.kind === 'info' && <InfoModal item={queueItem} />}
+      {queueItem?.kind === 'showcase' && <ShowcaseModal item={queueItem} />}
       {queueItem?.kind === 'awards' && <AwardsModal item={queueItem} />}
     </AppShell>
   )
