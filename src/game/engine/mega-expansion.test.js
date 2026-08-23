@@ -104,6 +104,22 @@ test('a second game can run in parallel when an internal production unit exists'
   assert.equal(state.parallelProjects[0].productionUnitId, 'internal-1')
 })
 
+test('main and delegated projects that finish together both release in the same month', () => {
+  let state = createInitialState({ startYear: 2006 }, fixed)
+  state.player.money = 5_000_000
+  state.studio.officeLevel = 4
+  state.studio.team = Array.from({ length: 4 }, (_, index) => staff(index + 1))
+  state = reduceGame(state, { type: 'START_PROJECT', payload: basicProject({ title: 'Jogo A' }) }, fixed)
+  state = reduceGame(state, { type: 'START_PROJECT', payload: basicProject({ title: 'Jogo B', productionUnitId: 'internal-1' }) }, fixed)
+  state.currentProject.progress = state.currentProject.totalMonths - .2
+  state.parallelProjects[0].progress = state.parallelProjects[0].totalMonths - .2
+  state = reduceGame(state, { type: 'MONTH_ACTION', payload: { action: 'develop' } }, fixed)
+  assert.equal(state.games.some(game => game.title === 'Jogo A'), true)
+  assert.equal(state.games.some(game => game.title === 'Jogo B'), true)
+  assert.equal(state.currentProject, null)
+  assert.deepEqual(state.parallelProjects, [])
+})
+
 test('public demo becomes available after a quarter of development and changes hype', () => {
   let state = createInitialState({ startYear: 2006 }, fixed)
   state.player.money = 5_000_000
@@ -115,6 +131,15 @@ test('public demo becomes available after a quarter of development and changes h
   assert.ok(state.currentProject.demo)
   assert.notEqual(state.currentProject.hype, oldHype)
   assert.equal(state.queue[0]?.kind, 'info')
+})
+
+test('local events still work before the studio has a game to showcase', () => {
+  let state = createInitialState({ startYear: 1980 }, fixed)
+  state.date.month = 1
+  const oldFollowers = state.player.followers
+  state = reduceGame(state, { type: 'ATTEND_GAME_EVENT', eventId: 'city-fair' }, fixed)
+  assert.equal(state.world.attendedEvents.includes('city-fair:1980'), true)
+  assert.ok(state.player.followers > oldFollowers)
 })
 
 test('every processed year gets a GOTY winner even when the player released nothing', () => {
