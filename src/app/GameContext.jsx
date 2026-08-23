@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState } from 'react'
 import { reduceGame } from '../game/engine/reducer.js'
-import { loadGame, saveGame } from '../game/persistence/storage.js'
+import { deleteSaveSlot, getActiveSaveSlot, listSaveSlots, loadGame, saveGame, setActiveSaveSlot } from '../game/persistence/storage.js'
 import { setDisplayCurrency } from '../game/engine/utils.js'
 import { playSound } from './audio.js'
 import { syncMusic } from './music.js'
@@ -23,8 +23,13 @@ const scrollHome = () => requestAnimationFrame(() => {
   requestAnimationFrame(tick)
 })
 
+const sessionReducer = (state, action) => action.type === 'LOAD_SAVE_STATE' ? (action.state ?? null) : reduceGame(state, action)
+
 export function GameProvider({ children }) {
-  const [state, rawDispatch] = useReducer(reduceGame, undefined, loadGame)
+  const initialSlot = getActiveSaveSlot()
+  const [activeSlot, setActiveSlot] = useState(initialSlot)
+  const [saveSlots, setSaveSlots] = useState(() => listSaveSlots())
+  const [state, rawDispatch] = useReducer(sessionReducer, undefined, () => loadGame(initialSlot))
   const [sessionStarted, setSessionStarted] = useState(false)
   const [view, rawSetView] = useState('career')
   const [projectModalOpen, setProjectModalOpen] = useState(false)
@@ -33,9 +38,14 @@ export function GameProvider({ children }) {
 
   setDisplayCurrency(state?.settings?.currency ?? 'BRL')
 
+  const refreshSaveSlots = useCallback(() => setSaveSlots(listSaveSlots()), [])
+
   useEffect(() => {
-    if (sessionStarted && state) saveGame(state)
-  }, [state, sessionStarted])
+    if (sessionStarted && state) {
+      saveGame(state, activeSlot)
+      refreshSaveSlots()
+    }
+  }, [state, sessionStarted, activeSlot, refreshSaveSlots])
 
   useEffect(() => {
     if (!sessionStarted || !state) return
@@ -61,21 +71,52 @@ export function GameProvider({ children }) {
     scrollHome()
   }, [])
 
-  const startCareer = useCallback(options => {
+  const chooseSlot = useCallback(slotId => {
+    const id = setActiveSaveSlot(slotId)
+    setActiveSlot(id)
+    return id
+  }, [])
+
+  const startCareer = useCallback((options, slotId = activeSlot) => {
+    const id = chooseSlot(slotId)
     syncMusic({ playing: true, muted: false, volume: .18 })
     rawDispatch({ type: 'RESET_CAREER', options })
     rawSetView('career')
     setSessionStarted(true)
+    setActiveSlot(id)
     scrollHome()
-  }, [])
+  }, [activeSlot, chooseSlot])
 
-  const continueCareer = useCallback(() => {
-    if (state) {
-      syncMusic({ playing: state.settings.musicPlaying !== false, muted: state.settings.musicMuted === true, volume: state.settings.musicVolume ?? .18 })
+  const continueCareer = useCallback((slotId = activeSlot) => {
+    const id = chooseSlot(slotId)
+    const loaded = loadGame(id)
+    if (loaded) {
+      rawDispatch({ type: 'LOAD_SAVE_STATE', state: loaded })
+      syncMusic({ playing: loaded.settings.musicPlaying !== false, muted: loaded.settings.musicMuted === true, volume: loaded.settings.musicVolume ?? .18 })
+      rawSetView('career')
       setSessionStarted(true)
       scrollHome()
     }
-  }, [state])
+  }, [activeSlot, chooseSlot])
+
+  const deleteCareer = useCallback(slotId => {
+    deleteSaveSlot(slotId)
+    const nextSlot = getActiveSaveSlot()
+    setActiveSlot(nextSlot)
+    rawDispatch({ type: 'LOAD_SAVE_STATE', state: loadGame(nextSlot) })
+    refreshSaveSlots()
+  }, [refreshSaveSlots])
+
+  const returnToSaveSelect = useCallback(() => {
+    if (state) saveGame(state, activeSlot)
+    setSessionStarted(false)
+    setSettingsModalOpen(false)
+    setResetModalOpen(false)
+    setProjectModalOpen(false)
+    rawSetView('career')
+    refreshSaveSlots()
+    scrollHome()
+  }, [state, activeSlot, refreshSaveSlots])
 
   useEffect(() => {
     const onKeyDown = event => {
@@ -94,8 +135,13 @@ export function GameProvider({ children }) {
   const value = useMemo(() => ({
     state,
     sessionStarted,
+    activeSlot,
+    saveSlots,
     startCareer,
     continueCareer,
+    deleteCareer,
+    returnToSaveSelect,
+    refreshSaveSlots,
     dispatch,
     view,
     setView,
@@ -105,7 +151,7 @@ export function GameProvider({ children }) {
     setResetModalOpen,
     settingsModalOpen,
     setSettingsModalOpen,
-  }), [state, sessionStarted, startCareer, continueCareer, dispatch, view, projectModalOpen, resetModalOpen, settingsModalOpen])
+  }), [state, sessionStarted, activeSlot, saveSlots, startCareer, continueCareer, deleteCareer, returnToSaveSelect, refreshSaveSlots, dispatch, view, projectModalOpen, resetModalOpen, settingsModalOpen])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }
