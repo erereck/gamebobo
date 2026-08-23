@@ -49,13 +49,14 @@ export function processAwards(state, year, random = Math.random) {
       const pool = [...playerGames, ...competitorCandidates(state, year), ...realCandidates(year)]
       const variance = category.variance ?? 3
       const minScore = category.minScore ?? 0
+      const minNominationScore = category.minNominationScore ?? minScore
       const nominationWindow = category.nominationWindow ?? 10
       const ranked = pool.map(game => ({ game, value: category.score(game) + randomInt(-variance, variance, random) })).sort((a, b) => b.value - a.value)
       const eligible = ranked.filter(item => (item.game.score ?? 0) >= minScore)
       const winner = eligible[0] ?? ranked[0]
-      const bestEligiblePlayer = ranked.find(item => item.game.source === 'player' && (item.game.score ?? 0) >= minScore)
-      const bestPlayer = bestEligiblePlayer ?? ranked.find(item => item.game.source === 'player')
-      const playerNominated = Boolean(bestEligiblePlayer && bestEligiblePlayer.value >= winner.value - nominationWindow)
+      const bestNomineePlayer = ranked.find(item => item.game.source === 'player' && (item.game.score ?? 0) >= minNominationScore)
+      const bestPlayer = bestNomineePlayer ?? ranked.find(item => item.game.source === 'player')
+      const playerNominated = Boolean(bestNomineePlayer && bestNomineePlayer.value >= winner.value - nominationWindow)
       const won = winner.game.source === 'player'
       const result = {
         categoryId: category.id,
