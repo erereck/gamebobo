@@ -55,6 +55,21 @@ export function acceptPublisher(state, offerId) {
   return offer
 }
 
+export function rejectPublisher(state, offerId) {
+  const offer = state.opportunities.publisherOffers.find(item => item.id === offerId)
+  if (!offer) return null
+  state.opportunities.publisherArchive ??= []
+  state.opportunities.publisherArchive.unshift({ ...offer, rejectedYear: state.date.year, rejectedMonth: state.date.month })
+  state.opportunities.publisherArchive = state.opportunities.publisherArchive.slice(0, 20)
+  state.opportunities.publisherOffers = state.opportunities.publisherOffers.filter(item => item.id !== offerId)
+  const project = [state.currentProject, ...(state.parallelProjects ?? [])].find(item => item?.id === offer.projectId)
+  if (project) {
+    project.publisherDeclines = (project.publisherDeclines ?? 0) + 1
+    project.pressure = Math.max(0, (project.pressure ?? 0) - 2)
+  }
+  return offer
+}
+
 export function takeLoan(state, loanId) {
   const loan = LOANS.find(item => item.id === loanId)
   if (!loan || state.studio.debt.some(item => item.id === loanId)) return null
