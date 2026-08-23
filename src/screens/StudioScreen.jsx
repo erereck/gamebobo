@@ -8,6 +8,7 @@ import { Button } from '../components/ui/Button.jsx'
 import { TeamRoster } from '../features/studio/TeamRoster.jsx'
 import { HiringBoard } from '../features/studio/HiringBoard.jsx'
 import { ResearchBoard } from '../features/studio/ResearchBoard.jsx'
+import { SubsidiaryBoard } from '../features/studio/SubsidiaryBoard.jsx'
 import { BusinessDesk } from '../features/business/BusinessDesk.jsx'
 import { CorporateDesk } from '../features/corporate/CorporateDesk.jsx'
 
@@ -40,6 +41,7 @@ export function StudioScreen() {
         <div><p className="overline">CULTURA</p><select value={state.studio.cultureId} disabled={(state.studio.cultureLockMonths ?? 0) > 0} onChange={event => dispatch({ type: 'CHANGE_CULTURE', cultureId: event.target.value })}>{CULTURES.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><p>{CULTURES.find(item => item.id === state.studio.cultureId)?.description}{state.studio.cultureLockMonths ? ` Novo acordo em teste por ${state.studio.cultureLockMonths} ${state.studio.cultureLockMonths === 1 ? 'mês' : 'meses'}.` : ''}</p></div>
         <div><p className="overline">ESCRITÓRIO</p><h3>{office.name}</h3><p>{office.capacity} {office.capacity === 1 ? 'lugar' : 'lugares'} · {formatMoney(office.monthly)}/mês</p>{nextOffice && <Button size="small" variant="primary" onClick={() => dispatch({ type: 'MOVE_OFFICE' })} disabled={state.player.money < nextOffice.cost}>MUDAR PARA {nextOffice.name.toUpperCase()} · {formatMoney(nextOffice.cost)}</Button>}</div>
       </section>
+      <SubsidiaryBoard />
       <TeamRoster />
       <HiringBoard />
       <ResearchBoard />
