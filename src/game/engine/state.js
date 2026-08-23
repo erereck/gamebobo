@@ -62,6 +62,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
       generation: 1,
     },
     currentProject: null,
+    parallelProjects: [],
     currentContract: null,
     games: [],
     activeReleases: [],
@@ -78,6 +79,9 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
       seenHistoricalMilestones: HISTORICAL_MILESTONES.filter(item => item.year < startYear).map(item => item.id),
       technologyLevel: Math.max(1, getEra(startYear).techCap - 1),
       attendedEvents: [],
+      seenGameEventCards: [],
+      seenIndustryShocks: [],
+      activeIndustryEffects: [],
     },
     studio: {
       name: studioName,
@@ -95,11 +99,11 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
       parentCompany: null,
       autonomy: 100,
       morale: 68,
-      reputation: 0,
+      subsidiaries: [],
       leaders: [{ name: playerName, generation: 1, from: startYear, to: null, legacy: 'Fundador' }],
     },
-    opportunities: { contracts: [], publisherOffers: [] },
-    awards: { trophies: [], nominations: [], processedYears: [] },
+    opportunities: { contracts: [], publisherOffers: [], publisherArchive: [] },
+    awards: { trophies: [], nominations: [], processedYears: [], yearlyWinners: [] },
     history: [
       {
         id: makeId('history'),
