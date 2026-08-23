@@ -1,6 +1,7 @@
 // Catálogo curado de plataformas de relevância global. Datas usam mês 0-11.
 // A simulação libera a plataforma no primeiro lançamento regional registrado.
 export const PLATFORM_HISTORY = [
+  { id: 'arcade', label: 'Fliperama / Arcade', company: 'Operadores e fabricantes', type: 'arcade', launch: { global: [1980, 0] }, endYear: 9999, royalty: 0.8 },
   { id: 'pc', label: 'PC', company: 'Ecossistema aberto', type: 'computer', launch: { global: [1980, 0] }, endYear: 9999, royalty: 0.88 },
   { id: 'atari-2600', label: 'Atari 2600', company: 'Atari', type: 'console', launch: { na: [1977, 8], eu: [1978, 0] }, endYear: 1992, royalty: 0.72 },
   { id: 'colecovision', label: 'ColecoVision', company: 'Coleco', type: 'console', launch: { na: [1982, 7], eu: [1983, 6] }, endYear: 1985, royalty: 0.7 },
