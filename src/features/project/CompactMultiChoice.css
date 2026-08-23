@@ -1,0 +1,21 @@
+.compact-multi-choice { min-width: 0; }
+.compact-multi-choice > p { margin: 0 0 8px; color: var(--ink-soft); font-size: 11px; line-height: 1.4; }
+.multi-choice-dropdown { position: relative; }
+.multi-choice-dropdown summary { min-height: 46px; padding: 0 12px; display: flex; align-items: center; gap: 12px; color: var(--ink); background: var(--paper-deep); border: 1px solid var(--line-strong); border-radius: var(--radius-small); cursor: pointer; font-weight: 800; list-style: none; }
+.multi-choice-dropdown summary::-webkit-details-marker { display: none; }
+.multi-choice-dropdown summary::after { content: '⌄'; flex: 0 0 auto; margin-left: auto; color: var(--ink-soft); font-size: 16px; transform-origin: center; transition: transform .16s ease; }
+.multi-choice-dropdown[open] summary::after { transform: rotate(180deg); }
+.multi-choice-dropdown summary > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.multi-choice-dropdown summary > small { flex: 0 0 auto; color: var(--ink-faint); font: 700 9px/1 'Courier New', monospace; }
+.multi-choice-menu { position: absolute; z-index: 90; top: calc(100% + 5px); left: 0; right: 0; max-height: 260px; overflow: auto; padding: 5px; background: var(--paper-bright); border: 1px solid var(--line-strong); border-radius: var(--radius-small); box-shadow: var(--shadow-medium); }
+.multi-choice-menu label { min-height: 42px; padding: 8px 10px; display: grid; grid-template-columns: 20px minmax(0,1fr) 20px; align-items: center; gap: 8px; border-bottom: 1px dashed var(--line); cursor: pointer; }
+.multi-choice-menu label:last-child { border-bottom: 0; }
+.multi-choice-menu label.is-selected { background: rgba(183,223,104,.18); }
+.multi-choice-menu label.is-disabled { opacity: .42; cursor: not-allowed; }
+.multi-choice-menu input { margin: 0; }
+.multi-choice-menu span { min-width: 0; font-weight: 800; }
+.multi-choice-menu b { color: var(--phosphor-deep); text-align: center; }
+
+@media (max-width: 620px) {
+  .multi-choice-menu { position: static; margin-top: 5px; box-shadow: none; max-height: 220px; }
+}
