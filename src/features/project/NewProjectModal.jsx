@@ -12,7 +12,7 @@ import { availableProductionUnits, calculateProjectPlan, projectCapacity, projec
 import { Button } from '../../components/ui/Button.jsx'
 import { Modal } from '../../components/ui/Modal.jsx'
 import { Icon } from '../../components/ui/Icon.jsx'
-import { CompactMultiChoice } from './CompactMultiChoice.jsx'
+import { CompactMultiChoice, CompactSingleChoice } from './CompactMultiChoice.jsx'
 
 const suggestions = ['Cubo de Domingo', 'Neon Futebol', 'Quarto 12', 'Manual do Fim', 'Cidade Baixa', 'Depois da Aula']
 const freshForm = () => ({
@@ -23,6 +23,7 @@ const freshForm = () => ({
 export function NewProjectModal() {
   const { state, dispatch, projectModalOpen, setProjectModalOpen } = useGame()
   const [form, setForm] = useState(freshForm)
+  const [openDropdown, setOpenDropdown] = useState(null)
   const franchises = useMemo(() => getFranchises(state), [state])
   const units = useMemo(() => availableProductionUnits(state), [state])
   const type = projectTypeForId(form.projectType)
@@ -55,6 +56,7 @@ export function NewProjectModal() {
     const unit = availableProductionUnits(state)[0]
     const genre = commission?.genre ?? 'rpg'
     const recommended = promiseOptionsFor({ genre, focus: 'gameplay', year: state.date.year, scaleId: 'small' }, 1)[0]
+    setOpenDropdown(null)
     setForm({
       ...freshForm(),
       title: suggestions[Math.floor(Math.random() * suggestions.length)],
@@ -66,6 +68,7 @@ export function NewProjectModal() {
   }, [projectModalOpen, commission?.id, state.date.year])
 
   const update = (key, value) => setForm(current => ({ ...current, [key]: value }))
+  const setDropdown = (id, isOpen) => setOpenDropdown(current => isOpen ? id : current === id ? null : current)
   const toggleFromList = (key, value, max = 2) => setForm(current => {
     const list = current[key]
     if (list.includes(value)) return list.length === 1 ? current : { ...current, [key]: list.filter(id => id !== value) }
@@ -157,14 +160,14 @@ export function NewProjectModal() {
           {!hasCapacity && <section className="commission-brief full-field"><span>CAPACIDADE LOTADA</span><strong>Não existe outro time livre.</strong><p>Monte uma equipe interna maior ou compre um estúdio para abrir outra frente simultânea.</p></section>}
           <label className="text-field full-field"><span>01 · TÍTULO</span><input value={form.title} onChange={event => update('title', event.target.value)} maxLength="56" required autoFocus /></label>
 
-          <ChoiceGroup number="02" label="TIPO DE PROJETO" name="projectType" value={form.projectType} options={PROJECT_TYPES} onChange={(_, value) => chooseType(value)} descriptions />
+          <CompactSingleChoice number="02" label="TIPO DE PROJETO" value={form.projectType} options={PROJECT_TYPES} onChange={chooseType} descriptions open={openDropdown === 'type'} onOpenChange={isOpen => setDropdown('type', isOpen)} />
 
           {type.requiresFranchise && <label className="select-field full-field"><span>03 · FRANQUIA</span><select value={form.franchiseId} onChange={event => chooseFranchise(event.target.value)}><option value="">Selecione uma franquia</option>{franchises.map(item => <option key={item.id} value={item.id}>{item.name} · {item.games.length} jogos · média {item.average}</option>)}</select><small>Ao escolher, gênero, tema, foco, promessa e licenças válidas são puxados do jogo anterior.</small></label>}
 
           {(type.requiresSource || type.minSources) && <SourcePicker games={state.games} selectedIds={form.sourceGameIds} collection={type.id === 'collection'} onToggle={sourceChanged} />}
 
-          <CompactMultiChoice number="04" label="GÊNEROS · ATÉ 2" value={form.genres} options={state.world.knownGenres} onToggle={id => toggleFromList('genres', id)} max={2} />
-          <CompactMultiChoice number="05" label="TEMAS · ATÉ 2" value={form.themes} options={THEMES} onToggle={id => toggleFromList('themes', id)} max={2} />
+          <CompactMultiChoice number="04" label="GÊNEROS · ATÉ 2" value={form.genres} options={state.world.knownGenres} onToggle={id => toggleFromList('genres', id)} max={2} open={openDropdown === 'genres'} onOpenChange={isOpen => setDropdown('genres', isOpen)} />
+          <CompactMultiChoice number="05" label="TEMAS · ATÉ 2" value={form.themes} options={THEMES} onToggle={id => toggleFromList('themes', id)} max={2} open={openDropdown === 'themes'} onOpenChange={isOpen => setDropdown('themes', isOpen)} />
           <ChoiceGroup number="06" label="FOCO" name="focus" value={form.focus} options={FOCUSES} onChange={update} />
           <PromisePicker options={promiseOptions} value={form.promiseId} genre={primaryGenre} focus={form.focus} scaleId={form.scale} onChange={value => update('promiseId', value)} />
           <ChoiceGroup number="08" label="ESCALA" name="scale" value={form.scale} options={availableScales} onChange={update} />
@@ -179,6 +182,8 @@ export function NewProjectModal() {
             fullField
             isOptionDisabled={platformBlockedByPort}
             note="A primeira marcada é a plataforma principal. Cada extra amplia mercado e escopo."
+            open={openDropdown === 'platforms'}
+            onOpenChange={isOpen => setDropdown('platforms', isOpen)}
           />
 
           {form.platforms.length > 1 && <fieldset className="delegation-picker full-field"><legend>10 · PORTS PARALELOS</legend><p>Delegar reduz o atraso do multiplataforma. Capacidade atual: {delegationCapacity}.</p><div>{form.platforms.slice(1).map(id => {
