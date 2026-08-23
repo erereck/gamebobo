@@ -29,8 +29,12 @@ export const CULTURES = [
 
 export const OFFICES = [
   { level: 0, name: 'Quarto dos fundos', capacity: 1, monthly: 0, cost: 0, bonus: 0 },
-  { level: 1, name: 'Sala em coworking', capacity: 4, monthly: 2400, cost: 22000, bonus: 2 },
-  { level: 2, name: 'Escritório pequeno', capacity: 9, monthly: 7800, cost: 85000, bonus: 5 },
-  { level: 3, name: 'Estúdio próprio', capacity: 20, monthly: 22000, cost: 310000, bonus: 8 },
-  { level: 4, name: 'Campus', capacity: 60, monthly: 76000, cost: 1800000, bonus: 12 },
+  { level: 1, name: 'Mesa compartilhada', capacity: 2, monthly: 900, cost: 8000, bonus: 1 },
+  { level: 2, name: 'Sala em coworking', capacity: 4, monthly: 2400, cost: 22000, bonus: 2 },
+  { level: 3, name: 'Sala alugada', capacity: 6, monthly: 4600, cost: 48000, bonus: 3 },
+  { level: 4, name: 'Escritório pequeno', capacity: 9, monthly: 7800, cost: 85000, bonus: 5 },
+  { level: 5, name: 'Andar comercial', capacity: 14, monthly: 13800, cost: 180000, bonus: 6 },
+  { level: 6, name: 'Estúdio próprio', capacity: 20, monthly: 22000, cost: 310000, bonus: 8 },
+  { level: 7, name: 'Sede expandida', capacity: 35, monthly: 43000, cost: 780000, bonus: 10 },
+  { level: 8, name: 'Campus', capacity: 60, monthly: 76000, cost: 1800000, bonus: 12 },
 ]
