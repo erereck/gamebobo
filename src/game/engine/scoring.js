@@ -37,10 +37,11 @@ export function calculateQuality(state, project, random = Math.random) {
   const themes = projectThemes(project)
   const type = projectTypeForId(project.projectType)
   const accessory = accessoryForId(project.accessoryId)
-  const controls = controlSchemeForId(project.controlScheme)
   const trendBonus = genres.includes(state.market.genre) ? 4 : 0
   const angleBonus = project.focus === marketAngle?.focus ? 4 : 0
-  const innovationValue = (project.innovation ?? 0) * type.innovationMultiplier + controls.innovation
+  // Controles, qualidade herdada e bônus do tipo já entram no estado inicial do projeto.
+  // Aqui só escalamos a inovação acumulada para não aplicar o mesmo bônus duas vezes.
+  const innovationValue = (project.innovation ?? 0) * type.innovationMultiplier
   const innovationBonus = project.focus === 'innovation' ? innovationValue * 0.34 : innovationValue * 0.12
   const sequelModifier = project.isSequel ? (trait?.modifiers.sequel ?? 0) : 0
   const traitQuality = trait?.modifiers.quality ?? 0
@@ -65,8 +66,7 @@ export function calculateQuality(state, project, random = Math.random) {
   const accessoryFit = accessory ? (accessory.genres?.some(id => genres.includes(id)) || accessory.themes?.some(id => themes.includes(id)) ? 3 : -1) + accessory.quality : 0
   const unit = productionUnits(state).find(item => item.id === project.productionUnitId)
   const delegatedModifier = unit && !unit.main ? clamp((unit.skill - 68) * .11 - 1, -4, 4) : 0
-  const legacyBonus = project.legacyQuality ?? 0
-  const rawValue = foundation + project.quality + innovationBonus + promiseBonus + equipment.bonus + office.bonus + trendBonus + angleBonus + sequelModifier + traitQuality + traitInnovation + cultureQuality + cultureInnovation + techBonus + licensed.qualityBonus + type.qualityBonus + accessoryFit + mixModifier + delegatedModifier + legacyBonus - bugPenalty - techPenalty - exhaustion - healthPenalty + luck + licenseLuck
+  const rawValue = foundation + project.quality + innovationBonus + promiseBonus + equipment.bonus + office.bonus + trendBonus + angleBonus + sequelModifier + traitQuality + traitInnovation + cultureQuality + cultureInnovation + techBonus + licensed.qualityBonus + accessoryFit + mixModifier + delegatedModifier - bugPenalty - techPenalty - exhaustion - healthPenalty + luck + licenseLuck
   const scaleComplexity = { micro: 0, small: 0, medium: 9, large: 13, blockbuster: 18 }[project.scale] ?? 0
   const reviewEra = state.date.year >= 2010 ? 2 : state.date.year >= 2000 ? 1 : 0
   const severeBuildPenalty = Math.max(0, (project.bugs ?? 0) - 5) * 1.2 + Math.max(0, state.player.stress - 85) * .14
@@ -106,7 +106,7 @@ export function calculateRelease(state, project, random = Math.random) {
       : publisherStyle === 'casual'
         ? (['micro', 'small'].includes(project.scale) ? 1.07 : 0.94)
         : publisherStyle === 'prestige' ? 0.96 + Math.max(0, score - 72) / 220 : 1
-  const hypeMultiplier = 0.82 + Math.min(0.75, ((project.hype ?? 0) + (project.legacyHype ?? 0)) / 100)
+  const hypeMultiplier = 0.82 + Math.min(0.75, (project.hype ?? 0) / 100)
   const expectationPenalty = project.expectation && score < project.expectation ? Math.max(0.72, 1 - (project.expectation - score) / 100) : 1
   const franchiseFatigue = project.isSequel ? Math.max(0.72, 1 - Math.max(0, (project.sequelNumber ?? 2) - 3) * 0.08) : 1
   const licensed = projectLicenseReadout(state, project)
