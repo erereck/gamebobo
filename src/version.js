@@ -1,5 +1,5 @@
 export const VERSION_INFO = Object.freeze({
-  "version": "0.12.2",
+  "version": "0.12.3",
   "codename": "Linha de Produção",
   "saveSchema": 7,
   "releasedAt": "2026-08-23",

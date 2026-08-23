@@ -14,6 +14,7 @@
 .multi-choice-menu label.is-disabled { opacity: .42; cursor: not-allowed; }
 .multi-choice-menu input { margin: 0; }
 .multi-choice-menu span { min-width: 0; font-weight: 800; }
+.multi-choice-menu span small { display: block; margin-top: 3px; color: var(--ink-soft); font: italic 10px/1.35 Georgia, serif; font-weight: 400; }
 .multi-choice-menu b { color: var(--phosphor-deep); text-align: center; }
 
 @media (max-width: 620px) {
