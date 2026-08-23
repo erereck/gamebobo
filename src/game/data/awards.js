@@ -9,7 +9,7 @@ function gotyPrestigeScore(game) {
 }
 
 export const AWARD_CATEGORIES = [
-  { id: 'goty', name: 'Jogo do Ano', minScore: 80, variance: 3, nominationWindow: 10, score: gotyPrestigeScore },
+  { id: 'goty', name: 'Jogo do Ano', minScore: 82, minNominationScore: 80, variance: 3, nominationWindow: 10, score: gotyPrestigeScore },
   { id: 'indie', name: 'Melhor Indie', fromYear: 2004, score: game => game.score + (game.scale === 'micro' ? 10 : game.scale === 'small' ? 5 : 0) },
   { id: 'design', name: 'Melhor Design', score: game => game.score + (game.focus === 'gameplay' ? 11 : 0) },
   { id: 'narrative', name: 'Melhor Narrativa', score: game => game.score + (game.focus === 'story' ? 13 : 0) },
