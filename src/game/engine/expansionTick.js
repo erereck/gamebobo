@@ -67,7 +67,9 @@ export function attendShowcase(state, eventId, targetId) {
   if (state.world.attendedEvents?.includes(key)) return null
   const project = [state.currentProject, ...(state.parallelProjects ?? [])].find(item => item?.id === targetId)
   const game = state.games.find(item => item.id === targetId)
-  if (!project && !game) return null
+  // Feiras locais e encontros de indústria continuam úteis antes do primeiro jogo.
+  // Palcos destacados, por outro lado, só fazem sentido quando há algo para divulgar.
+  if (event.featured && !project && !game) return null
 
   state.player.money -= event.cost
   state.player.energy = clamp(state.player.energy - 8, 0, 100)
@@ -86,7 +88,7 @@ export function attendShowcase(state, eventId, targetId) {
       project.announced = true
       project.announcementDate = dateLabel(state.date)
     }
-  } else {
+  } else if (game) {
     const tailSales = Math.max(100, Math.round((game.initialSales ?? game.sales) * (0.02 + event.hype / 150)))
     const tailRevenue = Math.round(tailSales * (game.price ?? 30) * (game.royalty ?? .15))
     game.sales += tailSales
@@ -97,6 +99,12 @@ export function attendShowcase(state, eventId, targetId) {
     state.player.followers += Math.round(tailSales * .04)
   }
 
-  addHistory(state, `${event.name}: ${project?.title ?? game.title}`, project ? `O projeto ganhou ${event.hype} de hype no palco.` : 'Um jogo já lançado voltou para a vitrine.', { highlight: true, kind: 'event' })
-  return { event, target: project ?? game }
+  const subject = project?.title ?? game?.title
+  addHistory(
+    state,
+    subject ? `${event.name}: ${subject}` : `Presença na ${event.name}`,
+    project ? `O projeto ganhou ${event.hype} de hype no palco.` : game ? 'Um jogo já lançado voltou para a vitrine.' : 'Contatos, pesquisa e presença de mercado sem um anúncio específico.',
+    { highlight: event.tier !== 'LOCAL', kind: 'event' },
+  )
+  return { event, target: project ?? game ?? null }
 }
