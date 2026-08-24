@@ -10,6 +10,7 @@ import './styles/onboarding.css'
 import './styles/features.css'
 import './styles/expansion.css'
 import './styles/save-slots.css'
+import './styles/team-management.css'
 import './styles/responsive.css'
 
 createRoot(document.getElementById('root')).render(
