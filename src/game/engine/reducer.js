@@ -22,6 +22,7 @@ import { launchPlanMechanics, marketingForYear } from '../data/marketingEras.js'
 import { createCreatorCoverage } from '../data/creatorCoverage.js'
 import { phaseForId, projectPhase, promiseFit, promiseForId, promiseScopeMonths } from '../data/projectPromises.js'
 import { acquireSubsidiary, advanceDelegatedProject, availableProductionUnits, calculateProjectPlan, projectCapacity, projectCount, projectPlatforms } from './production.js'
+import { assignTeamMember, createProductionTeam, productionPaceForUnit, productionUnitForId, staffForProductionUnit } from './teamManagement.js'
 import { attendShowcase, tickExpansion } from './expansionTick.js'
 
 function franchiseExpectation(state, franchiseId) {
@@ -50,7 +51,8 @@ function startProject(state, payload) {
   const platforms = projectPlatforms(payload)
   const platformRecords = platforms.map(id => PLATFORMS.find(item => item.id === id))
   if (platformRecords.some(platform => !platform || !platformAtDate(platform, state.date))) return state
-  if (!unit.subsidiaryId && ((scale.officeLevel ?? 0) > state.studio.officeLevel || (scale.teamSize ?? 0) > state.studio.team.length)) return state
+  if (!unit.subsidiaryId && (scale.officeLevel ?? 0) > state.studio.officeLevel) return state
+  if ((scale.teamSize ?? 0) > unit.memberCount) return state
   if (unit.subsidiaryId && payload.scale === 'blockbuster' && unit.skill < 82) return state
 
   const promise = promiseForId(payload.promiseId)
@@ -69,8 +71,7 @@ function startProject(state, payload) {
   if (!plan) return state
   const trait = TRAITS.find(item => item.id === state.player.traitId)
   const culture = CULTURES.find(item => item.id === state.studio.cultureId)
-  const teamCompression = unit.main ? Math.min(3, Math.floor(state.studio.team.length / 5)) : 0
-  const totalMonths = Math.max(2, plan.totalMonths + (trait?.modifiers.projectMonths ?? 0) + (culture?.modifiers.months ?? 0) - teamCompression)
+  const totalMonths = Math.max(2, plan.totalMonths + (trait?.modifiers.projectMonths ?? 0) + (culture?.modifiers.months ?? 0))
   const estimatedCost = plan.estimatedCost
   if (state.player.money < estimatedCost * .25) return state
 
@@ -198,7 +199,7 @@ function releaseProject(state, project, random) {
   })
   const supportTech = state.studio.unlockedTechs.reduce((sum, techId) => sum + (TECHS.find(item => item.id === techId)?.bonus.support ?? 0), 0)
   state.activeReleases.push({ gameId: game.id, monthsLeft: (game.score >= 82 ? 8 : 5) + supportTech, age: 0, eventIds: [] })
-  state.studio.team.forEach(person => { person.projects = Math.floor(person.projects) + 1 })
+  staffForProductionUnit(state, project.productionUnitId ?? 'founder').forEach(person => { person.projects = Math.floor(person.projects) + 1 })
   recordLicensedRelease(state, game)
   recordCorporateRelease(state, game)
   resolveCorporateRelease(state, game)
@@ -244,9 +245,11 @@ function monthAction(state, payload, random) {
     const promise = promiseForId(project.promiseId)
     const phase = projectPhase(project)
     const monthlyCost = Math.round(project.estimatedCost / project.totalMonths)
-    const extraProgress = (trait?.modifiers.progressChance && random() < trait.modifiers.progressChance ? 0.35 : 0) + (culture?.modifiers.progress ?? 0) + state.studio.team.length * 0.08
+    const teamUnit = productionUnitForId(state, project.productionUnitId ?? 'founder')
+    const teamPace = productionPaceForUnit(state, project.productionUnitId ?? 'founder') || 1
+    const extraProgress = (trait?.modifiers.progressChance && random() < trait.modifiers.progressChance ? 0.35 : 0) + (culture?.modifiers.progress ?? 0)
     const healthPace = 0.75 + state.player.health / 400
-    project.progress += (1 + extraProgress) * healthPace
+    project.progress += Math.max(.2, teamPace + extraProgress) * healthPace
     project.costSpent += monthlyCost
     if (phase === 'prototype') {
       project.quality += randomInt(2, 4, random) + Math.min(1, project.promiseFit ?? 0)
@@ -256,7 +259,7 @@ function monthAction(state, payload, random) {
       project.bugs += randomInt(0, Math.max(1, promise.bugRisk), random)
     } else {
       project.quality += randomInt(1, 2, random)
-      const fixCapacity = 2 + Math.floor((state.player.stats.programming + state.studio.team.length * 4) / 28)
+      const fixCapacity = 2 + Math.floor((state.player.stats.programming + (teamUnit?.memberCount ?? 1) * 4) / 28)
       project.bugs = Math.max(0, project.bugs - randomInt(1, fixCapacity, random))
     }
     project.innovation += project.focus === 'innovation' ? randomInt(1, 3, random) : random() < 0.18 ? 1 : 0
@@ -264,7 +267,7 @@ function monthAction(state, payload, random) {
     state.player.money -= monthlyCost
     state.player.energy -= randomInt(10, 16, random)
     state.player.stress += randomInt(5, 9, random) + (trait?.modifiers.stressPerDevelop ?? 0) + (culture?.modifiers.stress ?? 0)
-    state.studio.research += 1 + Math.floor(state.studio.team.length / 3)
+    state.studio.research += 1 + Math.floor((teamUnit?.memberCount ?? 1) / 3)
     state.player.career.monthsWorked += 1
     workedOnProject = true
     const nextPhase = projectPhase(project)
@@ -524,7 +527,14 @@ export function reduceGame(currentState, action, random = Math.random) {
   }
   if (action.type === 'HIRE_CANDIDATE') {
     const person = hireCandidate(state, action.candidateId)
-    if (person) addHistory(state, `${person.name} entrou no estúdio`, `Salário mensal: ${person.salary.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}.`, { highlight: true, kind: 'studio' })
+    if (person) addHistory(state, `${person.name} entrou no estúdio`, `Salário mensal: ${person.salary.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}. Entrou na Equipe principal.`, { highlight: true, kind: 'studio' })
+  }
+  if (action.type === 'CREATE_PRODUCTION_TEAM') {
+    const team = createProductionTeam(state)
+    if (team) addHistory(state, `${team.name} foi criada`, 'A equipe começa vazia. Mova funcionários para ela na lista da equipe.', { kind: 'studio' })
+  }
+  if (action.type === 'ASSIGN_TEAM_MEMBER') {
+    assignTeamMember(state, action.personId, action.productionTeamId)
   }
   if (action.type === 'FIRE_MEMBER') {
     const person = fireTeamMember(state, action.personId)
@@ -536,7 +546,7 @@ export function reduceGame(currentState, action, random = Math.random) {
   }
   if (action.type === 'ACQUIRE_SUBSIDIARY') {
     const studio = acquireSubsidiary(state, action.studioId)
-    if (studio) addHistory(state, `${studio.name} entrou para o grupo`, `${studio.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} pela aquisição. Um novo time de produção ficou disponível.`, { highlight: true, kind: 'studio' })
+    if (studio) addHistory(state, `${studio.name} entrou para o grupo`, `${studio.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} pela aquisição. ${studio.capacity} frente${studio.capacity === 1 ? '' : 's'} de produção ficaram disponíveis e podem receber reforços da sua equipe.`, { highlight: true, kind: 'studio' })
   }
   if (action.type === 'CHANGE_CULTURE' && !state.studio.cultureLockMonths && CULTURES.some(item => item.id === action.cultureId)) {
     state.studio.cultureId = action.cultureId
