@@ -3,6 +3,7 @@ import { getEra } from '../data/eras.js'
 import { accessoryForId, controlSchemeForId } from '../data/hardwareFeatures.js'
 import { projectTypeForId, sourceGamesForPayload } from '../data/projectTypes.js'
 import { SUBSIDIARY_STUDIOS, subsidiaryForId, subsidiaryPrice } from '../data/subsidiaryStudios.js'
+import { productionPaceForUnit, productionUnits as managedProductionUnits } from './teamManagement.js'
 import { clamp, makeId, randomInt } from './utils.js'
 
 const unique = values => [...new Set((values ?? []).filter(Boolean))]
@@ -12,22 +13,7 @@ export function projectPlatforms(payload) {
   return values.length ? values : ['pc']
 }
 
-export function productionUnits(state) {
-  const result = [{ id: 'founder', name: 'Equipe principal', skill: Math.round((state.player.stats.programming + state.player.stats.design + state.player.stats.art) / 3), main: true }]
-  const squads = Math.floor((state.studio.team?.length ?? 0) / 4)
-  for (let index = 0; index < squads; index += 1) {
-    const members = state.studio.team.slice(index * 4, index * 4 + 4)
-    result.push({ id: `internal-${index + 1}`, name: `Equipe interna ${index + 2}`, skill: Math.round(members.reduce((sum, person) => sum + person.skill, 0) / Math.max(1, members.length)), internal: true })
-  }
-  ;(state.studio.subsidiaries ?? []).forEach(owned => {
-    const studio = subsidiaryForId(owned.studioId)
-    if (!studio) return
-    for (let index = 0; index < studio.capacity; index += 1) {
-      result.push({ id: `${studio.id}-${index + 1}`, name: studio.capacity > 1 ? `${studio.name} · time ${index + 1}` : studio.name, skill: studio.skill, subsidiaryId: studio.id, specialty: studio.specialty })
-    }
-  })
-  return result
-}
+export const productionUnits = state => managedProductionUnits(state)
 
 export function usedProductionUnitIds(state) {
   return new Set([state.currentProject, ...(state.parallelProjects ?? [])].filter(Boolean).map(project => project.productionUnitId ?? 'founder'))
@@ -35,10 +21,10 @@ export function usedProductionUnitIds(state) {
 
 export function availableProductionUnits(state) {
   const used = usedProductionUnitIds(state)
-  return productionUnits(state).filter(unit => !used.has(unit.id))
+  return productionUnits(state).filter(unit => unit.canWork && !used.has(unit.id))
 }
 
-export const projectCapacity = state => productionUnits(state).length
+export const projectCapacity = state => productionUnits(state).filter(unit => unit.canWork).length
 export const projectCount = state => (state.currentProject ? 1 : 0) + (state.parallelProjects?.length ?? 0)
 
 export function calculateProjectPlan(state, payload) {
@@ -90,11 +76,12 @@ export function subsidiaryMonthlyBurn(state) {
 
 export function advanceDelegatedProject(state, project, random = Math.random) {
   const unit = productionUnits(state).find(item => item.id === project.productionUnitId)
-  if (!unit || unit.main) return false
+  if (!unit || unit.main || !unit.canWork) return false
   const specialtyBonus = unit.specialty && (project.genres ?? [project.genre]).includes(unit.specialty) ? .18 : 0
-  const skillPace = clamp((unit.skill - 55) / 180, -.08, .2)
+  const pace = productionPaceForUnit(state, unit.id)
+  if (pace <= 0) return false
   const monthlyCost = Math.max(1, Math.round(project.estimatedCost / project.totalMonths))
-  project.progress += .78 + specialtyBonus + skillPace
+  project.progress += pace + specialtyBonus
   project.costSpent += monthlyCost
   project.quality += randomInt(1, 3, random) + (specialtyBonus ? 1 : 0)
   project.bugs = Math.max(0, (project.bugs ?? 0) + randomInt(-1, 2, random))
