@@ -41,7 +41,9 @@ export function calculateProjectPlan(state, payload) {
   const collectionExtra = type.id === 'collection' ? Math.max(0, sources.length - 2) : 0
   const extraPlatforms = Math.max(0, platforms.length - 1)
   const delegatedPorts = unique(payload.delegatedPlatformIds).filter(id => platforms.slice(1).includes(id)).length
-  const baseCost = scale.cost * era.costMultiplier * (1 + state.studio.team.length * .08)
+  const selectedUnit = productionUnits(state).find(unit => unit.id === (payload.productionUnitId ?? 'founder'))
+  const assignedEmployees = selectedUnit?.assignedMembers ?? state.studio.team.length
+  const baseCost = scale.cost * era.costMultiplier * (1 + assignedEmployees * .08)
   const scopeCost = 1 + (payload.scopeMonths ?? 0) * .055
   const contentCost = 1 + secondaryGenres.length * .08 + secondaryThemes.length * .045 + collectionExtra * .11
   const platformCost = 1 + extraPlatforms * .22 + delegatedPorts * .08
