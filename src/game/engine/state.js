@@ -54,7 +54,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
     },
     studio: {
       name: studioName, founded: startYear, officeLevel: OFFICES[0].level, cultureId: CULTURES[0].id, cultureLockMonths: 0,
-      team: [], candidates: [], research: 0, unlockedTechs: [], monthlyBurn: 0, debt: [], equity: 0, parentCompany: null, autonomy: 100,
+      team: [], productionTeams: [], candidates: [], research: 0, unlockedTechs: [], monthlyBurn: 0, debt: [], equity: 0, parentCompany: null, autonomy: 100,
       morale: 68, reputation: 0, subsidiaries: [], leaders: [{ name: playerName, generation: 1, from: startYear, to: null, legacy: 'Fundador' }],
     },
     opportunities: { contracts: [], publisherOffers: [], publisherArchive: [] },

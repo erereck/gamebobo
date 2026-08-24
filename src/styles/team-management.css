@@ -1,0 +1,41 @@
+.team-roster-managed > header { align-items: flex-end; gap: 14px; }
+.team-roster-head-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.team-roster-head-actions > span { font-size: 9px; font-weight: 900; letter-spacing: .08em; color: var(--ink-soft); }
+
+.production-team-overview { margin: 0 0 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 7px; }
+.production-team-overview article { min-width: 0; padding: 11px 12px; background: var(--paper-bright); border: 1px solid var(--line); box-shadow: inset 3px 0 0 var(--phosphor-deep); }
+.production-team-overview article.is-subsidiary { box-shadow: inset 3px 0 0 var(--sticker); }
+.production-team-overview article.is-empty { opacity: .6; box-shadow: inset 3px 0 0 var(--line-strong); }
+.production-team-overview span,
+.production-team-overview strong,
+.production-team-overview small,
+.production-team-overview b { display: block; }
+.production-team-overview span { color: var(--ink-faint); font: 700 7px/1 "Courier New", monospace; letter-spacing: .08em; }
+.production-team-overview strong { margin-top: 4px; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.production-team-overview small { margin-top: 5px; color: var(--ink-soft); font-size: 9px; line-height: 1.25; }
+.production-team-overview b { margin-top: 8px; color: var(--phosphor-deep); font: 900 9px/1 "Courier New", monospace; letter-spacing: .04em; }
+.production-team-overview .is-empty b { color: var(--ink-faint); }
+
+.team-management-note { margin: 0 0 12px; padding: 9px 11px; color: var(--ink-soft); background: rgba(255,255,255,.26); border-left: 3px solid var(--ink); font-size: 10px; line-height: 1.4; }
+.team-roster-managed .team-member { grid-template-columns: 46px minmax(0,1fr) minmax(210px, auto); }
+.team-member-actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; min-width: 0; }
+.team-member-actions select { min-width: 150px; max-width: 220px; height: 36px; padding: 0 9px; color: var(--ink); background: var(--paper-deep); border: 1px solid var(--line-strong); border-radius: var(--radius-small); font-size: 9px; font-weight: 800; }
+.team-member-actions select:disabled { opacity: .62; }
+.team-member-actions .button { flex: 0 0 auto; }
+
+@media (max-width: 700px) {
+  .team-roster-managed > header { align-items: flex-start; flex-direction: column; }
+  .team-roster-head-actions { width: 100%; justify-content: space-between; }
+  .team-roster-head-actions .button { min-height: 42px; }
+  .production-team-overview { grid-template-columns: 1fr 1fr; }
+  .team-roster-managed .team-member { grid-template-columns: 46px minmax(0,1fr); }
+  .team-member-actions { grid-column: 1 / -1; width: 100%; justify-content: stretch; }
+  .team-member-actions select { flex: 1 1 auto; width: 100%; max-width: none; min-height: 44px; }
+  .team-member-actions .button { min-height: 44px; }
+}
+
+@media (max-width: 430px) {
+  .production-team-overview { grid-template-columns: 1fr; }
+  .team-member-actions { align-items: stretch; flex-direction: column; }
+  .team-member-actions .button { width: 100%; }
+}

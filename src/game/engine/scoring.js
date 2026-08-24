@@ -23,7 +23,7 @@ export function calculateQuality(state, project, random = Math.random) {
   const equipment = EQUIPMENT[state.player.equipmentLevel]
   const office = OFFICES[state.studio.officeLevel]
   const culture = CULTURES.find(item => item.id === state.studio.cultureId)
-  const team = teamContribution(state)
+  const team = teamContribution(state, project.productionUnitId ?? 'founder')
   const era = getEra(state.date.year)
   const marketAngle = MARKET_ANGLES.find(item => item.id === state.market.angle)
   const focusStat = stats[focus?.stat ?? 'design']

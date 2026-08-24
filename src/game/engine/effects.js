@@ -56,6 +56,7 @@ export function applyEffects(state, effects = {}, context = {}, random = Math.ra
     state.currentContract = null
     state.studio.officeLevel = 0
     state.studio.team = []
+    state.studio.productionTeams = []
     state.studio.subsidiaries = []
     state.studio.debt = []
     state.studio.equity = 0

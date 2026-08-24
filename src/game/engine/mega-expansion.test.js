@@ -9,6 +9,7 @@ import { calculateProjectPlan } from './production.js'
 import { reduceGame } from './reducer.js'
 import { createInitialState } from './state.js'
 import { hiringSearchCost } from './studio.js'
+import { assignTeamMember, createProductionTeam } from './teamManagement.js'
 
 const fixed = () => .5
 
@@ -48,7 +49,14 @@ const staff = (id, skill = 68) => ({
   months: 0,
   projects: 0,
   awards: 0,
+  productionTeamId: 'founder',
 })
+
+function addSecondaryTeam(state, memberCount = 2) {
+  const team = createProductionTeam(state)
+  state.studio.team.slice(0, memberCount).forEach(person => assignTeamMember(state, person.id, team.id))
+  return team
+}
 
 test('arcade is a playable platform from the beginning of the timeline', () => {
   const arcade = PLATFORMS.find(item => item.id === 'arcade')
@@ -91,17 +99,18 @@ test('delegating secondary ports claws back part of multiplatform delay', () => 
   assert.ok(delegated.estimatedCost > 0)
 })
 
-test('a second game can run in parallel when an internal production unit exists', () => {
+test('a second game can run in parallel when an explicit internal production team exists', () => {
   let state = createInitialState({ startYear: 2006 }, fixed)
   state.player.money = 5_000_000
   state.studio.officeLevel = 4
   state.studio.team = Array.from({ length: 4 }, (_, index) => staff(index + 1))
+  const secondary = addSecondaryTeam(state, 2)
   state = reduceGame(state, { type: 'START_PROJECT', payload: basicProject({ title: 'Jogo A' }) }, fixed)
   assert.equal(state.currentProject?.title, 'Jogo A')
-  state = reduceGame(state, { type: 'START_PROJECT', payload: basicProject({ title: 'Jogo B', productionUnitId: 'internal-1' }) }, fixed)
+  state = reduceGame(state, { type: 'START_PROJECT', payload: basicProject({ title: 'Jogo B', productionUnitId: secondary.id }) }, fixed)
   assert.equal(state.parallelProjects.length, 1)
   assert.equal(state.parallelProjects[0].title, 'Jogo B')
-  assert.equal(state.parallelProjects[0].productionUnitId, 'internal-1')
+  assert.equal(state.parallelProjects[0].productionUnitId, secondary.id)
 })
 
 test('main and delegated projects that finish together both release in the same month', () => {
@@ -109,8 +118,9 @@ test('main and delegated projects that finish together both release in the same 
   state.player.money = 5_000_000
   state.studio.officeLevel = 4
   state.studio.team = Array.from({ length: 4 }, (_, index) => staff(index + 1))
+  const secondary = addSecondaryTeam(state, 2)
   state = reduceGame(state, { type: 'START_PROJECT', payload: basicProject({ title: 'Jogo A' }) }, fixed)
-  state = reduceGame(state, { type: 'START_PROJECT', payload: basicProject({ title: 'Jogo B', productionUnitId: 'internal-1' }) }, fixed)
+  state = reduceGame(state, { type: 'START_PROJECT', payload: basicProject({ title: 'Jogo B', productionUnitId: secondary.id }) }, fixed)
   state.currentProject.progress = state.currentProject.totalMonths - .2
   state.parallelProjects[0].progress = state.parallelProjects[0].totalMonths - .2
   state = reduceGame(state, { type: 'MONTH_ACTION', payload: { action: 'develop' } }, fixed)

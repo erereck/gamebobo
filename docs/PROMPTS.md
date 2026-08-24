@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-021 — 2026-08-24 — Quem Faz o Jogo
+
+Pedido: Transformar a aba de equipe em um gerenciador real de times: permitir mover cada funcionário por um dropdown ao lado de desligar, criar novas equipes sem limite de membros, acelerar projetos ao concentrar mais gente e reforçar com funcionários próprios as equipes de estúdios comprados.
+
+Resultado: versão 0.13.0. Funcionários passaram a pertencer a equipes de produção persistentes, novas equipes podem ser criadas sob demanda e o ritmo de cada projeto depende do tamanho e força da equipe realmente atribuída, com retorno decrescente. Estúdios adquiridos mantêm sua equipe nativa e aceitam reforços internos; saves antigos são hidratados sem perder projetos paralelos legados.
+
 ## P-020 — 2026-08-23 — Dez Slots
 
 Pedido: Adicionar suporte a múltiplos saves locais, com até dez carreiras independentes, e publicar como versão 0.12.1.
@@ -22,7 +28,7 @@ Resultado: versão 0.11.0. A premiação passou ao ritmo manual com um botão ne
 
 Pedido: Remover os atalhos de moeda e som do HUD, mantendo ambos nas configurações, e permitir rolagem horizontal da faixa mobile para alcançar saúde, seguidores e reputação.
 
-Resultado: versão 0.10.4. Moeda e som ficaram apenas nas configurações, o cabeçalho recuperou espaço e a faixa de carreira mobile passou a rolar horizontalmente sem esconder saúde, seguidores ou reputação.
+Resultado: versão 0.10.4. Moeda e som ficaram apenas nas configurações, o cabeçalho recuperou espaço e a faixa de carreira mobile passou a rolar horizontalmente sem esconder saúde, seguidores e reputação.
 
 ## P-016 — 2026-08-13 — Noite dos Envelopes
 
