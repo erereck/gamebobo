@@ -36,7 +36,7 @@ export function TeamRoster() {
         <article className="team-member founder">
           <div className="person-avatar">{founderInitials}</div>
           <div><strong>{state.player.name}</strong><span>Fundador · Geral</span><small>Fixo na Equipe principal. Não recebe salário. Ainda.</small></div>
-          <div className="team-member-actions"><select value="founder" disabled aria-label="Equipe do fundador"><option>Equipe principal</option></select></div>
+          <div className="team-member-actions"><select value="founder" disabled aria-label="Equipe do fundador"><option value="founder">Equipe principal</option></select></div>
         </article>
         {state.studio.team.map(person => {
           const role = ROLES.find(item => item.id === person.roleId)
