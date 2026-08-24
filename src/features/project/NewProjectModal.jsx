@@ -32,9 +32,12 @@ export function NewProjectModal() {
   const scale = SCALES[form.scale]
   const availablePlatforms = PLATFORMS.filter(item => platformAtDate(item, state.date))
   const selectedUnit = units.find(item => item.id === form.productionUnitId)
-  const availableScales = Object.values(SCALES).filter(item => selectedUnit?.subsidiaryId
-    ? item.id !== 'blockbuster' || selectedUnit.skill >= 82
-    : (item.officeLevel ?? 0) <= state.studio.officeLevel && (item.teamSize ?? 0) <= state.studio.team.length)
+  const availableScales = Object.values(SCALES).filter(item => {
+    if (!selectedUnit) return false
+    const enoughPeople = (item.teamSize ?? 0) <= selectedUnit.memberCount
+    if (selectedUnit.subsidiaryId) return enoughPeople && (item.id !== 'blockbuster' || selectedUnit.skill >= 82)
+    return enoughPeople && (item.officeLevel ?? 0) <= state.studio.officeLevel
+  })
   const promiseOptions = useMemo(() => promiseOptionsFor({ genre: primaryGenre, focus: form.focus, year: state.date.year, scaleId: form.scale }, 5, form.promiseId), [primaryGenre, form.focus, form.scale, form.promiseId, state.date.year])
   const scopeMonths = promiseScopeMonths(form.promiseId, form.scale)
   const plan = calculateProjectPlan(state, { ...form, genre: primaryGenre, theme: primaryTheme, scopeMonths })
@@ -48,7 +51,7 @@ export function NewProjectModal() {
   const sourceCountValid = type.requiresSource ? form.sourceGameIds.length === 1 : type.minSources ? form.sourceGameIds.length >= type.minSources && form.sourceGameIds.length <= type.maxSources : true
   const franchiseValid = !type.requiresFranchise || Boolean(form.franchiseId)
   const commissionBlocksParallel = Boolean(commission && state.currentProject)
-  const canSubmit = Boolean(form.title.trim() && plan && hasCapacity && selectedUnit && sourceCountValid && franchiseValid && !commissionBlocksParallel && state.player.money >= entryCost)
+  const canSubmit = Boolean(form.title.trim() && plan && hasCapacity && selectedUnit && availableScales.some(item => item.id === form.scale) && sourceCountValid && franchiseValid && !commissionBlocksParallel && state.player.money >= entryCost)
   const delegationCapacity = Math.floor(state.studio.team.length / 2) + (state.studio.subsidiaries?.length ?? 0)
 
   useEffect(() => {
@@ -158,7 +161,7 @@ export function NewProjectModal() {
         </header>
         <div className="project-form">
           {commission && <section className="commission-brief full-field"><span>{commission.concept?.toUpperCase()} · {commission.monthsLeft} MESES</span><strong>{licenseFromState(state, commission.licenseId)?.name}</strong><p>{commissionBlocksParallel ? 'A encomenda corporativa precisa ocupar a equipe principal antes de abrir outra frente.' : `Gênero e licença vieram no brief · meta ${commission.scoreFloor}.`}</p></section>}
-          {!hasCapacity && <section className="commission-brief full-field"><span>CAPACIDADE LOTADA</span><strong>Não existe outro time livre.</strong><p>Monte uma equipe interna maior ou compre um estúdio para abrir outra frente simultânea.</p></section>}
+          {!hasCapacity && <section className="commission-brief full-field"><span>CAPACIDADE LOTADA</span><strong>Não existe outro time livre.</strong><p>Crie uma equipe, coloque alguém nela ou compre um estúdio para abrir outra frente simultânea.</p></section>}
           <label className="text-field full-field"><span>01 · TÍTULO</span><input value={form.title} onChange={event => update('title', event.target.value)} maxLength="56" required autoFocus /></label>
 
           <CompactSingleChoice number="02" label="TIPO DE PROJETO" value={form.projectType} options={PROJECT_TYPES} onChange={chooseType} descriptions open={openDropdown === 'type'} onOpenChange={isOpen => setDropdown('type', isOpen)} />
@@ -192,7 +195,7 @@ export function NewProjectModal() {
             return <label key={id}><input type="checkbox" checked={form.delegatedPlatformIds.includes(id)} disabled={!form.delegatedPlatformIds.includes(id) && form.delegatedPlatformIds.length >= delegationCapacity} onChange={() => toggleDelegation(id)} /><span><strong>{platform?.label}</strong><small>{form.delegatedPlatformIds.includes(id) ? 'delegado' : 'feito pela mesma equipe'}</small></span></label>
           })}</div></fieldset>}
 
-          <label className="select-field"><span>11 · EQUIPE DE PRODUÇÃO</span><select value={form.productionUnitId} onFocus={closeDropdowns} onPointerDown={closeDropdowns} onChange={event => update('productionUnitId', event.target.value)}>{units.map(unit => <option key={unit.id} value={unit.id}>{unit.name} · força {unit.skill}</option>)}</select><small>{state.currentProject ? 'Times secundários progridem sozinhos a cada mês.' : 'A primeira frente sempre usa a equipe principal.'}</small></label>
+          <label className="select-field"><span>11 · EQUIPE DE PRODUÇÃO</span><select value={form.productionUnitId} onFocus={closeDropdowns} onPointerDown={closeDropdowns} onChange={event => update('productionUnitId', event.target.value)}>{units.map(unit => <option key={unit.id} value={unit.id}>{unit.name} · {unit.memberCount} pessoas · x{unit.pace.toFixed(2)}</option>)}</select><small>{selectedUnit ? `${selectedUnit.memberCount} pessoas nesta frente. Mais gente acelera a produção com retorno decrescente.` : state.currentProject ? 'Crie ou reforce uma equipe para abrir outra frente.' : 'A primeira frente sempre usa a equipe principal.'}</small></label>
 
           <label className="select-field"><span>12 · ACESSÓRIO</span><select value={form.accessoryId} onFocus={closeDropdowns} onPointerDown={closeDropdowns} onChange={event => update('accessoryId', event.target.value)}><option value="">Nenhum</option>{accessories.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><small>{form.accessoryId ? accessories.find(item => item.id === form.accessoryId)?.copy : 'Somente periféricos relevantes da plataforma e da época aparecem aqui.'}</small></label>
 
@@ -203,12 +206,12 @@ export function NewProjectModal() {
           <LicensePicker state={state} activeLicenses={activeLicenses} selectedIds={form.licenseIds} commission={commission} onToggle={toggleLicense} />
 
           <div className="project-estimate full-field">
-            <div><span>PRAZO</span><strong>{plan?.totalMonths ?? '—'} meses</strong></div>
+            <div><span>PRAZO</span><strong>{plan?.totalMonths ?? '—'} meses-base</strong></div>
             <div><span>ORÇAMENTO</span><strong>{plan ? formatMoney(plan.estimatedCost) : '—'}</strong></div>
             <div><span>CAIXA MÍNIMO</span><strong>{formatMoney(entryCost)}</strong></div>
             <div><span>PLATAFORMAS</span><strong>{form.platforms.length}</strong></div>
             {licenseRoyalty > 0 && <div><span>ROYALTIES DE IP</span><strong>{Math.round(licenseRoyalty * 100)}%</strong></div>}
-            <p className={!canSubmit ? 'is-danger' : ''}>{!sourceCountValid ? type.id === 'collection' ? 'A coletânea precisa de 2 a 4 jogos.' : 'Escolha o jogo-base.' : !franchiseValid ? 'Escolha a franquia.' : !hasCapacity ? 'Todos os times estão ocupados.' : commissionBlocksParallel ? 'A encomenda atual precisa da equipe principal.' : state.player.money < entryCost ? 'O caixa não segura nem a entrada do projeto.' : `Plano: ${type.label.toLowerCase()}, ${form.genres.length} gênero${form.genres.length > 1 ? 's' : ''}, ${form.platforms.length} plataforma${form.platforms.length > 1 ? 's' : ''}.`}</p>
+            <p className={!canSubmit ? 'is-danger' : ''}>{!sourceCountValid ? type.id === 'collection' ? 'A coletânea precisa de 2 a 4 jogos.' : 'Escolha o jogo-base.' : !franchiseValid ? 'Escolha a franquia.' : !hasCapacity ? 'Todos os times capazes de produzir estão ocupados.' : commissionBlocksParallel ? 'A encomenda atual precisa da equipe principal.' : !availableScales.some(item => item.id === form.scale) ? 'Essa equipe ainda é pequena demais para a escala escolhida.' : state.player.money < entryCost ? 'O caixa não segura nem a entrada do projeto.' : `Plano: ${type.label.toLowerCase()}, ${form.genres.length} gênero${form.genres.length > 1 ? 's' : ''}, ${form.platforms.length} plataforma${form.platforms.length > 1 ? 's' : ''}. Ritmo atual x${selectedUnit?.pace.toFixed(2) ?? '—'}.`}</p>
           </div>
         </div>
         <footer className="modal-actions"><Button type="button" onClick={() => setProjectModalOpen(false)}>CANCELAR</Button><Button type="submit" variant="primary" disabled={!canSubmit}>ABRIR PROJETO</Button></footer>
