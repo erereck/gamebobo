@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { hydrateV7 } from '../persistence/migrateV7.js'
 import { acquireSubsidiary } from './production.js'
+import { reduceGame } from './reducer.js'
 import { createInitialState } from './state.js'
 import { hireCandidate } from './studio.js'
 import {
@@ -30,6 +31,27 @@ const staff = (id, skill = 70, productionTeamId = 'founder') => ({
   projects: 0,
   awards: 0,
   productionTeamId,
+})
+
+const projectPayload = title => ({
+  title,
+  projectType: 'original',
+  genres: ['action'],
+  themes: ['space'],
+  genre: 'action',
+  theme: 'space',
+  focus: 'gameplay',
+  scale: 'small',
+  platforms: ['pc'],
+  platform: 'pc',
+  delegatedPlatformIds: [],
+  productionUnitId: 'founder',
+  promiseId: 'precise-controls',
+  franchiseId: '',
+  sourceGameIds: [],
+  licenseIds: [],
+  accessoryId: '',
+  controlScheme: 'standard',
 })
 
 test('new hires enter the principal production team by default', () => {
@@ -61,6 +83,24 @@ test('a custom team accepts many members and every concentration step increases 
   assert.equal(staffForProductionUnit(state, team.id).length, 20)
   assert.equal(new Set(state.studio.team.map(person => person.productionTeamId)).size, 1)
   checkpoints.slice(1).forEach((pace, index) => assert.ok(pace > checkpoints[index]))
+})
+
+test('more employees on the principal team produce more real project progress in a month', () => {
+  let solo = createInitialState({ startYear: 2006 }, fixed)
+  solo.player.money = 10_000_000
+  solo = reduceGame(solo, { type: 'START_PROJECT', payload: projectPayload('Solo') }, fixed)
+  solo = reduceGame(solo, { type: 'MONTH_ACTION', payload: { action: 'develop' } }, fixed)
+  const soloProgress = solo.currentProject?.progress ?? solo.games.find(game => game.title === 'Solo')?.totalMonths ?? 0
+
+  let crowded = createInitialState({ startYear: 2006 }, fixed)
+  crowded.player.money = 10_000_000
+  crowded.studio.officeLevel = 6
+  crowded.studio.team = Array.from({ length: 12 }, (_, index) => staff(index + 1, 72, 'founder'))
+  crowded = reduceGame(crowded, { type: 'START_PROJECT', payload: projectPayload('Cheio') }, fixed)
+  crowded = reduceGame(crowded, { type: 'MONTH_ACTION', payload: { action: 'develop' } }, fixed)
+  const crowdedProgress = crowded.currentProject?.progress ?? crowded.games.find(game => game.title === 'Cheio')?.totalMonths ?? 0
+
+  assert.ok(crowdedProgress > soloProgress)
 })
 
 test('an empty custom team exists but cannot open a production front until somebody joins it', () => {
