@@ -23,7 +23,7 @@ export function calculateQuality(state, project, random = Math.random) {
   const equipment = EQUIPMENT[state.player.equipmentLevel]
   const office = OFFICES[state.studio.officeLevel]
   const culture = CULTURES.find(item => item.id === state.studio.cultureId)
-  const team = teamContribution(state)
+  const team = teamContribution(state, project.productionUnitId ?? 'founder')
   const era = getEra(state.date.year)
   const marketAngle = MARKET_ANGLES.find(item => item.id === state.market.angle)
   const focusStat = stats[focus?.stat ?? 'design']
@@ -78,81 +78,66 @@ export function calculateRelease(state, project, random = Math.random) {
   const score = calculateQuality(state, project, random)
   const scale = SCALES[project.scale]
   const platformIds = projectPlatforms(project)
-  const platforms = platformIds.map(id => PLATFORMS.find(item => item.id === id)).filter(Boolean)
-  const primaryPlatform = platforms[0] ?? PLATFORMS.find(item => item.id === project.platform)
-  const genres = projectGenres(project)
+  const platformRecords = platformIds.map(id => PLATFORMS.find(item => item.id === id)).filter(Boolean)
+  const platformWeights = Object.fromEntries(platformRecords.map((platform, index) => {
+    const memory = state.player.audience.platforms[platform.id] ?? 0
+    const weight = Math.max(.18, platform.baseReach * (index === 0 ? 1 : .82) * (1 + Math.min(.3, memory / Math.max(1, state.player.followers) * .45)))
+    return [platform.id, weight]
+  }))
+  const weightTotal = Object.values(platformWeights).reduce((sum, value) => sum + value, 0) || 1
+  const combinedReach = platformRecords.length ? Math.min(2.35, Object.values(platformWeights).reduce((sum, value) => sum + value, 0)) : 1
+  const scaleReach = SALES_SCALE_REACH[project.scale] ?? 1
+  const marketDemand = qualityDemand(score, state.date.year)
+  const followerDemand = Math.pow(Math.max(10, state.player.followers), .6) * 4.4
+  const trustFactor = .74 + state.player.audience.trust / 190
+  const reputationFactor = .78 + state.player.reputation / 150
+  const hypeFactor = .86 + Math.min(1.25, (project.hype ?? 0) / 105)
+  const promise = promiseForId(project.promiseId)
+  const promiseReach = 1 + (promise.reach ?? 0)
   const type = projectTypeForId(project.projectType)
+  const typeReach = 1 + (type.reachBonus ?? 0)
   const accessory = accessoryForId(project.accessoryId)
-  const trend = genres.includes(state.market.genre) ? 1.42 : 1
-  const marketAngle = MARKET_ANGLES.find(item => item.id === state.market.angle)
-  const angle = project.focus === marketAngle?.focus ? 1.14 : 1
-  const platformWeights = platforms.map(platform => Math.max(6, state.market.platforms[platform.id] ?? 18))
-  const weightTotal = platformWeights.reduce((sum, value) => sum + value, 0) || 1
-  const averageShare = platformWeights.reduce((sum, value) => sum + value, 0) / Math.max(1, platforms.length)
-  const platformMultiplier = 0.72 + averageShare / 100
-  const multiplatformReach = 1 + Math.min(1.08, Math.max(0, platforms.length - 1) * .38)
-  const audienceMultiplier = 1 + Math.min(.85, Math.log10(1 + state.player.followers / 1000) * .32)
-  const culture = CULTURES.find(item => item.id === state.studio.cultureId)
-  const marketingMultiplier = 0.78 + state.player.stats.marketing / 135 + (culture?.modifiers.marketing ?? 0) / 45
-  const qualityCurve = qualityDemand(score, state.date.year)
-  const era = getEra(state.date.year)
-  const projectReach = 1 + (project.reach ?? 0) + type.reachBonus + (accessory?.reach ?? 0)
-  const publisherReach = project.publisher?.reach ?? 1
-  const publisherStyle = project.publisher?.style
-  const publisherFit = publisherStyle === 'mass'
-    ? (['large', 'blockbuster'].includes(project.scale) ? 1.12 : project.launchPlan === 'campaign' ? .62 : .56)
-    : publisherStyle === 'indie'
-      ? (['micro', 'small'].includes(project.scale) ? 1.08 : 0.96)
-      : publisherStyle === 'casual'
-        ? (['micro', 'small'].includes(project.scale) ? 1.07 : 0.94)
-        : publisherStyle === 'prestige' ? 0.96 + Math.max(0, score - 72) / 220 : 1
-  const hypeMultiplier = 0.82 + Math.min(0.75, (project.hype ?? 0) / 100)
-  const expectationPenalty = project.expectation && score < project.expectation ? Math.max(0.72, 1 - (project.expectation - score) / 100) : 1
-  const franchiseFatigue = project.isSequel ? Math.max(0.72, 1 - Math.max(0, (project.sequelNumber ?? 2) - 3) * 0.08) : 1
+  const accessoryReach = 1 + (accessory?.reach ?? 0)
+  const shock = marketShockMultiplier(state, project)
   const licensed = projectLicenseReadout(state, project)
-  const launchMultiplier = project.launchPlan === 'campaign' ? 1.3 : project.launchPlan === 'creator' ? 1.22 : project.launchPlan === 'early' ? 1.12 : project.launchPlan === 'shadow' ? 0.88 : 1
-  const salesScaleReach = SALES_SCALE_REACH[project.scale] ?? scale.reach
-  const shockMultiplier = marketShockMultiplier(state, project)
-  const editionReach = type.id === 'port' ? .78 : type.id === 'remaster' ? .9 : type.id === 'collection' ? .94 : 1
-  const ordinarySales = qualityCurve * salesScaleReach * era.indieReach * projectReach * publisherReach * publisherFit * hypeMultiplier * expectationPenalty * franchiseFatigue * licensed.reachMultiplier * launchMultiplier * trend * angle * platformMultiplier * multiplatformReach * audienceMultiplier * marketingMultiplier * shockMultiplier * editionReach * randomInt(82, 118, random) / 100
-  const breakoutChance = score >= 78 ? clamp((score - 77) * .00045 + (project.innovation ?? 0) * .0001 + (project.hype ?? 0) * .000025, 0, .018) : 0
-  const breakout = random() < breakoutChance
-  const phenomenon = breakout && score >= 88 && random() < .006 + Math.max(0, score - 94) * .002
-  const breakoutMultiplier = phenomenon ? 2.2 * (8 ** random()) : breakout ? randomInt(140, 260, random) / 100 : 1
-  const marketCeiling = audienceCeiling(state.date.year) * (platforms.length > 1 ? 1.35 : 1)
-  const sales = Math.min(marketCeiling, Math.round(ordinarySales * breakoutMultiplier))
-  const platformSales = Object.fromEntries(platforms.map((platform, index) => [platform.id, Math.round(sales * platformWeights[index] / weightTotal)]))
-  const distributed = Object.values(platformSales).reduce((sum, value) => sum + value, 0)
-  if (platforms[0]) platformSales[platforms[0].id] += sales - distributed
-  const gross = sales * scale.price
-  const publisherCut = project.publisher?.royalty ?? 0
-  const blendedRoyalty = platforms.reduce((sum, platform, index) => sum + platform.royalty * platformWeights[index] / weightTotal, 0) || primaryPlatform?.royalty || .7
-  const effectiveRoyalty = Math.min(0.98, blendedRoyalty + (project.directMargin ?? 0))
-  const netRoyalty = Math.max(.12, effectiveRoyalty * (1 - publisherCut) - (project.licenseRoyalty ?? licensed.royalty))
-  const operations = platforms.reduce((sum, platform, index) => sum + operatingShare(state.date.year, platform.type) * platformWeights[index] / weightTotal, 0) || operatingShare(state.date.year, primaryPlatform?.type)
-  const studioRoyalty = netRoyalty * operations
-  const revenue = Math.round(gross * studioRoyalty * (1 - Math.min(0.75, state.studio.equity ?? 0)))
-  const newFollowers = Math.round(sales * (score / 100) * (phenomenon ? .06 : breakout ? .1 : .14))
-  const reviews = createReviews(score, project, state.date.year, random)
-  const leadReview = primaryReview(reviews)
+  const licenseReach = 1 + licensed.reachBonus
+  const launchReach = project.launchPlan === 'campaign' ? 1.18 : project.launchPlan === 'creator' ? 1.13 : project.launchPlan === 'early' ? 1.07 : .94
+  const publisherReach = project.publisher ? 1 + (project.publisher.reach ?? 0) : 1
+  const partnershipReach = 1 + state.corporate.partnerships.reduce((sum, item) => sum + item.reach, 0)
+  const editionReach = ['remake', 'remaster', 'collection'].includes(type.id) ? 1.05 : type.id === 'port' ? .94 : 1
+  const baseDemand = marketDemand * scaleReach * combinedReach * trustFactor * reputationFactor * hypeFactor * promiseReach * typeReach * accessoryReach * shock * licenseReach * launchReach * publisherReach * partnershipReach * editionReach
+  const audienceFloor = followerDemand * (.75 + Math.min(.55, score / 140))
+  const breakoutChance = clamp((score - 79) * .018 + state.player.reputation / 650 + Math.min(.16, (project.hype ?? 0) / 500), 0, .38)
+  const phenomenonChance = clamp((score - 91) * .004 + (project.hype ?? 0) / 5000, 0, .045)
+  const phenomenon = score >= 92 && random() < phenomenonChance
+  const breakout = !phenomenon && score >= 82 && random() < breakoutChance
+  const discovery = phenomenon ? 5 + random() * 7 : breakout ? 1.8 + random() * 2.3 : score >= 88 ? .98 + random() * .55 : .8 + random() * .38
+  const potentialSales = Math.max(audienceFloor, baseDemand) * discovery
+  const ceiling = audienceCeiling(state.date.year, project.scale, score, phenomenon)
+  const sales = Math.max(120, Math.round(Math.min(potentialSales, ceiling)))
+  const platformSales = {}
+  platformRecords.forEach(platform => {
+    platformSales[platform.id] = Math.round(sales * (platformWeights[platform.id] ?? 0) / weightTotal)
+  })
+  const royalties = platformRecords.reduce((sum, platform => sum + (platformSales[platform.id] ?? 0) / sales * platform.royalty, 0)
+  const publisherRoyalty = project.publisher?.royalty ?? 0
+  const licenseRoyalty = project.licenseRoyalty ?? 0
+  const operationShare = platformRecords.reduce((sum, platform => sum + (platformSales[platform.id] ?? 0) / sales * operatingShare(platform.type, state.date.year), 0)
+  const netShare = clamp(1 - royalties - publisherRoyalty - licenseRoyalty - operationShare, .12, .82)
+  const revenue = Math.round(sales * scale.price * netShare)
+  const newFollowers = Math.round(Math.min(sales * .42, sales * (.15 + score / 260)))
+  const reviews = createReviews(score, project, random)
   return {
     score,
     sales,
     platformSales,
-    initialSales: sales,
     revenue,
-    initialRevenue: revenue,
     newFollowers,
-    initialFollowers: newFollowers,
-    price: scale.price,
-    royalty: studioRoyalty,
-    netRoyalty,
-    platformRoyalty: effectiveRoyalty,
-    quote: leadReview.quote,
-    reviews,
     breakout,
     phenomenon,
-    breakoutMultiplier,
-    shockMultiplier,
+    reviews,
+    review: primaryReview(reviews),
+    netShare,
+    shockMultiplier: shock,
   }
 }
