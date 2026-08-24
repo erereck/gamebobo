@@ -1,6 +1,7 @@
 import { CULTURES, OFFICES, PERSONALITIES, ROLES, TEAM_NAMES, TEAM_SURNAMES } from '../data/team.js'
 import { TECHS, getEra } from '../data/eras.js'
 import { subsidiaryForId } from '../data/subsidiaryStudios.js'
+import { MAIN_PRODUCTION_TEAM_ID, staffForProductionUnit } from './teamManagement.js'
 import { clamp, makeId, randomChoice, randomInt } from './utils.js'
 
 export function laborMarketMultiplier(state) {
@@ -39,6 +40,7 @@ export function generateCandidate(state, random = Math.random, priority = false)
     projects: 0,
     awards: 0,
     headhunted: priority,
+    productionTeamId: MAIN_PRODUCTION_TEAM_ID,
   }
 }
 
@@ -53,6 +55,7 @@ export function hireCandidate(state, candidateId) {
   const candidate = state.studio.candidates.find(item => item.id === candidateId)
   if (!candidate || state.player.money < candidate.salary * 2) return false
   state.player.money -= candidate.salary * 2
+  candidate.productionTeamId ??= MAIN_PRODUCTION_TEAM_ID
   state.studio.team.push(candidate)
   state.studio.candidates = state.studio.candidates.filter(item => item.id !== candidateId)
   return candidate
@@ -67,9 +70,9 @@ export function fireTeamMember(state, personId) {
   return person
 }
 
-export function teamContribution(state) {
+export function teamContribution(state, productionUnitId = MAIN_PRODUCTION_TEAM_ID) {
   const roleMap = { programmer: 'programming', artist: 'art', designer: 'design', producer: 'charisma', marketer: 'marketing', writer: 'design' }
-  return state.studio.team.reduce((result, person) => {
+  return staffForProductionUnit(state, productionUnitId).reduce((result, person) => {
     const stat = roleMap[person.roleId]
     const personality = PERSONALITIES.find(item => item.id === person.personalityId)
     const contribution = 0.22 + (personality?.contribution ?? 0) / 100
@@ -91,14 +94,19 @@ export function tickStudio(state, workedOnProject, random = Math.random) {
   state.studio.monthlyBurn = calculateMonthlyBurn(state)
   state.studio.cultureLockMonths = Math.max(0, (state.studio.cultureLockMonths ?? 0) - 1)
   state.player.money -= state.studio.monthlyBurn
+
+  const workingUnitIds = new Set((state.parallelProjects ?? []).map(project => project.productionUnitId).filter(Boolean))
+  if (workedOnProject && state.currentProject?.productionUnitId) workingUnitIds.add(state.currentProject.productionUnitId)
+
   state.studio.team.forEach(person => {
     const personality = PERSONALITIES.find(item => item.id === person.personalityId)
     const socialBoost = state.studio.team.some(other => other.id !== person.id && other.personalityId === 'social') ? 2 : 0
+    const isWorking = workingUnitIds.has(person.productionTeamId ?? MAIN_PRODUCTION_TEAM_ID)
     person.months += 1
-    person.energy = clamp(person.energy + (workedOnProject ? -randomInt(7, 13, random) : 16), 10, 100)
-    person.morale = clamp(person.morale + (workedOnProject ? culture.modifiers.morale ?? 0 : 2) + socialBoost, 0, 100)
+    person.energy = clamp(person.energy + (isWorking ? -randomInt(7, 13, random) : 16), 10, 100)
+    person.morale = clamp(person.morale + (isWorking ? culture.modifiers.morale ?? 0 : 2) + socialBoost, 0, 100)
     person.loyalty = clamp(person.loyalty + (state.player.money < 0 ? -2 : 0) + (personality?.retention ? 1 : 0), 0, 100)
-    if (workedOnProject) person.projects += 0.15
+    if (isWorking) person.projects += 0.15
     if (person.skill < person.potential && random() < 0.16) person.skill += 1
   })
   const departure = state.studio.team.find(person => person.loyalty < 12 && random() < 0.35)
