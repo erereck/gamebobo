@@ -5,7 +5,7 @@ import { projectTypeForId, sourceGamesForPayload } from '../data/projectTypes.js
 import { SUBSIDIARY_STUDIOS, subsidiaryForId, subsidiaryPrice } from '../data/subsidiaryStudios.js'
 import { productionPaceForUnit, productionUnits as managedProductionUnits } from './teamManagement.js'
 import { clamp, makeId, randomInt } from './utils.js'
-import { modeProductionPaceMultiplier, modeProjectCostMultiplier } from './gameModes.js'
+import { modeAllowsSubsidiaries, modeProjectCostMultiplier } from './gameModes.js'
 
 const unique = values => [...new Set((values ?? []).filter(Boolean))]
 
@@ -62,6 +62,7 @@ export function calculateProjectPlan(state, payload) {
 }
 
 export function acquireSubsidiary(state, studioId) {
+  if (!modeAllowsSubsidiaries(state)) return null
   const studio = SUBSIDIARY_STUDIOS.find(item => item.id === studioId)
   if (!studio || state.date.year < studio.fromYear || state.studio.subsidiaries?.some(item => item.studioId === studioId)) return null
   const price = subsidiaryPrice(state, studio)
@@ -81,7 +82,7 @@ export function advanceDelegatedProject(state, project, random = Math.random) {
   const unit = productionUnits(state).find(item => item.id === project.productionUnitId)
   if (!unit || unit.main || !unit.canWork) return false
   const specialtyBonus = unit.specialty && (project.genres ?? [project.genre]).includes(unit.specialty) ? .18 : 0
-  const pace = productionPaceForUnit(state, unit.id) * modeProductionPaceMultiplier(state)
+  const pace = productionPaceForUnit(state, unit.id)
   if (pace <= 0) return false
   const monthlyCost = Math.max(1, Math.round(project.estimatedCost / project.totalMonths))
   project.progress += pace + specialtyBonus
