@@ -67,6 +67,10 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
     settings: { sound: true, musicPlaying: true, musicMuted: false, musicVolume: .18, currency, timelineNotices: true },
   }
   applyGameModeStart(state, options, random)
+  if (state.careerMode.id === 'portable' && state.date.year === 1989 && state.date.month < 3) {
+    state.date.month = 3
+    state.history[0].date = 'ABR 1989'
+  }
   generateOpportunities(state, random)
   return state
 }
