@@ -118,8 +118,8 @@ export function applyGameModeStart(state, options = {}, random = Math.random) {
     const company = available.length ? randomChoice(available, random) : CORPORATE_PARTNERS[0]
     mode.parentCompanyId = company.id
     state.player.money = 55000
-    state.player.reputation = 24
-    state.studio.reputation = 28
+    state.player.reputation = 42
+    state.studio.reputation = 40
     state.studio.officeLevel = Math.min(2, OFFICES.length - 1)
     state.studio.team = [0, 1, 2].map(index => starterEmployee(state, index, random))
     state.studio.equity = .6
