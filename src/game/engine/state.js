@@ -9,13 +9,15 @@ import { generateOpportunities } from './business.js'
 import { createLicensingState } from './licensing.js'
 import { HISTORICAL_MILESTONES } from '../data/industryHistory.js'
 import { createCorporateState } from './corporate.js'
+import { applyGameModeStart, minimumStartYearForMode } from './gameModes.js'
 
 const blankSegments = items => Object.fromEntries(items.map(item => [item.id, 0]))
 
 export function createInitialState(optionsOrRandom = Math.random, maybeRandom = Math.random) {
   const options = typeof optionsOrRandom === 'function' ? {} : optionsOrRandom
   const random = typeof optionsOrRandom === 'function' ? optionsOrRandom : maybeRandom
-  const startYear = clamp(Number(options.startYear) || 2003, 1980, 2020)
+  const minimumStartYear = minimumStartYearForMode(options.modeId)
+  const startYear = clamp(Math.max(Number(options.startYear) || 2003, minimumStartYear), 1980, 2020)
   const trait = TRAITS.find(item => item.id === options.traitId) ?? randomChoice(TRAITS, random)
   const playerName = String(options.playerName || 'Erick').trim().slice(0, 28) || 'Erick'
   const studioName = String(options.studioName || 'EriLab').trim().slice(0, 32) || 'EriLab'
@@ -29,6 +31,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
   const state = {
     schema: versionInfo.saveSchema,
     meta: { id: makeId('career'), createdAt: new Date().toISOString(), lastSavedAt: null, version: versionInfo.version, startYear },
+    careerMode: null,
     date: { month: 0, year: startYear },
     player: {
       name: playerName, age: playerAge, money: 12800, energy: 100, stress: 8, followers: 12, reputation: 0, relationship: 55, health: 100,
@@ -63,6 +66,7 @@ export function createInitialState(optionsOrRandom = Math.random, maybeRandom = 
     queue: [], seenPersonalEvents: [],
     settings: { sound: true, musicPlaying: true, musicMuted: false, musicVolume: .18, currency, timelineNotices: true },
   }
+  applyGameModeStart(state, options, random)
   generateOpportunities(state, random)
   return state
 }
