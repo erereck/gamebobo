@@ -1,5 +1,6 @@
 import { subsidiaryForId } from '../data/subsidiaryStudios.js'
 import { clamp, makeId } from './utils.js'
+import { modeAllowsHiring, modeProductionPaceMultiplier } from './gameModes.js'
 
 export const MAIN_PRODUCTION_TEAM_ID = 'founder'
 
@@ -60,6 +61,7 @@ function paceFor(memberCount, skill, subsidiary = false) {
 }
 
 export function productionUnits(state) {
+  const modePace = modeProductionPaceMultiplier(state)
   return teamAssignmentUnits(state).map(team => {
     const members = staffForProductionUnit(state, team.id)
     let memberCount = members.length
@@ -78,7 +80,7 @@ export function productionUnits(state) {
     }
 
     const roundedSkill = Math.round(skill || 0)
-    const pace = paceFor(memberCount, roundedSkill, Boolean(team.subsidiaryId))
+    const pace = paceFor(memberCount, roundedSkill, Boolean(team.subsidiaryId)) * modePace
     return {
       ...team,
       members,
@@ -100,6 +102,7 @@ export function productionPaceForUnit(state, unitId) {
 }
 
 export function createProductionTeam(state) {
+  if (!modeAllowsHiring(state)) return null
   state.studio.productionTeams ??= []
   const number = state.studio.productionTeams.length + 2
   const team = {
