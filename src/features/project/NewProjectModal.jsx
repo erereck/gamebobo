@@ -9,6 +9,7 @@ import { licenseFromState } from '../../game/engine/licensing.js'
 import { PROJECT_TYPES, projectTypeForId } from '../../game/data/projectTypes.js'
 import { availableAccessories, CONTROL_SCHEMES, supportsMotion } from '../../game/data/hardwareFeatures.js'
 import { availableProductionUnits, calculateProjectPlan, projectCapacity, projectCount } from '../../game/engine/production.js'
+import { modeAllowsPlatform, modeAllowsProjectType, modeAllowsScale, modeForState, modeProjectPayloadValid, singularFranchiseLock } from '../../game/engine/gameModes.js'
 import { Button } from '../../components/ui/Button.jsx'
 import { Modal } from '../../components/ui/Modal.jsx'
 import { Icon } from '../../components/ui/Icon.jsx'
@@ -24,16 +25,20 @@ export function NewProjectModal() {
   const { state, dispatch, projectModalOpen, setProjectModalOpen } = useGame()
   const [form, setForm] = useState(freshForm)
   const [openDropdown, setOpenDropdown] = useState(null)
-  const franchises = useMemo(() => getFranchises(state), [state])
+  const mode = modeForState(state)
+  const franchiseLock = singularFranchiseLock(state)
+  const allFranchises = useMemo(() => getFranchises(state), [state])
+  const franchises = franchiseLock ? allFranchises.filter(item => item.id === franchiseLock.id) : allFranchises
+  const sourceGames = franchiseLock ? state.games.filter(game => game.franchiseId === franchiseLock.id) : state.games
   const units = useMemo(() => availableProductionUnits(state), [state])
+  const availableProjectTypes = PROJECT_TYPES.filter(item => modeAllowsProjectType(state, item.id))
   const type = projectTypeForId(form.projectType)
   const primaryGenre = form.genres[0]
   const primaryTheme = form.themes[0]
-  const scale = SCALES[form.scale]
-  const availablePlatforms = PLATFORMS.filter(item => platformAtDate(item, state.date))
+  const availablePlatforms = PLATFORMS.filter(item => platformAtDate(item, state.date) && modeAllowsPlatform(state, item))
   const selectedUnit = units.find(item => item.id === form.productionUnitId)
   const availableScales = Object.values(SCALES).filter(item => {
-    if (!selectedUnit) return false
+    if (!selectedUnit || !modeAllowsScale(state, item.id)) return false
     const enoughPeople = (item.teamSize ?? 0) <= selectedUnit.memberCount
     if (selectedUnit.subsidiaryId) return enoughPeople && (item.id !== 'blockbuster' || selectedUnit.skill >= 82)
     return enoughPeople && (item.officeLevel ?? 0) <= state.studio.officeLevel
@@ -51,7 +56,8 @@ export function NewProjectModal() {
   const sourceCountValid = type.requiresSource ? form.sourceGameIds.length === 1 : type.minSources ? form.sourceGameIds.length >= type.minSources && form.sourceGameIds.length <= type.maxSources : true
   const franchiseValid = !type.requiresFranchise || Boolean(form.franchiseId)
   const commissionBlocksParallel = Boolean(commission && state.currentProject)
-  const canSubmit = Boolean(form.title.trim() && plan && hasCapacity && selectedUnit && availableScales.some(item => item.id === form.scale) && sourceCountValid && franchiseValid && !commissionBlocksParallel && state.player.money >= entryCost)
+  const modePayloadValid = modeProjectPayloadValid(state, { ...form, genre: primaryGenre, theme: primaryTheme })
+  const canSubmit = Boolean(form.title.trim() && plan && modePayloadValid && hasCapacity && selectedUnit && availableScales.some(item => item.id === form.scale) && sourceCountValid && franchiseValid && !commissionBlocksParallel && state.player.money >= entryCost)
   const delegationCapacity = Math.floor(state.studio.team.length / 2) + (state.studio.subsidiaries?.length ?? 0)
 
   useEffect(() => {
@@ -59,16 +65,24 @@ export function NewProjectModal() {
     const unit = availableProductionUnits(state)[0]
     const genre = commission?.genre ?? 'rpg'
     const recommended = promiseOptionsFor({ genre, focus: 'gameplay', year: state.date.year, scaleId: 'small' }, 1)[0]
+    const allowedType = PROJECT_TYPES.find(item => modeAllowsProjectType(state, item.id))?.id ?? 'original'
+    const allowedPlatform = PLATFORMS.find(item => platformAtDate(item, state.date) && modeAllowsPlatform(state, item))?.id ?? 'pc'
+    const allowedScale = Object.values(SCALES).find(item => modeAllowsScale(state, item.id))?.id ?? 'small'
+    const lock = singularFranchiseLock(state)
     setOpenDropdown(null)
     setForm({
       ...freshForm(),
       title: suggestions[Math.floor(Math.random() * suggestions.length)],
+      projectType: allowedType,
       genres: [genre],
+      scale: allowedScale,
+      platforms: [allowedPlatform],
       productionUnitId: unit?.id ?? '',
       promiseId: recommended?.id ?? 'world-to-explore',
+      franchiseId: lock?.id ?? '',
       licenseIds: commission ? [commission.licenseId] : [],
     })
-  }, [projectModalOpen, commission?.id, state.date.year])
+  }, [projectModalOpen, commission?.id, state.date.year, state.careerMode?.id, state.careerMode?.lockedFranchiseId])
 
   const update = (key, value) => setForm(current => ({ ...current, [key]: value }))
   const closeDropdowns = () => setOpenDropdown(null)
@@ -105,7 +119,7 @@ export function NewProjectModal() {
       themes: (game.themes?.length ? game.themes : [game.theme]).slice(0, 2),
       focus: game.focus,
       promiseId: game.promiseId ?? current.promiseId,
-      franchiseId: game.franchiseId ?? current.franchiseId,
+      franchiseId: franchiseLock?.id ?? game.franchiseId ?? current.franchiseId,
       licenseIds: commission ? [commission.licenseId] : inheritedLicenses.slice(0, 2),
       platforms: current.projectType === 'port' ? [firstNewPlatform] : current.platforms,
       delegatedPlatformIds: [],
@@ -113,9 +127,11 @@ export function NewProjectModal() {
   })
 
   const chooseFranchise = franchiseId => {
-    const franchise = franchises.find(item => item.id === franchiseId)
+    const lockedId = franchiseLock?.id
+    const nextId = lockedId ?? franchiseId
+    const franchise = franchises.find(item => item.id === nextId)
     const latest = franchise?.games[0]
-    setForm(current => ({ ...current, franchiseId, projectType: franchiseId && current.projectType === 'original' ? 'sequel' : current.projectType }))
+    setForm(current => ({ ...current, franchiseId: nextId, projectType: nextId && current.projectType === 'original' ? 'sequel' : current.projectType }))
     if (latest) inheritGame(latest)
   }
 
@@ -123,7 +139,7 @@ export function NewProjectModal() {
     ...current,
     projectType,
     sourceGameIds: [],
-    franchiseId: ['sequel', 'spinoff'].includes(projectType) ? current.franchiseId : projectType === 'original' ? '' : current.franchiseId,
+    franchiseId: franchiseLock?.id ?? (['sequel', 'spinoff'].includes(projectType) ? current.franchiseId : projectType === 'original' ? '' : current.franchiseId),
     delegatedPlatformIds: [],
   }))
 
@@ -160,15 +176,16 @@ export function NewProjectModal() {
           <button type="button" className="modal-close" onClick={() => setProjectModalOpen(false)} aria-label="Fechar" title="Fechar"><Icon name="close" size={24} /></button>
         </header>
         <div className="project-form">
+          {mode.id !== 'traditional' && <section className="commission-brief full-field"><span>MODO {mode.label.toUpperCase()}</span><strong>{mode.kicker}</strong><p>{mode.description}</p></section>}
           {commission && <section className="commission-brief full-field"><span>{commission.concept?.toUpperCase()} · {commission.monthsLeft} MESES</span><strong>{licenseFromState(state, commission.licenseId)?.name}</strong><p>{commissionBlocksParallel ? 'A encomenda corporativa precisa ocupar a equipe principal antes de abrir outra frente.' : `Gênero e licença vieram no brief · meta ${commission.scoreFloor}.`}</p></section>}
           {!hasCapacity && <section className="commission-brief full-field"><span>CAPACIDADE LOTADA</span><strong>Não existe outro time livre.</strong><p>Crie uma equipe, coloque alguém nela ou compre um estúdio para abrir outra frente simultânea.</p></section>}
           <label className="text-field full-field"><span>01 · TÍTULO</span><input value={form.title} onChange={event => update('title', event.target.value)} maxLength="56" required autoFocus /></label>
 
-          <CompactSingleChoice number="02" label="TIPO DE PROJETO" value={form.projectType} options={PROJECT_TYPES} onChange={chooseType} descriptions open={openDropdown === 'type'} onOpenChange={isOpen => setDropdown('type', isOpen)} />
+          <CompactSingleChoice number="02" label="TIPO DE PROJETO" value={form.projectType} options={availableProjectTypes} onChange={chooseType} descriptions open={openDropdown === 'type'} onOpenChange={isOpen => setDropdown('type', isOpen)} />
 
-          {type.requiresFranchise && <label className="select-field full-field"><span>03 · FRANQUIA</span><select value={form.franchiseId} onFocus={closeDropdowns} onPointerDown={closeDropdowns} onChange={event => chooseFranchise(event.target.value)}><option value="">Selecione uma franquia</option>{franchises.map(item => <option key={item.id} value={item.id}>{item.name} · {item.games.length} jogos · média {item.average}</option>)}</select><small>Ao escolher, gênero, tema, foco, promessa e licenças válidas são puxados do jogo anterior.</small></label>}
+          {type.requiresFranchise && <label className="select-field full-field"><span>03 · FRANQUIA</span><select value={form.franchiseId} onFocus={closeDropdowns} onPointerDown={closeDropdowns} onChange={event => chooseFranchise(event.target.value)} disabled={Boolean(franchiseLock)}><option value="">Selecione uma franquia</option>{franchises.map(item => <option key={item.id} value={item.id}>{item.name} · {item.games.length} jogos · média {item.average}</option>)}</select><small>{franchiseLock ? `Modo Franquia Singular: ${franchiseLock.name} é a única série desta carreira.` : 'Ao escolher, gênero, tema, foco, promessa e licenças válidas são puxados do jogo anterior.'}</small></label>}
 
-          {(type.requiresSource || type.minSources) && <SourcePicker games={state.games} selectedIds={form.sourceGameIds} collection={type.id === 'collection'} onToggle={sourceChanged} />}
+          {(type.requiresSource || type.minSources) && <SourcePicker games={sourceGames} selectedIds={form.sourceGameIds} collection={type.id === 'collection'} onToggle={sourceChanged} />}
 
           <CompactMultiChoice number="04" label="GÊNEROS · ATÉ 2" value={form.genres} options={state.world.knownGenres} onToggle={id => toggleFromList('genres', id)} max={2} open={openDropdown === 'genres'} onOpenChange={isOpen => setDropdown('genres', isOpen)} />
           <CompactMultiChoice number="05" label="TEMAS · ATÉ 2" value={form.themes} options={THEMES} onToggle={id => toggleFromList('themes', id)} max={2} open={openDropdown === 'themes'} onOpenChange={isOpen => setDropdown('themes', isOpen)} />
@@ -185,7 +202,7 @@ export function NewProjectModal() {
             max={4}
             fullField
             isOptionDisabled={platformBlockedByPort}
-            note="A primeira marcada é a plataforma principal. Cada extra amplia mercado e escopo."
+            note={mode.id === 'portable' ? 'Modo Portátil: somente consoles portáteis e híbridos aparecem aqui.' : mode.id === 'arcade-empire' ? 'Modo Império Arcade: fliperama é a única plataforma desta carreira.' : 'A primeira marcada é a plataforma principal. Cada extra amplia mercado e escopo.'}
             open={openDropdown === 'platforms'}
             onOpenChange={isOpen => setDropdown('platforms', isOpen)}
           />
@@ -201,7 +218,7 @@ export function NewProjectModal() {
 
           {motionAvailable && <label className="select-field"><span>13 · CONTROLES DE MOVIMENTO</span><select value={form.controlScheme} onFocus={closeDropdowns} onPointerDown={closeDropdowns} onChange={event => update('controlScheme', event.target.value)}>{CONTROL_SCHEMES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select><small>No Wii, por exemplo, movimento pode ser obrigatório, opcional ou ignorado.</small></label>}
 
-          {!type.requiresFranchise && <label className="select-field"><span>FRANQUIA PRÓPRIA</span><select value={form.franchiseId} onFocus={closeDropdowns} onPointerDown={closeDropdowns} onChange={event => chooseFranchise(event.target.value)}><option value="">Nova franquia</option>{franchises.map(item => <option key={item.id} value={item.id}>Usar {item.name}</option>)}</select><small>Útil para remake, remaster, port e coletânea ligados a uma série existente.</small></label>}
+          {!type.requiresFranchise && !['single-franchise', 'anthology'].includes(mode.id) && <label className="select-field"><span>FRANQUIA PRÓPRIA</span><select value={form.franchiseId} onFocus={closeDropdowns} onPointerDown={closeDropdowns} onChange={event => chooseFranchise(event.target.value)}><option value="">Nova franquia</option>{franchises.map(item => <option key={item.id} value={item.id}>Usar {item.name}</option>)}</select><small>Útil para remake, remaster, port e coletânea ligados a uma série existente.</small></label>}
 
           <LicensePicker state={state} activeLicenses={activeLicenses} selectedIds={form.licenseIds} commission={commission} onToggle={toggleLicense} />
 
@@ -211,7 +228,7 @@ export function NewProjectModal() {
             <div><span>CAIXA MÍNIMO</span><strong>{formatMoney(entryCost)}</strong></div>
             <div><span>PLATAFORMAS</span><strong>{form.platforms.length}</strong></div>
             {licenseRoyalty > 0 && <div><span>ROYALTIES DE IP</span><strong>{Math.round(licenseRoyalty * 100)}%</strong></div>}
-            <p className={!canSubmit ? 'is-danger' : ''}>{!sourceCountValid ? type.id === 'collection' ? 'A coletânea precisa de 2 a 4 jogos.' : 'Escolha o jogo-base.' : !franchiseValid ? 'Escolha a franquia.' : !hasCapacity ? 'Todos os times capazes de produzir estão ocupados.' : commissionBlocksParallel ? 'A encomenda atual precisa da equipe principal.' : !availableScales.some(item => item.id === form.scale) ? 'Essa equipe ainda é pequena demais para a escala escolhida.' : state.player.money < entryCost ? 'O caixa não segura nem a entrada do projeto.' : `Plano: ${type.label.toLowerCase()}, ${form.genres.length} gênero${form.genres.length > 1 ? 's' : ''}, ${form.platforms.length} plataforma${form.platforms.length > 1 ? 's' : ''}. Ritmo atual x${selectedUnit?.pace.toFixed(2) ?? '—'}.`}</p>
+            <p className={!canSubmit ? 'is-danger' : ''}>{!modePayloadValid ? `O modo ${mode.label} não permite essa combinação.` : !sourceCountValid ? type.id === 'collection' ? 'A coletânea precisa de 2 a 4 jogos.' : 'Escolha o jogo-base.' : !franchiseValid ? 'Escolha a franquia.' : !hasCapacity ? 'Todos os times capazes de produzir estão ocupados.' : commissionBlocksParallel ? 'A encomenda atual precisa da equipe principal.' : !availableScales.some(item => item.id === form.scale) ? 'Essa equipe ainda é pequena demais para a escala escolhida.' : state.player.money < entryCost ? 'O caixa não segura nem a entrada do projeto.' : `Plano: ${type.label.toLowerCase()}, ${form.genres.length} gênero${form.genres.length > 1 ? 's' : ''}, ${form.platforms.length} plataforma${form.platforms.length > 1 ? 's' : ''}. Ritmo atual x${selectedUnit?.pace.toFixed(2) ?? '—'}.`}</p>
           </div>
         </div>
         <footer className="modal-actions"><Button type="button" onClick={() => setProjectModalOpen(false)}>CANCELAR</Button><Button type="submit" variant="primary" disabled={!canSubmit}>ABRIR PROJETO</Button></footer>
