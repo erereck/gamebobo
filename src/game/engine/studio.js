@@ -3,6 +3,7 @@ import { TECHS, getEra } from '../data/eras.js'
 import { subsidiaryForId } from '../data/subsidiaryStudios.js'
 import { MAIN_PRODUCTION_TEAM_ID, staffForProductionUnit } from './teamManagement.js'
 import { clamp, makeId, randomChoice, randomInt } from './utils.js'
+import { modeAllowsHiring } from './gameModes.js'
 
 export function laborMarketMultiplier(state) {
   const years = Math.max(0, state.date.year - 1980)
@@ -12,6 +13,7 @@ export function laborMarketMultiplier(state) {
 }
 
 export function hiringSearchCost(state, priority = false) {
+  if (!modeAllowsHiring(state)) return Number.POSITIVE_INFINITY
   const base = 420 + state.studio.team.length * 210 + state.studio.officeLevel * 170
   const time = 1 + Math.max(0, state.date.year - 1980) * .035
   const reputation = 1 + state.studio.reputation / 240
@@ -45,11 +47,16 @@ export function generateCandidate(state, random = Math.random, priority = false)
 }
 
 export function refreshCandidates(state, random = Math.random, priority = false) {
+  if (!modeAllowsHiring(state)) {
+    state.studio.candidates = []
+    return
+  }
   const count = Math.max(2, Math.min(priority ? 7 : 5, OFFICES[state.studio.officeLevel].capacity + (priority ? 2 : 1)))
   state.studio.candidates = Array.from({ length: count }, () => generateCandidate(state, random, priority))
 }
 
 export function hireCandidate(state, candidateId) {
+  if (!modeAllowsHiring(state)) return false
   const office = OFFICES[state.studio.officeLevel]
   if (state.studio.team.length >= office.capacity - 1) return false
   const candidate = state.studio.candidates.find(item => item.id === candidateId)
