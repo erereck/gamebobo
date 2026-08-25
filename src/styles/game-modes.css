@@ -33,6 +33,12 @@
 .setup-mode-strip small { color: #8fa0af; font: 700 7px/1 "Courier New", monospace; text-align: right; }
 .setup-decades button:disabled { opacity: .28; cursor: not-allowed; }
 
+.subsidiary-mode-lock { margin: 12px; padding: 16px; color: var(--paper-bright); background: var(--crt-raised); border-left: 4px solid var(--sticker); }
+.subsidiary-mode-lock span, .subsidiary-mode-lock strong { display: block; }
+.subsidiary-mode-lock span { color: var(--sticker); font: 700 7px/1 "Courier New", monospace; letter-spacing: .08em; }
+.subsidiary-mode-lock strong { margin-top: 8px; font-size: 12px; }
+.subsidiary-mode-lock p { margin: 6px 0 0; color: #aeb9c4; font: italic 10px/1.4 Georgia, serif; }
+
 @media (max-width: 700px) {
   .game-mode-grid { grid-template-columns: 1fr; }
   .game-mode-card { min-height: 150px; }
