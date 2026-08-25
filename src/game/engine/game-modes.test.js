@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { projectTypeValid } from '../data/projectTypes.js'
 import { hydrateV7 } from '../persistence/migrateV7.js'
+import { createCommissionOffer } from './corporate.js'
 import { acquireSubsidiary } from './production.js'
 import { calculateRelease } from './scoring.js'
 import { createInitialState } from './state.js'
@@ -114,6 +115,16 @@ test('acquired mode starts inside a parent company with a small working team', (
   assert.equal(state.studio.officeLevel, 2)
   assert.ok(state.player.reputation >= 42)
   assert.ok(state.studio.reputation >= 38)
+})
+
+test('acquired mode can receive a parent-company commission before publishing three games', () => {
+  const state = createInitialState({ startYear: 2006, modeId: 'acquired' }, fixed)
+  const parentCompanyId = state.corporate.ownership.companyId
+  assert.equal(state.games.length, 0)
+  const offer = createCommissionOffer(state, parentCompanyId, fixed)
+  assert.ok(offer)
+  assert.equal(offer.companyId, parentCompanyId)
+  assert.equal(offer.parentMandate, true)
 })
 
 test('old schema 7 saves hydrate as traditional without changing their career data', () => {
