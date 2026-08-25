@@ -5,6 +5,7 @@ import { projectTypeForId, sourceGamesForPayload } from '../data/projectTypes.js
 import { SUBSIDIARY_STUDIOS, subsidiaryForId, subsidiaryPrice } from '../data/subsidiaryStudios.js'
 import { productionPaceForUnit, productionUnits as managedProductionUnits } from './teamManagement.js'
 import { clamp, makeId, randomInt } from './utils.js'
+import { modeProductionPaceMultiplier, modeProjectCostMultiplier } from './gameModes.js'
 
 const unique = values => [...new Set((values ?? []).filter(Boolean))]
 
@@ -48,7 +49,7 @@ export function calculateProjectPlan(state, payload) {
   const contentCost = 1 + secondaryGenres.length * .08 + secondaryThemes.length * .045 + collectionExtra * .11
   const platformCost = 1 + extraPlatforms * .22 + delegatedPorts * .08
   const hardwareCost = 1 + (accessory?.costMultiplier ?? 0) + controls.costMultiplier
-  const estimatedCost = Math.round(baseCost * type.costMultiplier * scopeCost * contentCost * platformCost * hardwareCost)
+  const estimatedCost = Math.round(baseCost * type.costMultiplier * scopeCost * contentCost * platformCost * hardwareCost * modeProjectCostMultiplier(state))
   const baseMonths = scale.months * type.monthsMultiplier
   const platformMonths = extraPlatforms * .72 - delegatedPorts * .42
   const contentMonths = secondaryGenres.length * .45 + secondaryThemes.length * .25 + collectionExtra * .55
@@ -80,7 +81,7 @@ export function advanceDelegatedProject(state, project, random = Math.random) {
   const unit = productionUnits(state).find(item => item.id === project.productionUnitId)
   if (!unit || unit.main || !unit.canWork) return false
   const specialtyBonus = unit.specialty && (project.genres ?? [project.genre]).includes(unit.specialty) ? .18 : 0
-  const pace = productionPaceForUnit(state, unit.id)
+  const pace = productionPaceForUnit(state, unit.id) * modeProductionPaceMultiplier(state)
   if (pace <= 0) return false
   const monthlyCost = Math.max(1, Math.round(project.estimatedCost / project.totalMonths))
   project.progress += pace + specialtyBonus
