@@ -1,3 +1,4 @@
+import { PLATFORMS } from '../data/catalog.js'
 import { CORPORATE_PARTNERS } from '../data/corporatePartners.js'
 import { OFFICES, PERSONALITIES, ROLES, TEAM_NAMES, TEAM_SURNAMES } from '../data/team.js'
 import { getEra } from '../data/eras.js'
@@ -56,11 +57,8 @@ export function modeAllowsProjectType(state, projectTypeId) {
 export function modeProjectPayloadValid(state, payload) {
   if (!modeAllowsProjectType(state, payload.projectType ?? 'original')) return false
   if (!modeAllowsScale(state, payload.scale)) return false
-
-  const platforms = (payload.platforms?.length ? payload.platforms : [payload.platform]).filter(Boolean)
-  if (platforms.some(id => !modeAllowsPlatform(state, state.market ? (state.player?.audience?.platforms && null) : null))) {
-    // Platform records are validated by the caller; this branch is intentionally handled below when records are supplied.
-  }
+  const platforms = (payload.platforms?.length ? payload.platforms : [payload.platform]).filter(Boolean).map(id => PLATFORMS.find(platform => platform.id === id))
+  if (!platforms.length || platforms.some(platform => !platform || !modeAllowsPlatform(state, platform))) return false
 
   const modeId = modeIdForState(state)
   if (modeId === 'anthology' && (payload.franchiseId || (payload.sourceGameIds?.length ?? 0))) return false
