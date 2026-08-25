@@ -79,7 +79,9 @@ export function requestPartnership(state, companyId, random = Math.random) {
 
 const commissionEligibility = (state, companyId) => {
   const relationship = state.corporate.relationships[companyId]
-  return Boolean(relationship && relationship.trust >= 58 && state.player.reputation >= 42 && state.studio.reputation >= 38 && state.games.length >= 3 && !state.corporate.activeCommission)
+  const parentFromCareerStart = Boolean(state.corporate.ownership?.careerStart && state.corporate.ownership.companyId === companyId)
+  const catalogReady = state.games.length >= 3 || parentFromCareerStart
+  return Boolean(relationship && relationship.trust >= 58 && state.player.reputation >= 42 && state.studio.reputation >= 38 && catalogReady && !state.corporate.activeCommission)
 }
 
 export function createCommissionOffer(state, companyId, random = Math.random) {
