@@ -1,0 +1,57 @@
+.game-mode-select { margin-top: 18px; }
+.game-mode-heading { padding: 18px 18px 16px; color: var(--paper-bright); background: var(--crt); border-left: 5px solid var(--phosphor); }
+.game-mode-heading .overline { margin: 0; color: var(--phosphor); }
+.game-mode-heading h2 { margin: 8px 0 7px; color: var(--paper-bright); font: 900 clamp(27px, 4vw, 38px)/.94 "Arial Black", sans-serif; letter-spacing: -.05em; }
+.game-mode-heading > p:last-child { max-width: 700px; margin: 0; color: #aeb9c4; font: italic 11px/1.45 Georgia, serif; }
+
+.game-mode-grid { margin-top: 9px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.game-mode-card { min-width: 0; min-height: 178px; padding: 14px; display: flex; flex-direction: column; color: var(--ink); background: rgba(255,255,255,.28); border: 1px solid var(--line); border-radius: var(--radius-small); cursor: pointer; text-align: left; transition: transform 120ms var(--ease-out), border-color 120ms, background 120ms; }
+.game-mode-card:hover { background: var(--paper-bright); border-color: var(--line-strong); transform: translateY(-1px); }
+.game-mode-card.is-selected { color: var(--paper-bright); background: var(--crt-raised); border-color: var(--crt); box-shadow: inset 4px 0 var(--phosphor); }
+.mode-card-top { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+.mode-card-top b { min-width: 0; overflow: hidden; color: var(--sticker); font: 700 7px/1 "Courier New", monospace; letter-spacing: .07em; text-overflow: ellipsis; white-space: nowrap; }
+.mode-card-top em { flex: 0 0 auto; padding: 4px 5px; color: var(--ink-faint); background: var(--paper-deep); border: 1px solid var(--line); font: normal 700 6px/1 "Courier New", monospace; }
+.game-mode-card.is-selected .mode-card-top b { color: var(--phosphor); }
+.game-mode-card.is-selected .mode-card-top em { color: #a8b5c0; background: #0d1b2e; border-color: var(--line-dark); }
+.game-mode-card > strong { display: block; margin-top: 15px; font: 900 19px/.95 "Arial Black", sans-serif; letter-spacing: -.04em; }
+.game-mode-card > p { margin: 7px 0 12px; color: var(--ink-soft); font: italic 10px/1.35 Georgia, serif; }
+.game-mode-card.is-selected > p { color: #b4c0ca; }
+.game-mode-card > div { margin-top: auto; display: flex; flex-wrap: wrap; gap: 4px; }
+.game-mode-card > div small { padding: 4px 5px; color: var(--ink-faint); background: var(--paper-deep); font: 700 6px/1.2 "Courier New", monospace; }
+.game-mode-card.is-selected > div small { color: #a0afbd; background: #0d1b2e; }
+
+.game-mode-receipt { margin-top: 9px; padding: 12px 14px; background: var(--paper-bright); border: 1px dashed var(--line-strong); }
+.game-mode-receipt span, .game-mode-receipt strong { display: block; }
+.game-mode-receipt span { color: var(--sticker); font: 700 7px/1 "Courier New", monospace; letter-spacing: .08em; }
+.game-mode-receipt strong { margin-top: 6px; font: 900 15px/1 "Arial Black", sans-serif; }
+.game-mode-receipt p { margin: 5px 0 0; color: var(--ink-soft); font: italic 9px/1.35 Georgia, serif; }
+.game-mode-actions { margin-top: 10px; display: flex; justify-content: flex-end; gap: 7px; }
+
+.setup-mode-strip { margin: 0 0 16px; padding: 10px 12px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; color: var(--paper-bright); background: var(--crt-raised); border-left: 4px solid var(--phosphor); }
+.setup-mode-strip span { color: #8fa0af; font: 700 7px/1 "Courier New", monospace; }
+.setup-mode-strip strong { color: var(--phosphor); font: 900 12px/1 "Arial Black", sans-serif; }
+.setup-mode-strip small { color: #8fa0af; font: 700 7px/1 "Courier New", monospace; text-align: right; }
+.setup-decades button:disabled { opacity: .28; cursor: not-allowed; }
+
+.subsidiary-mode-lock { margin: 12px; padding: 16px; color: var(--paper-bright); background: var(--crt-raised); border-left: 4px solid var(--sticker); }
+.subsidiary-mode-lock span, .subsidiary-mode-lock strong { display: block; }
+.subsidiary-mode-lock span { color: var(--sticker); font: 700 7px/1 "Courier New", monospace; letter-spacing: .08em; }
+.subsidiary-mode-lock strong { margin-top: 8px; font-size: 12px; }
+.subsidiary-mode-lock p { margin: 6px 0 0; color: #aeb9c4; font: italic 10px/1.4 Georgia, serif; }
+
+@media (max-width: 700px) {
+  .game-mode-grid { grid-template-columns: 1fr; }
+  .game-mode-card { min-height: 150px; }
+}
+
+@media (max-width: 560px) {
+  .game-mode-heading { padding: 16px 14px; }
+  .game-mode-heading h2 { font-size: 28px; }
+  .game-mode-card { min-height: 0; padding: 13px; }
+  .game-mode-card > strong { font-size: 18px; }
+  .game-mode-actions { align-items: stretch; flex-direction: column-reverse; }
+  .game-mode-actions .button { width: 100%; }
+  .setup-mode-strip { grid-template-columns: 1fr auto; }
+  .setup-mode-strip span { grid-column: 1 / -1; }
+  .setup-mode-strip small { max-width: 130px; }
+}

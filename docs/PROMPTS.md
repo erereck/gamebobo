@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-022 — 2026-08-24 — Outra Vida
+
+Pedido: Transformar a criação de save em uma escolha de modo de jogo que mude profundamente cada carreira. Manter o Tradicional igual ao jogo atual, criar um Realista com menos dinheiro, notas 90+ e prêmios mais difíceis, um Portátil restrito a consoles de bolso, uma Franquia Singular presa para sempre à primeira série e um Estúdio Adquirido que já começa sob uma empresa com equipe e encomendas; inventar outros modos capazes de tornar cada gameplay única.
+
+Resultado: versão 0.14.0. O novo save ganhou uma tela dedicada de modos persistentes. Além dos cinco pedidos, chegaram Autor Solo, Indie Eterno, Império Arcade e Antologia. As regras são aplicadas pelo motor e refletidas na interface: plataformas, escalas, tipos de projeto, contratação e aquisições inválidas deixam de aparecer ou ficam explicitamente bloqueadas. O Realista preserva as vendas do modelo-base enquanto reduz em 30% a receita dos jogos, comprime a faixa de notas de elite e endurece premiações; saves antigos continuam como Tradicional.
+
 ## P-021 — 2026-08-24 — Quem Faz o Jogo
 
 Pedido: Transformar a aba de equipe em um gerenciador real de times: permitir mover cada funcionário por um dropdown ao lado de desligar, criar novas equipes sem limite de membros, acelerar projetos ao concentrar mais gente e reforçar com funcionários próprios as equipes de estúdios comprados.
@@ -28,7 +34,7 @@ Resultado: versão 0.11.0. A premiação passou ao ritmo manual com um botão ne
 
 Pedido: Remover os atalhos de moeda e som do HUD, mantendo ambos nas configurações, e permitir rolagem horizontal da faixa mobile para alcançar saúde, seguidores e reputação.
 
-Resultado: versão 0.10.4. Moeda e som ficaram apenas nas configurações, o cabeçalho recuperou espaço e a faixa de carreira mobile passou a rolar horizontalmente sem esconder saúde, seguidores e reputação.
+Resultado: versão 0.10.4. Moeda e som ficaram apenas nas configurações, o cabeçalho recuperou espaço e a faixa de carreira mobile passou a rolar horizontalmente sem esconder saúde, seguidores ou reputação.
 
 ## P-016 — 2026-08-13 — Noite dos Envelopes
 

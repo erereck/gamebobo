@@ -5,6 +5,7 @@ import { projectTypeForId, sourceGamesForPayload } from '../data/projectTypes.js
 import { SUBSIDIARY_STUDIOS, subsidiaryForId, subsidiaryPrice } from '../data/subsidiaryStudios.js'
 import { productionPaceForUnit, productionUnits as managedProductionUnits } from './teamManagement.js'
 import { clamp, makeId, randomInt } from './utils.js'
+import { modeAllowsSubsidiaries, modeProjectCostMultiplier } from './gameModes.js'
 
 const unique = values => [...new Set((values ?? []).filter(Boolean))]
 
@@ -48,7 +49,7 @@ export function calculateProjectPlan(state, payload) {
   const contentCost = 1 + secondaryGenres.length * .08 + secondaryThemes.length * .045 + collectionExtra * .11
   const platformCost = 1 + extraPlatforms * .22 + delegatedPorts * .08
   const hardwareCost = 1 + (accessory?.costMultiplier ?? 0) + controls.costMultiplier
-  const estimatedCost = Math.round(baseCost * type.costMultiplier * scopeCost * contentCost * platformCost * hardwareCost)
+  const estimatedCost = Math.round(baseCost * type.costMultiplier * scopeCost * contentCost * platformCost * hardwareCost * modeProjectCostMultiplier(state))
   const baseMonths = scale.months * type.monthsMultiplier
   const platformMonths = extraPlatforms * .72 - delegatedPorts * .42
   const contentMonths = secondaryGenres.length * .45 + secondaryThemes.length * .25 + collectionExtra * .55
@@ -61,6 +62,7 @@ export function calculateProjectPlan(state, payload) {
 }
 
 export function acquireSubsidiary(state, studioId) {
+  if (!modeAllowsSubsidiaries(state)) return null
   const studio = SUBSIDIARY_STUDIOS.find(item => item.id === studioId)
   if (!studio || state.date.year < studio.fromYear || state.studio.subsidiaries?.some(item => item.studioId === studioId)) return null
   const price = subsidiaryPrice(state, studio)

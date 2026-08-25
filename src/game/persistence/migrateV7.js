@@ -1,6 +1,7 @@
 import { GENRES, PLATFORMS } from '../data/catalog.js'
 import { createInitialState } from '../engine/state.js'
 import { MAIN_PRODUCTION_TEAM_ID, normalizeProductionTeams } from '../engine/teamManagement.js'
+import { createCareerMode } from '../engine/gameModes.js'
 import { hydrateV6 } from './migrate.js'
 
 const legacyOfficeLevels = { 0: 0, 1: 2, 2: 4, 3: 6, 4: 8 }
@@ -50,6 +51,7 @@ export function hydrateV7(oldState) {
   const state = hydrateV6({ ...oldState, schema: 6 })
   state.schema = 7
   state.meta = { ...fresh.meta, ...state.meta, startYear }
+  state.careerMode = { ...createCareerMode(oldState.careerMode?.id ?? 'traditional'), ...(oldState.careerMode ?? {}) }
 
   if ((oldState.schema ?? 0) <= 6) state.studio.officeLevel = legacyOfficeLevels[oldState.studio?.officeLevel ?? state.studio.officeLevel] ?? state.studio.officeLevel
   state.studio.subsidiaries = oldState.studio?.subsidiaries ?? []

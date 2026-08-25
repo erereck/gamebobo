@@ -1,6 +1,6 @@
 {
-  "version": "0.13.0",
-  "codename": "Quem Faz o Jogo",
+  "version": "0.14.0",
+  "codename": "Outra Vida",
   "saveSchema": 7,
   "releasedAt": "2026-08-24",
   "promptIds": [
@@ -24,6 +24,7 @@
     "P-018",
     "P-019",
     "P-020",
-    "P-021"
+    "P-021",
+    "P-022"
   ]
 }

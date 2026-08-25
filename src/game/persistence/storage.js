@@ -125,6 +125,7 @@ export function listSaveSlots() {
         reputation: state.player.reputation,
         currency: state.settings.currency,
         startYear: state.meta.startYear,
+        modeId: state.careerMode?.id ?? 'traditional',
         lastSavedAt: raw.meta?.lastSavedAt ?? null,
         version: raw.meta?.version ?? null,
       }
