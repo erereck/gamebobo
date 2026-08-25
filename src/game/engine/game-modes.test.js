@@ -51,9 +51,10 @@ test('realistic mode preserves sales but cuts game revenue and compresses elite 
   assert.equal(modeAwardThresholdBonus(realistic), 6)
 })
 
-test('portable mode starts no earlier than 1989 and blocks non-portable platforms', () => {
+test('portable mode starts at the first playable handheld date and blocks non-portable platforms', () => {
   const state = createInitialState({ startYear: 1980, modeId: 'portable' }, fixed)
   assert.equal(state.date.year, 1989)
+  assert.equal(state.date.month, 3)
   assert.equal(projectTypeValid(state, payload({ platforms: ['game-boy'], platform: 'game-boy' })), true)
   assert.equal(projectTypeValid(state, payload({ platforms: ['pc'], platform: 'pc' })), false)
   assert.equal(projectTypeValid(state, payload({ platforms: ['mega-drive'], platform: 'mega-drive' })), false)
