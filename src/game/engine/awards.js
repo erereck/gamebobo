@@ -2,6 +2,7 @@ import { AWARD_CATEGORIES } from '../data/awards.js'
 import { SALES_HISTORY } from '../data/salesHistory.js'
 import { realAwardCandidate } from '../data/awardBenchmarks.js'
 import { makeId, randomInt } from './utils.js'
+import { modeAwardPenalty, modeAwardThresholdBonus } from './gameModes.js'
 
 const releaseYear = game => Number(game.released?.split(' ')[1])
 
@@ -42,6 +43,8 @@ export function processAwards(state, year, random = Math.random) {
   const playerGames = state.games.filter(game => releaseYear(game) === year).map(game => ({ ...game, studio: state.studio.name, source: 'player' }))
   state.awards.processedYears.push(year)
   state.awards.yearlyWinners ??= []
+  const playerPenalty = modeAwardPenalty(state)
+  const thresholdBonus = modeAwardThresholdBonus(state)
 
   const results = []
   AWARD_CATEGORIES.filter(category => year >= (category.fromYear ?? 1980)).forEach(category => {
@@ -51,12 +54,15 @@ export function processAwards(state, year, random = Math.random) {
       const minScore = category.minScore ?? 0
       const minNominationScore = category.minNominationScore ?? minScore
       const nominationWindow = category.nominationWindow ?? 10
-      const ranked = pool.map(game => ({ game, value: category.score(game) + randomInt(-variance, variance, random) })).sort((a, b) => b.value - a.value)
+      const ranked = pool.map(game => ({
+        game,
+        value: category.score(game) + randomInt(-variance, variance, random) - (game.source === 'player' ? playerPenalty : 0),
+      })).sort((a, b) => b.value - a.value)
       const eligible = ranked.filter(item => (item.game.score ?? 0) >= minScore)
       const winner = eligible[0] ?? ranked[0]
       const bestNomineePlayer = ranked.find(item => item.game.source === 'player' && (item.game.score ?? 0) >= minNominationScore)
       const bestPlayer = bestNomineePlayer ?? ranked.find(item => item.game.source === 'player')
-      const playerNominated = Boolean(bestNomineePlayer && bestNomineePlayer.value >= winner.value - nominationWindow)
+      const playerNominated = Boolean(bestNomineePlayer && bestNomineePlayer.value >= winner.value - Math.max(3, nominationWindow - thresholdBonus))
       const won = winner.game.source === 'player'
       const result = {
         categoryId: category.id,
@@ -78,11 +84,11 @@ export function processAwards(state, year, random = Math.random) {
     }
 
     if (!playerGames.length) return
-    const ranked = playerGames.map(game => ({ game, value: category.score(game) + randomInt(-8, 8, random) })).sort((a, b) => b.value - a.value)
+    const ranked = playerGames.map(game => ({ game, value: category.score(game) + randomInt(-8, 8, random) - playerPenalty })).sort((a, b) => b.value - a.value)
     const nominee = ranked[0]
-    const industryThreshold = 82
+    const industryThreshold = 82 + thresholdBonus
     const nominated = nominee.value >= industryThreshold
-    const won = nominated && nominee.value >= industryThreshold + randomInt(3, 16, random)
+    const won = nominated && nominee.value >= industryThreshold + randomInt(3 + Math.floor(thresholdBonus / 2), 16 + thresholdBonus, random)
     if (!nominated) return
     const result = { categoryId: category.id, category: category.name, gameId: nominee.game.id, gameTitle: nominee.game.title, nominated, won, winnerTitle: won ? nominee.game.title : null, winnerStudio: won ? state.studio.name : null }
     results.push(result)
