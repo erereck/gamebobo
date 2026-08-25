@@ -1,5 +1,6 @@
 import { useGame } from '../../app/GameContext.jsx'
 import { PERSONALITIES, ROLES } from '../../game/data/team.js'
+import { modeAllowsHiring, modeForState } from '../../game/engine/gameModes.js'
 import { productionUnits } from '../../game/engine/production.js'
 import { teamAssignmentUnits } from '../../game/engine/teamManagement.js'
 import { formatMoney } from '../../game/engine/utils.js'
@@ -11,12 +12,14 @@ export function TeamRoster() {
   const assignments = teamAssignmentUnits(state)
   const units = productionUnits(state)
   const unitMap = Object.fromEntries(units.map(unit => [unit.id, unit]))
+  const teamExpansionAllowed = modeAllowsHiring(state)
+  const mode = modeForState(state)
 
   return (
     <section className="team-roster team-roster-managed">
       <header>
         <div><p className="overline">EQUIPE</p><h3>{state.studio.team.length ? `${state.studio.team.length + 1} pessoas fazendo jogo` : 'Ainda é só você'}</h3></div>
-        <div className="team-roster-head-actions"><span>MORAL {state.studio.morale}%</span><Button size="small" variant="primary" onClick={() => dispatch({ type: 'CREATE_PRODUCTION_TEAM' })}>CRIAR NOVA EQUIPE</Button></div>
+        <div className="team-roster-head-actions"><span>MORAL {state.studio.morale}%</span>{teamExpansionAllowed ? <Button size="small" variant="primary" onClick={() => dispatch({ type: 'CREATE_PRODUCTION_TEAM' })}>CRIAR NOVA EQUIPE</Button> : <span>MODO {mode.label.toUpperCase()}</span>}</div>
       </header>
 
       <div className="production-team-overview">
@@ -30,7 +33,7 @@ export function TeamRoster() {
         ))}
       </div>
 
-      <p className="team-management-note">Não existe limite por equipe. Quanto mais gente você concentrar numa frente, mais rápido ela anda — com retorno decrescente. Funcionários novos começam na Equipe principal.</p>
+      <p className="team-management-note">{teamExpansionAllowed ? 'Não existe limite por equipe. Quanto mais gente você concentrar numa frente, mais rápido ela anda — com retorno decrescente. Funcionários novos começam na Equipe principal.' : 'Autor Solo: esta carreira não pode contratar, criar equipes paralelas ou comprar estúdios. O ritmo extra do modo aparece diretamente na Equipe principal.'}</p>
 
       <div className="team-list">
         <article className="team-member founder">
