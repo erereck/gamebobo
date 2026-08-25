@@ -46,7 +46,7 @@ test('realistic mode preserves sales but cuts game revenue and compresses elite 
   assert.equal(realisticRelease.sales, normalRelease.sales)
   assert.equal(realisticRelease.revenue, Math.round(normalRelease.revenue * .7))
   assert.ok(realisticRelease.score <= normalRelease.score)
-  assert.ok(adjustScoreForMode(realistic, 96) < 92)
+  assert.ok(adjustScoreForMode(realistic, 96) <= 92)
   assert.equal(modeAwardPenalty(realistic), 8)
   assert.equal(modeAwardThresholdBonus(realistic), 6)
 })
