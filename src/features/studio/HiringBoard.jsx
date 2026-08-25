@@ -1,5 +1,6 @@
 import { useGame } from '../../app/GameContext.jsx'
 import { OFFICES, PERSONALITIES, ROLES } from '../../game/data/team.js'
+import { modeAllowsHiring, modeForState } from '../../game/engine/gameModes.js'
 import { hiringSearchCost } from '../../game/engine/studio.js'
 import { formatMoney } from '../../game/engine/utils.js'
 import { Button } from '../../components/ui/Button.jsx'
@@ -7,9 +8,22 @@ import { Button } from '../../components/ui/Button.jsx'
 export function HiringBoard() {
   const { state, dispatch } = useGame()
   const office = OFFICES[state.studio.officeLevel]
+  const hiringAllowed = modeAllowsHiring(state)
+  const mode = modeForState(state)
   const isFull = state.studio.team.length >= office.capacity - 1
-  const searchCost = hiringSearchCost(state)
-  const headhuntCost = hiringSearchCost(state, true)
+  const searchCost = hiringAllowed ? hiringSearchCost(state) : 0
+  const headhuntCost = hiringAllowed ? hiringSearchCost(state, true) : 0
+
+  if (!hiringAllowed) {
+    return (
+      <section className="hiring-board">
+        <div className="card-kicker"><span>CANDIDATOS</span><span>MODO {mode.label.toUpperCase()}</span></div>
+        <div className="hiring-market-note"><strong>RH fechado nesta linha do tempo.</strong><p>{mode.description}</p></div>
+        <div className="hiring-empty"><p>Você escolheu fazer esta carreira sem contratar ninguém. Busca de currículos, caça-talentos e novas equipes internas ficam bloqueados permanentemente.</p></div>
+      </section>
+    )
+  }
+
   return (
     <section className="hiring-board">
       <div className="card-kicker"><span>CANDIDATOS</span><span>{state.studio.team.length + 1}/{office.capacity}</span></div>
