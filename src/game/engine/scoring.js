@@ -3,7 +3,7 @@ import { createReviews, primaryReview } from '../data/reviews.js'
 import { EQUIPMENT, TRAITS } from '../data/traits.js'
 import { CULTURES, OFFICES } from '../data/team.js'
 import { TECHS, getEra } from '../data/eras.js'
-import { accessoryForId, controlSchemeForId } from '../data/hardwareFeatures.js'
+import { accessoryForId } from '../data/hardwareFeatures.js'
 import { projectTypeForId } from '../data/projectTypes.js'
 import { teamContribution } from './studio.js'
 import { clamp, randomInt } from './utils.js'
@@ -11,12 +11,13 @@ import { projectLicenseReadout } from './licensing.js'
 import { promiseForId } from '../data/projectPromises.js'
 import { audienceCeiling, operatingShare, qualityDemand, SALES_SCALE_REACH } from './sales-model.js'
 import { marketShockMultiplier, productionUnits } from './production.js'
+import { adjustScoreForMode, modeRevenueMultiplier } from './gameModes.js'
 
 const projectGenres = project => project.genres?.length ? project.genres : [project.genre]
 const projectThemes = project => project.themes?.length ? project.themes : [project.theme]
 const projectPlatforms = project => project.platforms?.length ? project.platforms : [project.platform]
 
-export function calculateQuality(state, project, random = Math.random) {
+export function calculateQuality(state, project, random = Math.random, applyMode = true) {
   const focus = FOCUSES.find(item => item.id === project.focus)
   const stats = state.player.stats
   const trait = TRAITS.find(item => item.id === state.player.traitId)
@@ -26,7 +27,6 @@ export function calculateQuality(state, project, random = Math.random) {
   const team = teamContribution(state, project.productionUnitId ?? 'founder')
   const era = getEra(state.date.year)
   const marketAngle = MARKET_ANGLES.find(item => item.id === state.market.angle)
-  const focusStat = stats[focus?.stat ?? 'design']
   const programming = stats.programming + (team.programming ?? 0)
   const design = stats.design + (team.design ?? 0)
   const art = stats.art + (team.art ?? 0)
@@ -39,8 +39,6 @@ export function calculateQuality(state, project, random = Math.random) {
   const accessory = accessoryForId(project.accessoryId)
   const trendBonus = genres.includes(state.market.genre) ? 4 : 0
   const angleBonus = project.focus === marketAngle?.focus ? 4 : 0
-  // Controles, qualidade herdada e bônus do tipo já entram no estado inicial do projeto.
-  // Aqui só escalamos a inovação acumulada para não aplicar o mesmo bônus duas vezes.
   const innovationValue = (project.innovation ?? 0) * type.innovationMultiplier
   const innovationBonus = project.focus === 'innovation' ? innovationValue * 0.34 : innovationValue * 0.12
   const sequelModifier = project.isSequel ? (trait?.modifiers.sequel ?? 0) : 0
@@ -71,11 +69,13 @@ export function calculateQuality(state, project, random = Math.random) {
   const reviewEra = state.date.year >= 2010 ? 2 : state.date.year >= 2000 ? 1 : 0
   const severeBuildPenalty = Math.max(0, (project.bugs ?? 0) - 5) * 1.2 + Math.max(0, state.player.stress - 85) * .14
   const calibrated = 70 + (rawValue - 50) * .55 + reviewEra - scaleComplexity - severeBuildPenalty
-  return clamp(Math.round(calibrated), 24, trait?.id === 'perfectionist' ? 99 : 97)
+  const score = clamp(Math.round(calibrated), 24, trait?.id === 'perfectionist' ? 99 : 97)
+  return applyMode ? adjustScoreForMode(state, score) : score
 }
 
 export function calculateRelease(state, project, random = Math.random) {
-  const score = calculateQuality(state, project, random)
+  const rawScore = calculateQuality(state, project, random, false)
+  const score = adjustScoreForMode(state, rawScore)
   const scale = SCALES[project.scale]
   const platformIds = projectPlatforms(project)
   const platforms = platformIds.map(id => PLATFORMS.find(item => item.id === id)).filter(Boolean)
@@ -94,7 +94,8 @@ export function calculateRelease(state, project, random = Math.random) {
   const audienceMultiplier = 1 + Math.min(.85, Math.log10(1 + state.player.followers / 1000) * .32)
   const culture = CULTURES.find(item => item.id === state.studio.cultureId)
   const marketingMultiplier = 0.78 + state.player.stats.marketing / 135 + (culture?.modifiers.marketing ?? 0) / 45
-  const qualityCurve = qualityDemand(score, state.date.year)
+  // Realista mantém a mesma curva comercial do jogo tradicional: a nota pública muda, as cópias potenciais não.
+  const qualityCurve = qualityDemand(rawScore, state.date.year)
   const era = getEra(state.date.year)
   const projectReach = 1 + (project.reach ?? 0) + type.reachBonus + (accessory?.reach ?? 0)
   const publisherReach = project.publisher?.reach ?? 1
@@ -105,9 +106,9 @@ export function calculateRelease(state, project, random = Math.random) {
       ? (['micro', 'small'].includes(project.scale) ? 1.08 : 0.96)
       : publisherStyle === 'casual'
         ? (['micro', 'small'].includes(project.scale) ? 1.07 : 0.94)
-        : publisherStyle === 'prestige' ? 0.96 + Math.max(0, score - 72) / 220 : 1
+        : publisherStyle === 'prestige' ? 0.96 + Math.max(0, rawScore - 72) / 220 : 1
   const hypeMultiplier = 0.82 + Math.min(0.75, (project.hype ?? 0) / 100)
-  const expectationPenalty = project.expectation && score < project.expectation ? Math.max(0.72, 1 - (project.expectation - score) / 100) : 1
+  const expectationPenalty = project.expectation && rawScore < project.expectation ? Math.max(0.72, 1 - (project.expectation - rawScore) / 100) : 1
   const franchiseFatigue = project.isSequel ? Math.max(0.72, 1 - Math.max(0, (project.sequelNumber ?? 2) - 3) * 0.08) : 1
   const licensed = projectLicenseReadout(state, project)
   const launchMultiplier = project.launchPlan === 'campaign' ? 1.3 : project.launchPlan === 'creator' ? 1.22 : project.launchPlan === 'early' ? 1.12 : project.launchPlan === 'shadow' ? 0.88 : 1
@@ -115,9 +116,9 @@ export function calculateRelease(state, project, random = Math.random) {
   const shockMultiplier = marketShockMultiplier(state, project)
   const editionReach = type.id === 'port' ? .78 : type.id === 'remaster' ? .9 : type.id === 'collection' ? .94 : 1
   const ordinarySales = qualityCurve * salesScaleReach * era.indieReach * projectReach * publisherReach * publisherFit * hypeMultiplier * expectationPenalty * franchiseFatigue * licensed.reachMultiplier * launchMultiplier * trend * angle * platformMultiplier * multiplatformReach * audienceMultiplier * marketingMultiplier * shockMultiplier * editionReach * randomInt(82, 118, random) / 100
-  const breakoutChance = score >= 78 ? clamp((score - 77) * .00045 + (project.innovation ?? 0) * .0001 + (project.hype ?? 0) * .000025, 0, .018) : 0
+  const breakoutChance = rawScore >= 78 ? clamp((rawScore - 77) * .00045 + (project.innovation ?? 0) * .0001 + (project.hype ?? 0) * .000025, 0, .018) : 0
   const breakout = random() < breakoutChance
-  const phenomenon = breakout && score >= 88 && random() < .006 + Math.max(0, score - 94) * .002
+  const phenomenon = breakout && rawScore >= 88 && random() < .006 + Math.max(0, rawScore - 94) * .002
   const breakoutMultiplier = phenomenon ? 2.2 * (8 ** random()) : breakout ? randomInt(140, 260, random) / 100 : 1
   const marketCeiling = audienceCeiling(state.date.year) * (platforms.length > 1 ? 1.35 : 1)
   const sales = Math.min(marketCeiling, Math.round(ordinarySales * breakoutMultiplier))
@@ -131,7 +132,7 @@ export function calculateRelease(state, project, random = Math.random) {
   const netRoyalty = Math.max(.12, effectiveRoyalty * (1 - publisherCut) - (project.licenseRoyalty ?? licensed.royalty))
   const operations = platforms.reduce((sum, platform, index) => sum + operatingShare(state.date.year, platform.type) * platformWeights[index] / weightTotal, 0) || operatingShare(state.date.year, primaryPlatform?.type)
   const studioRoyalty = netRoyalty * operations
-  const revenue = Math.round(gross * studioRoyalty * (1 - Math.min(0.75, state.studio.equity ?? 0)))
+  const revenue = Math.round(gross * studioRoyalty * (1 - Math.min(0.75, state.studio.equity ?? 0)) * modeRevenueMultiplier(state))
   const newFollowers = Math.round(sales * (score / 100) * (phenomenon ? .06 : breakout ? .1 : .14))
   const reviews = createReviews(score, project, state.date.year, random)
   const leadReview = primaryReview(reviews)
