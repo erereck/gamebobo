@@ -1,3 +1,5 @@
+import { modeProjectPayloadValid } from '../engine/gameModes.js'
+
 export const PROJECT_TYPES = Object.freeze([
   {
     id: 'original', label: 'Jogo original', short: 'ORIGINAL', description: 'Uma IP nova, sem depender de catálogo anterior.',
@@ -37,6 +39,7 @@ export function sourceGamesForPayload(state, payload) {
 }
 
 export function projectTypeValid(state, payload) {
+  if (!modeProjectPayloadValid(state, payload)) return false
   const type = projectTypeForId(payload.projectType)
   const sources = sourceGamesForPayload(state, payload)
   if (type.requiresSource && sources.length !== 1) return false
