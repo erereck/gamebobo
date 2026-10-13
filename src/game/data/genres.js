@@ -48,6 +48,7 @@ export const THEMES = [
   { id: 'carnaval', label: 'Carnaval', icon: 'mask', year: 1980 },
   { id: 'mitologia', label: 'Mitologia', icon: 'trident', year: 1980 },
   { id: 'novela', label: 'Novela', icon: 'tv', year: 1980 },
+  { id: 'cidade', label: 'Cidade', icon: 'building', year: 1980 },
   { id: 'zumbi', label: 'Zumbis', icon: 'skull', year: 1985 },
   { id: 'cyberpunk', label: 'Cyberpunk', icon: 'chip', year: 1986 },
   { id: 'internet', label: 'Internet', icon: 'wifi', year: 1996 },
@@ -82,6 +83,7 @@ const COMBO_TABLE = {
   novela: { 3: ['aventura', 'simulacao'], 2: ['party', 'puzzle', 'cozy'], 0: ['tiro', 'estrategia', 'battle', 'corrida'] },
   zumbi: { 3: ['terror', 'tiro', 'acao'], 2: ['estrategia', 'sandbox', 'battle', 'roguelike'], 0: ['esporte', 'cozy', 'ritmo'] },
   cyberpunk: { 3: ['rpg', 'acao', 'tiro'], 2: ['aventura', 'corrida', 'estrategia', 'roguelike'], 0: ['cozy', 'esporte', 'party'] },
+  cidade: { 3: ['simulacao', 'corrida', 'estrategia'], 2: ['acao', 'sandbox', 'cozy', 'esporte'], 0: ['rpg', 'ritmo', 'terror'] },
   internet: { 3: ['simulacao', 'party', 'puzzle'], 2: ['sandbox', 'moba', 'battle', 'mmo'], 0: ['estrategia', 'esporte'] },
 }
 

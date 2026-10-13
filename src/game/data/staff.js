@@ -53,6 +53,7 @@ export const AWARDS = [
   { id: 'trilha', label: 'Melhor Trilha', icon: 'note', pillar: 'sound' },
   { id: 'ideia', label: 'Mais Inovador', icon: 'bulb', pillar: 'idea' },
   { id: 'vendas', label: 'Mais Vendido', icon: 'coin' },
+  { id: 'indie', label: 'Indie do Ano', icon: 'heart' },
 ]
 
 // Títulos de legado: a fama acumulada do estúdio vira um nome na plaquinha.

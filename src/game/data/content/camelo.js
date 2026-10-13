@@ -85,7 +85,7 @@ export const CAMELO_LINES = [
   'Aceito fiado, vale-refeição e elogio sincero.',
   'Hoje tá tudo na promoção do medo.',
   'Bom dia, família! O mercado paralelo chegou.',
-  'Cheguei com novidade que nem a Ninten tem!',
+  'Cheguei com novidade que nem a Nintendo tem!',
   'Mercadoria fina, embalagem nem tanto.',
   'Leva dois e ganha um susto de brinde.',
   'Garantia de sete dias ou até eu sumir.',

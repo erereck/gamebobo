@@ -10,7 +10,8 @@ Gamebobo é um jogo rápido de carreira em que você comanda um estúdio de game
 4. **Etapas em vez de formulários.** Um clique revela a próxima escolha; o que já foi escolhido vira etiqueta.
 5. **Recompensa frequente, raridade de verdade.** Algo bom acontece a cada poucos minutos: nível, conquista, combo novo, parada, prêmio. Nota 9 continua rara; 10 é lenda.
 6. **Fracasso continua a partida.** Falir manda de volta pro quarto, não para a tela de fim.
-7. **Humor bobo.** Plataformas paródia, Camelô, gato do escritório, eventos absurdos. Nunca maldoso.
+7. **A história de verdade em volta.** Consoles, empresas e jogos reais na data certa. Você não é só mais um tycoon: você divide a prateleira com Super Mario Bros. e Doom.
+8. **Humor bobo.** Camelô, gato do escritório, eventos absurdos. Nunca maldoso.
 
 ## O que o jogador quer ver
 

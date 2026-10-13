@@ -9,6 +9,7 @@ import { legacyTitle, nextLegacyTitle } from '../../game/engine/progress.js'
 import { TICKER } from '../../game/data/content/ticker.js'
 import { isBlocked } from '../../game/engine/tick.js'
 import { activeRivals } from '../../game/engine/market.js'
+import { MILESTONES } from '../../game/data/history.js'
 
 function Delta({ value }) {
   const [shown, setShown] = useState(null)
@@ -27,7 +28,11 @@ function Delta({ value }) {
 
 function Ticker({ state }) {
   const [index, setIndex] = useState(0)
-  const pool = TICKER.filter(item => (item.minYear ?? 0) <= state.year && (item.maxYear ?? 9999) >= state.year)
+  const real = [
+    ...MILESTONES.filter(item => item.year === state.year),
+    ...state.rivalGames.filter(game => game.historic && !game.annual && game.age < 16).map(game => ({ text: `${game.studio} lança ${game.title}` })),
+  ]
+  const pool = [...real, ...real, ...TICKER.filter(item => (item.minYear ?? 0) <= state.year && (item.maxYear ?? 9999) >= state.year)]
   useEffect(() => {
     const id = setInterval(() => setIndex(i => i + 1), 7000)
     return () => clearInterval(id)

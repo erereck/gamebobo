@@ -3,7 +3,7 @@ import { START_MONEY, TECHS, WEEKS_PER_YEAR, eraSkillFactor, moneyScale } from '
 import { RIVALS } from '../data/content/rivals.js'
 import { createFounder, randomLook } from './staff.js'
 import { createCandidates } from './staff.js'
-import { rollTrend } from './market.js'
+import { historyCursorFor, rollTrend } from './market.js'
 import { generateFreelas } from './freelas.js'
 import { clamp, int } from './rng.js'
 
@@ -76,6 +76,7 @@ export function createGame(options = {}, random = Math.random) {
   }
   state.market.trendUntil = absWeek(state) + int(20, 34, random)
   state.lastEventWeek = absWeek(state) + 3
+  state.historyCursor = historyCursorFor(absWeek(state) - 1)
   state.lastCamelo = absWeek(state) + 10
   state.freelas = generateFreelas(state, random)
   return state

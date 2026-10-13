@@ -384,7 +384,7 @@ export const EVENTS = [
   ] },
   { id: 'escola-doacao', icon: 'graduation', title: 'Escola pede jogos para doação', when: { phase: 'idle', minGames: 1 }, weight: 1, choices: [
     { label: 'Doa jogos', effects: { money: -1500, fansPct: 0.04 }, result: 'Uma geração de fãs nasceu.' },
-    { label: 'Dá palestra', effects: { energy: -10, fansPct: 0.02, rp: 5 }, result: 'Perguntaram se você conhece a Ninten.' },
+    { label: 'Dá palestra', effects: { energy: -10, fansPct: 0.02, rp: 5 }, result: 'Perguntaram se você conhece a Nintendo.' },
   ] },
   { id: 'fa-tatuagem', icon: 'heart', title: 'Fã tatuou o logo do estúdio', text: 'Com o nome escrito errado.', when: { phase: 'idle', minGames: 1, minFans: 1000 }, weight: 1, funny: true, choices: [
     { label: 'Paga a correção', effects: { money: -800, fansPct: 0.03 }, result: 'Fã eterno, tatuagem certa.' },

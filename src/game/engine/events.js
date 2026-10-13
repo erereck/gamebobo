@@ -1,4 +1,5 @@
-import { EVENTS } from '../data/content/events.js'
+import { EVENTS as BASE_EVENTS } from '../data/content/events.js'
+import { REAL_EVENTS } from '../data/content/realEvents.js'
 import { IDEAS } from '../data/content/ideas.js'
 import { platformById } from '../data/platforms.js'
 import { activeRivals } from './market.js'
@@ -7,6 +8,7 @@ import { genreById, themeById } from '../data/genres.js'
 import { pick, weighted } from './rng.js'
 
 const REPEAT_AFTER = 48 * 7
+export const EVENTS = [...BASE_EVENTS, ...REAL_EVENTS]
 
 export function eventContext(state, random = Math.random) {
   const employees = state.staff.filter(person => !person.founder && person.status === 'ok')

@@ -1,33 +1,40 @@
-// Veículos de crítica (paródias) e frases de review.
+// Veículos de crítica (reais e alguns inventados) e frases de review.
 // bias: tendência da nota (-0.6 = carrasco, +0.6 = bonzinho). Sempre há 4+ ativos por ano (1980-2045+).
 
 export const OUTLETS = [
   // anos 80
   { id: 'jornal-do-fliperama', name: 'Jornal do Fliperama', minYear: 1980, maxYear: 1992, bias: 0.1, icon: 'newspaper' },
-  { id: 'revista-videojogo', name: 'Revista VideoJogo', minYear: 1980, maxYear: 1993, bias: 0, icon: 'book' },
+  { id: 'micro-sistemas', name: 'Micro Sistemas', minYear: 1980, maxYear: 1991, bias: 0, icon: 'book' },
   { id: 'dicas-truques-ze', name: 'Dicas & Truques do Zé', minYear: 1980, maxYear: 1996, bias: 0.3, icon: 'pencil' },
-  { id: 'boletim-atarizinho', name: 'Boletim do Clube Atarizinho', minYear: 1980, maxYear: 1988, bias: 0.2, icon: 'mail' },
-  { id: 'reacao-games', name: 'Reação Games', minYear: 1985, maxYear: 2005, bias: 0.1, icon: 'fire' },
+  { id: 'electronic-games', name: 'Electronic Games', minYear: 1980, maxYear: 1986, bias: 0.2, icon: 'mail' },
+  { id: 'acao-games', name: 'Ação Games', minYear: 1990, maxYear: 2005, bias: 0.1, icon: 'fire' },
   // anos 90
-  { id: 'super-gamer-pauer', name: 'Super Gamer Pauer', minYear: 1990, maxYear: 2002, bias: 0.2, icon: 'bolt' },
-  { id: 'mundo-ninten', name: 'Mundo Ninten', minYear: 1992, maxYear: 2001, bias: 0.4, icon: 'mushroom' },
-  { id: 'gamers-bobos', name: 'Gamers Bobos', minYear: 1993, maxYear: 2006, bias: -0.1, icon: 'gamepad' },
-  { id: 'egmanha', name: 'EGManhã', minYear: 1995, maxYear: 2008, bias: -0.2, icon: 'eye' },
+  { id: 'supergamepower', name: 'SuperGamePower', minYear: 1993, maxYear: 2002, bias: 0.2, icon: 'bolt' },
+  { id: 'nintendo-world', name: 'Nintendo World', minYear: 1998, maxYear: 2012, bias: 0.4, icon: 'mushroom' },
+  { id: 'revista-gamers', name: 'Revista Gamers', minYear: 1994, maxYear: 2006, bias: -0.1, icon: 'gamepad' },
+  { id: 'egm', name: 'EGM', minYear: 1989, maxYear: 2010, bias: -0.2, icon: 'eye' },
   // portais dos anos 2000
-  { id: 'gameponto', name: 'GamePonto', minYear: 1998, maxYear: 2025, bias: -0.1, icon: 'globe' },
-  { id: 'portal-jogaco', name: 'Portal Jogaço', minYear: 1999, maxYear: 2015, bias: 0.15, icon: 'wifi' },
-  { id: 'ignao', name: 'IGNão', minYear: 2000, maxYear: 9999, bias: 0, icon: 'star' },
-  { id: 'arena-bobo', name: 'Arena Bobo', minYear: 2001, maxYear: 2018, bias: 0.1, icon: 'trophy' },
+  { id: 'gamespot', name: 'GameSpot', minYear: 1996, maxYear: 9999, bias: -0.1, icon: 'globe' },
+  { id: 'uol-jogos', name: 'UOL Jogos', minYear: 1998, maxYear: 2018, bias: 0.15, icon: 'wifi' },
+  { id: 'ign', name: 'IGN', minYear: 1997, maxYear: 9999, bias: 0, icon: 'star' },
+  { id: 'eurogamer', name: 'Eurogamer', minYear: 1999, maxYear: 9999, bias: 0.1, icon: 'trophy' },
   // sites dos anos 2010
-  { id: 'kotaco', name: 'Kotaco', minYear: 2005, maxYear: 2040, bias: -0.3, icon: 'laugh' },
-  { id: 'metacritica-media', name: 'Metacrítica Média', minYear: 2005, maxYear: 9999, bias: -0.05, icon: 'chart' },
+  { id: 'kotaku', name: 'Kotaku', minYear: 2004, maxYear: 2040, bias: -0.3, icon: 'laugh' },
+  { id: 'metacritic', name: 'Metacritic', minYear: 2001, maxYear: 9999, bias: -0.05, icon: 'chart' },
   { id: 'blog-jogazera', name: 'Blog Jogazera', minYear: 2008, maxYear: 2020, bias: 0.25, icon: 'pencil' },
-  { id: 'poligono-torto', name: 'Polígono Torto', minYear: 2012, maxYear: 9999, bias: -0.2, icon: 'cube' },
+  { id: 'polygon', name: 'Polygon', minYear: 2012, maxYear: 9999, bias: -0.2, icon: 'cube' },
   // canais e lives
   { id: 'canal-tio-review', name: 'Canal do Tio Review', minYear: 2014, maxYear: 9999, bias: 0.3, icon: 'tv' },
   { id: 'boteco-gamer', name: 'Podcast Boteco Gamer', minYear: 2016, maxYear: 9999, bias: 0.1, icon: 'headphones' },
   { id: 'live-gameplayzao', name: 'Live do Gameplayzão', minYear: 2018, maxYear: 9999, bias: 0.35, icon: 'gamepad' },
   { id: 'notinha-60s', name: 'Notinha em 60 Segundos', minYear: 2021, maxYear: 9999, bias: -0.4, icon: 'phone' },
+  // clássicos de várias épocas
+  { id: 'cvg', name: 'Computer & Video Games', minYear: 1981, maxYear: 2014, bias: 0, icon: 'book' },
+  { id: 'famitsu', name: 'Famitsu', minYear: 1986, maxYear: 9999, bias: 0.2, icon: 'star' },
+  { id: 'nintendo-power', name: 'Nintendo Power', minYear: 1988, maxYear: 2012, bias: 0.35, icon: 'mushroom' },
+  { id: 'gamepro', name: 'GamePro', minYear: 1989, maxYear: 2011, bias: 0.1, icon: 'gamepad' },
+  { id: 'videogame-br', name: 'Revista VideoGame', minYear: 1991, maxYear: 1997, bias: 0.15, icon: 'tv' },
+  { id: 'edge', name: 'Edge', minYear: 1993, maxYear: 9999, bias: -0.35, icon: 'eye' },
   // futuro
   { id: 'critico-ia-9000', name: 'Crítico IA 9000', minYear: 2027, maxYear: 9999, bias: 0, icon: 'robot' },
   { id: 'holo-review', name: 'Holo-Review', minYear: 2032, maxYear: 9999, bias: 0.15, icon: 'sparkle' },

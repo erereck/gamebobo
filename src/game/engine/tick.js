@@ -5,6 +5,7 @@ import { OFFICES, PACES, WEEKS_PER_MONTH, WEEKS_PER_YEAR, moneyScale } from '../
 import { traitById } from '../data/staff.js'
 import { activeStaff, createCandidates, decorTotals } from './staff.js'
 import { computeChart, rollTrend, stepRivals } from './market.js'
+import { PLATFORMS, platformStart } from '../data/platforms.js'
 import { generateFreelas } from './freelas.js'
 import { workWeek } from './project.js'
 import { eventContext, pickEvent, pickIdea } from './events.js'
@@ -159,6 +160,34 @@ function maybeRomance(state, random) {
   log(state, 'heart', `${a.name} e ${b.name} estão juntos`)
 }
 
+// Lançamentos reais viram notícia; os grandes sucessos puxam a moda do mercado.
+function announceReleases(state, releases) {
+  for (const game of releases) {
+    if (!game.historic) continue
+    if (!game.annual || game.trend) {
+      toast(state, { kind: 'info', icon: genreById(game.genre)?.icon ?? 'cartridge', title: game.title, sub: `${game.studio} lançou` })
+      log(state, 'newspaper', `${game.studio} lançou ${game.title}`)
+    }
+    if (game.trend) {
+      state.market.trend = { genre: game.genre, theme: game.theme }
+      state.market.trendUntil = absWeek(state) + 32
+      state.market.trendSource = game.title
+    }
+  }
+}
+
+function announcePlatforms(state) {
+  const now = yearFloat(state)
+  const before = now - 1 / WEEKS_PER_YEAR
+  for (const platform of PLATFORMS) {
+    const start = platformStart(platform)
+    if (start > before && start <= now && platform.id !== 'pc') {
+      toast(state, { kind: 'great', icon: 'gamepad', title: `${platform.label} chegou`, sub: platform.maker })
+      log(state, 'gamepad', `${platform.maker} lançou o ${platform.label}`)
+    }
+  }
+}
+
 function trends(state, random) {
   const tw = absWeek(state)
   if (tw < state.market.trendUntil) return
@@ -167,6 +196,7 @@ function trends(state, random) {
   state.market.trendUntil = tw + int(24, 40, random)
   const genre = genreById(state.market.trend.genre)?.label
   const theme = themeById(state.market.trend.theme)?.label
+  state.market.trendSource = null
   toast(state, { kind: 'info', icon: 'fire', title: 'Nova moda', sub: `${genre} · ${theme}` })
 }
 
@@ -232,7 +262,8 @@ export function tick(state, random = Math.random) {
   updateStaff(state)
   workWeek(state)
   sellGames(state)
-  stepRivals(state, random)
+  announceReleases(state, stepRivals(state, random))
+  announcePlatforms(state)
   updateChart(state)
   research(state)
   trends(state, random)

@@ -5,6 +5,7 @@ import { moneyScale } from '../data/economy.js'
 import { applyEffects } from './effects.js'
 import { toast, yearFloat, log } from './state.js'
 import { gauss } from './rng.js'
+import { RIVALS, rivalTierAt } from '../data/content/rivals.js'
 
 export function liveStats(state) {
   const combos = Object.keys(state.combos)
@@ -73,18 +74,21 @@ export function runAwards(state, year, random = Math.random) {
   }))
   const theirs = state.rivalGames.filter(game => game.year === year).map(game => ({
     title: game.title, studio: game.studio, mine: false, score: game.score, copies: game.copies,
+    indie: rivalTierAt(RIVALS.find(rival => rival.id === game.rivalId), year) <= 1,
     pillars: { fun: .25, art: .25, sound: .25, idea: .25, [game.pillar]: .4 },
   }))
   const pool = [...mine, ...theirs]
   if (!mine.length || pool.length < 3) return null
   const categories = []
   for (const award of AWARDS) {
+    const field = award.id === 'indie' ? pool.filter(entry => (entry.mine ? state.office <= 2 : entry.indie)) : pool
+    if (field.length < 2) continue
     const rank = entry => {
       if (award.id === 'vendas') return entry.copies
       if (award.pillar) return entry.score + (entry.pillars?.[award.pillar] ?? .25) * 6 + gauss(random) * .35
       return entry.score + gauss(random) * .15
     }
-    const ranked = pool.map(entry => ({ entry, value: rank(entry) })).sort((a, b) => b.value - a.value).slice(0, 3)
+    const ranked = field.map(entry => ({ entry, value: rank(entry) })).sort((a, b) => b.value - a.value).slice(0, 3)
     if (!ranked.some(item => item.entry.mine)) continue
     categories.push({ id: award.id, label: award.label, icon: award.icon, finalists: ranked.map(item => item.entry), winner: 0 })
   }

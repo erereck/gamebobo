@@ -17,9 +17,12 @@ Reescrita completa. Save novo: a série 0.x não é migrada.
 - **Criação em etapas**: gênero, tema, plataforma, tamanho e promessa da capa, com capa de cartucho gerada e título sorteado.
 - **Desenvolvimento em semanas** com deck de velocidade, três fases, foco por fase com gráfico "o gênero pede × seu jogo tem", ritmo tranquilo/normal/crunch, bugs e hype.
 - **Revelação de lançamento** com quatro críticos virando as cartas, carimbo da nota, fatores da nota em setas, comentários de fãs da época e evolução da equipe.
-- **Mercado vivo**: 16 rivais paródia, paradas semanais, modas, Bobo Awards por envelope, conquistas com raridade e títulos de legado.
-- **Conteúdo**: 151 eventos (57 absurdos), 40 ideias, 47 promessas, 40 freelas, 26 itens do Camelô, 67 conquistas, 94 manchetes, 24 veículos de crítica e 130 ícones próprios.
-- **Plataformas paródia** com datas reais: Nintendinho, Mega Draive, PlayStação, XCaixa, Ninten Suítch e companhia.
+- **Indústria de verdade**: 65 empresas reais como rivais, com fundação, fechamento e porte por época; 129 jogos históricos saindo no mês real, mais FIFA, Winning Eleven/PES e Call of Duty todo ano. Sucessos históricos entram nas paradas, disputam prêmios e puxam a moda do mercado.
+- **Mercado vivo**: paradas semanais, modas, Bobo Awards por envelope (incluindo Indie do Ano), conquistas com raridade e títulos de legado.
+- **Manchetes e eventos reais**: crash de 1983, selo da Nintendo, Tectoy traduzindo jogos, CD pirata da Santa Ifigênia, lan house, Steam, App Store, Twitch, Pokémon GO, Game Pass e mais.
+- **Conteúdo**: 167 eventos (60 absurdos, 16 históricos), 40 ideias, 47 promessas, 40 freelas, 26 itens do Camelô, 67 conquistas, 94 manchetes, 30 veículos de crítica e 130 ícones próprios.
+- **Plataformas reais** com mês de lançamento: do Atari 2600 e Intellivision ao Switch 2, passando por MSX, Neo Geo, 3DO, Stadia e Steam Deck. O console novo chega com aviso na data certa.
+- **Imprensa real**: Micro Sistemas, Ação Games, SuperGamePower, Nintendo World, Famitsu, IGN, Kotaku e outros, ao lado de críticos inventados.
 - **Balanceamento medido** por robô jogador (`npm run balance`) e protegido por teste de regressão.
 - Interface nova: adesivos com contorno e sombra dura, Bricolage Grotesque + Martian Mono, céu por era, layout próprio para celular.
 

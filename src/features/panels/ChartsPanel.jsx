@@ -12,7 +12,7 @@ export function ChartsPanel() {
     <div className="charts">
       <div className="trend-card">
         <Icon name="fire" size={22} />
-        <div><small>Em alta</small><b>{genreById(trend.genre)?.label} · {themeById(trend.theme)?.label}</b></div>
+        <div><small>{state.market.trendSource ? `Em alta por causa de ${state.market.trendSource}` : 'Em alta'}</small><b>{genreById(trend.genre)?.label} · {themeById(trend.theme)?.label}</b></div>
       </div>
       <ol className="chart">
         {state.chart.map(entry => (

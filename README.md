@@ -2,6 +2,8 @@
 
 Um jogo rápido sobre montar um estúdio de games. Você decide o que fazer; os bonequinhos fazem acontecer num escritório 3D que dá para girar, dar zoom e espiar.
 
+Tudo acontece dentro da indústria de verdade: consoles reais chegam na data certa, Nintendo, Sega, id Software, Rockstar e mais 60 empresas lançam seus jogos históricos ao seu lado, e você briga com eles nas paradas e nos prêmios.
+
 Versão atual: **1.0.0 — Escritório Vivo**.
 
 ## Começar
@@ -38,8 +40,8 @@ Entre um jogo e outro: contratar, treinar, mudar de escritório, decorar, pesqui
 
 | Onde | O que mora lá |
 |---|---|
-| `src/game/data/` | Gêneros, temas, combinações, plataformas paródia, economia, equipe |
-| `src/game/data/content/` | Eventos, ideias, críticos, comentários, nomes, rivais, títulos, freelas, Camelô, conquistas, manchetes e promessas |
+| `src/game/data/` | Gêneros, temas, combinações, plataformas reais, economia, equipe, calendário histórico (`history.js`) |
+| `src/game/data/content/` | Eventos (inventados e históricos), ideias, imprensa, comentários, nomes, empresas rivais, títulos, freelas, Camelô, conquistas, manchetes e promessas |
 | `src/game/engine/` | Regras puras: reducer, semana, projeto, nota, vendas, mercado, progresso |
 | `src/three/` | Escritório 3D: plantas, móveis, bonecos, cérebro dos bonecos, balões e partículas |
 | `src/features/` | Interface por assunto: HUD, criação, modais, painéis, início |
@@ -55,6 +57,8 @@ Entre um jogo e outro: contratar, treinar, mudar de escritório, decorar, pesqui
 | preços, tamanhos, escritórios, decoração, pesquisa, divulgação, eras | `src/game/data/economy.js` |
 | o que cada gênero pede e quais combinações funcionam | `src/game/data/genres.js` |
 | consoles e datas | `src/game/data/platforms.js` |
+| jogos históricos, séries anuais e manchetes datadas | `src/game/data/history.js` |
+| empresas rivais e seu porte por época | `src/game/data/content/rivals.js` |
 | traços, perfis do fundador, prêmios e títulos de legado | `src/game/data/staff.js` |
 | fórmula da nota | `src/game/engine/quality.js` |
 | fórmula de vendas | `src/game/engine/sales.js` |

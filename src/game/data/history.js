@@ -1,0 +1,201 @@
+// A indústria de verdade acontecendo em volta do seu estúdio.
+// Cada jogo sai no mês real (0-11), entra nas paradas, disputa prêmios e pode puxar a moda.
+// score = nota média da crítica (0-10). copies = milhões vendidos na vida toda (aprox.).
+const g = (id, title, studio, year, month, genre, theme, score, copies, platform, trend = false) => ({ id, title, studio, year, month, genre, theme, score, copies, platform, trend })
+
+export const HISTORIC_GAMES = [
+  // anos 80
+  g('space-invaders', 'Space Invaders', 'taito', 1980, 2, 'acao', 'espaco', 8.2, 6, 'atari2600', true),
+  g('missile-command', 'Missile Command', 'atari', 1981, 2, 'acao', 'militar', 7.6, 2.5, 'atari2600'),
+  g('pac-man-2600', 'Pac-Man', 'atari', 1982, 2, 'acao', 'culinaria', 5.2, 7, 'atari2600'),
+  g('pitfall', 'Pitfall!', 'activision', 1982, 3, 'aventura', 'animais', 8.6, 4, 'atari2600', true),
+  g('donkey-kong-coleco', 'Donkey Kong', 'nintendo', 1982, 7, 'plataforma', 'animais', 8.0, 2, 'colecovision'),
+  g('et', 'E.T. the Extra-Terrestrial', 'atari', 1982, 11, 'aventura', 'espaco', 1.8, 1.5, 'atari2600'),
+  g('zork', 'Zork', 'activision', 1982, 5, 'aventura', 'fantasia', 8.0, 0.8, 'pc'),
+  g('kings-quest', "King's Quest", 'sierra', 1984, 4, 'aventura', 'fantasia', 8.0, 0.5, 'pc'),
+  g('summer-games', 'Summer Games', 'epyx', 1984, 6, 'esporte', 'futebol', 7.8, 1, 'c64'),
+  g('super-mario-bros', 'Super Mario Bros.', 'nintendo', 1985, 8, 'plataforma', 'fantasia', 9.6, 40, 'nes', true),
+  g('bomberman', 'Bomberman', 'hudson', 1985, 11, 'acao', 'robos', 7.8, 1, 'nes'),
+  g('zelda', 'The Legend of Zelda', 'nintendo', 1986, 1, 'aventura', 'fantasia', 9.4, 6.5, 'nes', true),
+  g('dragon-quest', 'Dragon Quest', 'enix', 1986, 4, 'rpg', 'fantasia', 8.6, 2, 'nes'),
+  g('metroid', 'Metroid', 'nintendo', 1986, 7, 'acao', 'espaco', 9.0, 2.7, 'nes'),
+  g('castlevania', 'Castlevania', 'konami', 1986, 8, 'acao', 'zumbi', 8.8, 1.5, 'nes'),
+  g('alex-kidd', 'Alex Kidd in Miracle World', 'sega', 1986, 10, 'plataforma', 'fantasia', 8.0, 2, 'master'),
+  g('contra', 'Contra', 'konami', 1987, 1, 'acao', 'militar', 8.8, 4, 'nes'),
+  g('final-fantasy', 'Final Fantasy', 'square', 1987, 11, 'rpg', 'fantasia', 8.7, 1.5, 'nes'),
+  g('phantasy-star', 'Phantasy Star', 'sega', 1987, 11, 'rpg', 'espaco', 8.5, 0.5, 'master'),
+  g('mega-man-2', 'Mega Man 2', 'capcom', 1988, 11, 'acao', 'robos', 9.2, 1.5, 'nes'),
+  g('smb3', 'Super Mario Bros. 3', 'nintendo', 1988, 9, 'plataforma', 'fantasia', 9.7, 17, 'nes', true),
+  g('simcity', 'SimCity', 'maxis', 1989, 1, 'simulacao', 'cidade', 9.1, 1, 'pc', true),
+  g('tetris', 'Tetris', 'nintendo', 1989, 5, 'puzzle', 'escola', 9.5, 35, 'gameboy', true),
+  g('prince-of-persia', 'Prince of Persia', 'broderbund', 1989, 9, 'aventura', 'mitologia', 8.8, 2, 'pc'),
+  g('golden-axe', 'Golden Axe', 'sega', 1989, 11, 'acao', 'fantasia', 8.3, 1, 'megadrive'),
+  // anos 90
+  g('super-mario-world', 'Super Mario World', 'nintendo', 1990, 10, 'plataforma', 'dinossauros', 9.6, 20.6, 'snes', true),
+  g('street-fighter-ii', 'Street Fighter II', 'capcom', 1991, 2, 'luta', 'herois', 9.4, 14, 'snes', true),
+  g('sonic', 'Sonic the Hedgehog', 'sega', 1991, 5, 'plataforma', 'animais', 9.3, 15, 'megadrive', true),
+  g('monica', 'Mônica no Castelo do Dragão', 'tectoy', 1991, 9, 'plataforma', 'fantasia', 7.8, 0.3, 'master'),
+  g('link-to-the-past', 'Zelda: A Link to the Past', 'nintendo', 1991, 10, 'aventura', 'fantasia', 9.5, 4.6, 'snes'),
+  g('wolfenstein-3d', 'Wolfenstein 3D', 'id', 1992, 4, 'tiro', 'militar', 8.7, 1, 'pc', true),
+  g('super-mario-kart', 'Super Mario Kart', 'nintendo', 1992, 7, 'corrida', 'fantasia', 9.3, 8.8, 'snes', true),
+  g('mortal-kombat', 'Mortal Kombat', 'midway', 1992, 8, 'luta', 'ninja', 8.6, 6, 'megadrive', true),
+  g('myst', 'Myst', 'broderbund', 1993, 8, 'puzzle', 'fantasia', 8.5, 6, 'pc'),
+  g('doom', 'Doom', 'id', 1993, 11, 'tiro', 'zumbi', 9.5, 3.5, 'pc', true),
+  g('ff6', 'Final Fantasy VI', 'square', 1994, 3, 'rpg', 'fantasia', 9.4, 3.5, 'snes'),
+  g('warcraft', 'Warcraft: Orcs & Humans', 'blizzard', 1994, 10, 'estrategia', 'medieval', 8.5, 1, 'pc', true),
+  g('donkey-kong-country', 'Donkey Kong Country', 'rare', 1994, 10, 'plataforma', 'animais', 9.0, 9.3, 'snes'),
+  g('chrono-trigger', 'Chrono Trigger', 'square', 1995, 2, 'rpg', 'fantasia', 9.6, 2.6, 'snes'),
+  g('command-conquer', 'Command & Conquer', 'westwood', 1995, 7, 'estrategia', 'militar', 9.0, 3, 'pc'),
+  g('resident-evil', 'Resident Evil', 'capcom', 1996, 2, 'terror', 'zumbi', 9.1, 5, 'playstation', true),
+  g('pokemon-red-blue', 'Pokémon Red & Blue', 'gamefreak', 1996, 1, 'rpg', 'animais', 9.0, 46, 'gameboy', true),
+  g('quake', 'Quake', 'id', 1996, 5, 'tiro', 'zumbi', 9.3, 1.8, 'pc'),
+  g('super-mario-64', 'Super Mario 64', 'nintendo', 1996, 5, 'plataforma', 'fantasia', 9.8, 11.9, 'n64', true),
+  g('crash-bandicoot', 'Crash Bandicoot', 'naughtydog', 1996, 8, 'plataforma', 'animais', 8.6, 6.8, 'playstation'),
+  g('tomb-raider', 'Tomb Raider', 'eidos', 1996, 9, 'aventura', 'mitologia', 9.1, 7, 'playstation', true),
+  g('ff7', 'Final Fantasy VII', 'square', 1997, 0, 'rpg', 'cyberpunk', 9.7, 11, 'playstation', true),
+  g('diablo', 'Diablo', 'blizzard', 1997, 0, 'rpg', 'fantasia', 9.4, 2.5, 'pc'),
+  g('goldeneye', 'GoldenEye 007', 'rare', 1997, 7, 'tiro', 'crime', 9.6, 8, 'n64', true),
+  g('gran-turismo', 'Gran Turismo', 'sony', 1997, 11, 'corrida', 'cidade', 9.6, 10.8, 'playstation', true),
+  g('starcraft', 'StarCraft', 'blizzard', 1998, 2, 'estrategia', 'espaco', 9.3, 11, 'pc', true),
+  g('tekken-3', 'Tekken 3', 'namco', 1998, 2, 'luta', 'herois', 9.6, 8.3, 'playstation'),
+  g('metal-gear-solid', 'Metal Gear Solid', 'konami', 1998, 8, 'acao', 'militar', 9.4, 6, 'playstation'),
+  g('half-life', 'Half-Life', 'valve', 1998, 10, 'tiro', 'espaco', 9.6, 9, 'pc', true),
+  g('ocarina', 'Zelda: Ocarina of Time', 'nintendo', 1998, 10, 'aventura', 'fantasia', 9.9, 7.6, 'n64', true),
+  g('silent-hill', 'Silent Hill', 'konami', 1999, 0, 'terror', 'folclore', 8.6, 2, 'playstation'),
+  g('age-of-empires-2', 'Age of Empires II', 'microsoft', 1999, 8, 'estrategia', 'medieval', 9.2, 2, 'pc'),
+  g('pokemon-gold-silver', 'Pokémon Gold & Silver', 'gamefreak', 1999, 10, 'rpg', 'animais', 9.2, 23, 'gbc'),
+  // anos 2000
+  g('the-sims', 'The Sims', 'maxis', 2000, 1, 'simulacao', 'novela', 9.2, 16, 'pc', true),
+  g('deus-ex', 'Deus Ex', 'eidos', 2000, 5, 'rpg', 'cyberpunk', 9.0, 1, 'pc'),
+  g('counter-strike', 'Counter-Strike', 'valve', 2000, 10, 'tiro', 'crime', 9.0, 4.2, 'pc', true),
+  g('gta-3', 'Grand Theft Auto III', 'rockstar', 2001, 9, 'acao', 'crime', 9.7, 17.5, 'ps2', true),
+  g('halo', 'Halo: Combat Evolved', 'bungie', 2001, 10, 'tiro', 'espaco', 9.7, 6.4, 'xbox'),
+  g('mgs2', 'Metal Gear Solid 2', 'konami', 2001, 10, 'acao', 'militar', 9.6, 7, 'ps2'),
+  g('kingdom-hearts', 'Kingdom Hearts', 'square', 2002, 2, 'rpg', 'fantasia', 8.5, 6.4, 'ps2'),
+  g('vice-city', 'Grand Theft Auto: Vice City', 'rockstar', 2002, 9, 'acao', 'crime', 9.5, 20, 'ps2'),
+  g('wow', 'World of Warcraft', 'blizzard', 2004, 10, 'mmo', 'fantasia', 9.3, 14, 'pc', true),
+  g('half-life-2', 'Half-Life 2', 'valve', 2004, 10, 'tiro', 'espaco', 9.6, 12, 'pc'),
+  g('san-andreas', 'GTA: San Andreas', 'rockstar', 2004, 9, 'acao', 'crime', 9.5, 27.5, 'ps2', true),
+  g('halo-2', 'Halo 2', 'bungie', 2004, 10, 'tiro', 'espaco', 9.5, 8.5, 'xbox'),
+  g('resident-evil-4', 'Resident Evil 4', 'capcom', 2005, 0, 'acao', 'zumbi', 9.6, 10, 'gamecube'),
+  g('nintendogs', 'Nintendogs', 'nintendo', 2005, 3, 'simulacao', 'animais', 8.3, 24, 'nds'),
+  g('shadow-colossus', 'Shadow of the Colossus', 'sony', 2005, 9, 'aventura', 'mitologia', 9.1, 1.4, 'ps2'),
+  g('guitar-hero', 'Guitar Hero', 'activision', 2005, 10, 'ritmo', 'musica', 9.1, 1.5, 'ps2', true),
+  g('wii-sports', 'Wii Sports', 'nintendo', 2006, 10, 'party', 'futebol', 7.6, 82.9, 'wii', true),
+  g('gears-of-war', 'Gears of War', 'epic', 2006, 10, 'tiro', 'militar', 9.4, 6, 'xbox360'),
+  g('bioshock', 'BioShock', '2k', 2007, 7, 'tiro', 'cyberpunk', 9.6, 4, 'xbox360'),
+  g('portal', 'Portal', 'valve', 2007, 9, 'puzzle', 'robos', 9.0, 4, 'pc'),
+  g('mass-effect', 'Mass Effect', 'bioware', 2007, 10, 'rpg', 'espaco', 9.1, 3, 'xbox360'),
+  g('mario-galaxy', 'Super Mario Galaxy', 'nintendo', 2007, 10, 'plataforma', 'espaco', 9.7, 12.8, 'wii'),
+  g('gta-4', 'Grand Theft Auto IV', 'rockstar', 2008, 3, 'acao', 'crime', 9.8, 25, 'ps3'),
+  g('left-4-dead', 'Left 4 Dead', 'valve', 2008, 10, 'tiro', 'zumbi', 8.9, 3, 'pc', true),
+  g('plants-zombies', 'Plants vs. Zombies', 'popcap', 2009, 4, 'estrategia', 'zumbi', 8.7, 11, 'pc'),
+  g('uncharted-2', 'Uncharted 2', 'naughtydog', 2009, 9, 'aventura', 'mitologia', 9.6, 6.7, 'ps3'),
+  g('taikodom', 'Taikodom', 'hoplon', 2009, 5, 'mmo', 'espaco', 6.5, 0.2, 'pc'),
+  g('league-of-legends', 'League of Legends', 'riot', 2009, 9, 'moba', 'fantasia', 7.8, 20, 'pc', true),
+  g('angry-birds', 'Angry Birds', 'rovio', 2009, 11, 'puzzle', 'animais', 8.0, 30, 'mobile', true),
+  // anos 2010
+  g('red-dead-redemption', 'Red Dead Redemption', 'rockstar', 2010, 4, 'acao', 'velhooeste', 9.5, 23, 'ps3'),
+  g('minecraft', 'Minecraft', 'mojang', 2011, 10, 'sandbox', 'fantasia', 9.3, 180, 'pc', true),
+  g('terraria', 'Terraria', 'relogic', 2011, 4, 'sandbox', 'fantasia', 8.3, 27, 'pc'),
+  g('dark-souls', 'Dark Souls', 'fromsoftware', 2011, 8, 'rpg', 'medieval', 8.9, 2.4, 'ps3'),
+  g('skyrim', 'The Elder Scrolls V: Skyrim', 'bethesda', 2011, 10, 'rpg', 'medieval', 9.4, 30, 'pc', true),
+  g('clash-of-clans', 'Clash of Clans', 'supercell', 2012, 7, 'estrategia', 'medieval', 7.4, 50, 'mobile'),
+  g('candy-crush', 'Candy Crush Saga', 'king', 2012, 10, 'puzzle', 'culinaria', 7.9, 50, 'mobile', true),
+  g('the-last-of-us', 'The Last of Us', 'naughtydog', 2013, 5, 'acao', 'zumbi', 9.5, 17, 'ps3'),
+  g('gta-5', 'Grand Theft Auto V', 'rockstar', 2013, 8, 'acao', 'crime', 9.7, 115, 'ps3', true),
+  g('horizon-chase', 'Horizon Chase', 'aquiris', 2015, 5, 'corrida', 'cidade', 8.0, 3, 'mobile'),
+  g('chroma-squad', 'Chroma Squad', 'behold', 2015, 3, 'estrategia', 'herois', 8.0, 0.3, 'pc'),
+  g('bloodborne', 'Bloodborne', 'fromsoftware', 2015, 2, 'acao', 'zumbi', 9.2, 2, 'ps4'),
+  g('witcher-3', 'The Witcher 3: Wild Hunt', 'cdpr', 2015, 4, 'rpg', 'folclore', 9.3, 20, 'ps4', true),
+  g('stardew', 'Stardew Valley', 'concernedape', 2016, 1, 'cozy', 'fazenda', 8.9, 20, 'pc', true),
+  g('overwatch', 'Overwatch', 'blizzard', 2016, 4, 'tiro', 'herois', 9.1, 10, 'pc'),
+  g('pokemon-go', 'Pokémon GO', 'niantic', 2016, 6, 'aventura', 'animais', 6.9, 40, 'mobile', true),
+  g('hollow-knight', 'Hollow Knight', 'teamcherry', 2017, 1, 'plataforma', 'animais', 8.7, 15, 'pc'),
+  g('zelda-botw', 'Zelda: Breath of the Wild', 'nintendo', 2017, 2, 'aventura', 'fantasia', 9.7, 32, 'switch', true),
+  g('pubg', 'PUBG: Battlegrounds', 'krafton', 2017, 2, 'battle', 'militar', 8.6, 60, 'pc', true),
+  g('fortnite', 'Fortnite', 'epic', 2017, 8, 'battle', 'internet', 8.1, 40, 'pc', true),
+  g('free-fire', 'Free Fire', 'garena', 2017, 11, 'battle', 'militar', 7.0, 40, 'mobile'),
+  g('dandara', 'Dandara', 'longhat', 2018, 1, 'plataforma', 'folclore', 8.2, 0.5, 'switch'),
+  g('god-of-war', 'God of War', 'sony', 2018, 3, 'acao', 'mitologia', 9.4, 23, 'ps4'),
+  g('among-us', 'Among Us', 'innersloth', 2018, 5, 'party', 'espaco', 8.0, 40, 'mobile'),
+  g('rdr2', 'Red Dead Redemption 2', 'rockstar', 2018, 9, 'acao', 'velhooeste', 9.7, 26.5, 'ps4'),
+  g('sekiro', 'Sekiro: Shadows Die Twice', 'fromsoftware', 2019, 2, 'acao', 'ninja', 9.0, 10, 'ps4'),
+  // anos 2020
+  g('animal-crossing', 'Animal Crossing: New Horizons', 'nintendo', 2020, 2, 'cozy', 'animais', 9.0, 50, 'switch', true),
+  g('hades', 'Hades', 'supergiant', 2020, 8, 'roguelike', 'mitologia', 9.3, 4, 'pc', true),
+  g('genshin', 'Genshin Impact', 'hoyoverse', 2020, 8, 'rpg', 'fantasia', 8.1, 50, 'mobile'),
+  g('cyberpunk-2077', 'Cyberpunk 2077', 'cdpr', 2020, 11, 'rpg', 'cyberpunk', 7.2, 35, 'pc'),
+  g('elden-ring', 'Elden Ring', 'fromsoftware', 2022, 1, 'rpg', 'medieval', 9.6, 30, 'ps5', true),
+  g('zelda-totk', 'Zelda: Tears of the Kingdom', 'nintendo', 2023, 4, 'aventura', 'fantasia', 9.6, 22.7, 'switch'),
+  g('baldurs-gate-3', "Baldur's Gate 3", 'larian', 2023, 7, 'rpg', 'fantasia', 9.6, 15, 'pc', true),
+  g('palworld', 'Palworld', 'pocketpair', 2024, 0, 'sandbox', 'animais', 7.8, 25, 'pc'),
+  g('balatro', 'Balatro', 'localthunk', 2024, 1, 'roguelike', 'crime', 9.0, 5, 'pc', true),
+  g('enigma-do-medo', 'Enigma do Medo', 'dumativa', 2024, 10, 'terror', 'folclore', 8.0, 0.3, 'pc'),
+  g('black-myth', 'Black Myth: Wukong', 'gamescience', 2024, 7, 'acao', 'mitologia', 8.1, 25, 'ps5'),
+  g('astro-bot', 'Astro Bot', 'sony', 2024, 8, 'plataforma', 'robos', 9.4, 1.5, 'ps5'),
+  g('expedition-33', 'Clair Obscur: Expedition 33', 'sandfall', 2025, 3, 'rpg', 'fantasia', 9.2, 5, 'ps5'),
+  g('mario-kart-world', 'Mario Kart World', 'nintendo', 2025, 5, 'corrida', 'fantasia', 8.6, 15, 'switch2'),
+  g('silksong', 'Hollow Knight: Silksong', 'teamcherry', 2025, 8, 'plataforma', 'animais', 9.1, 5, 'pc'),
+  g('gta-6', 'Grand Theft Auto VI', 'rockstar', 2026, 10, 'acao', 'crime', 9.6, 60, 'ps5', true),
+]
+
+// Séries que voltam todo ano, como no calendário de verdade.
+const fifa = y => (y <= 1993 ? 'FIFA International Soccer' : y <= 2022 ? `FIFA ${String((y + 1) % 100).padStart(2, '0')}` : `EA Sports FC ${(y + 1) % 100}`)
+const pes = y => (y <= 2000 ? `Winning Eleven ${y - 1995}` : y <= 2006 ? `Pro Evolution Soccer ${y - 2000}` : y <= 2020 ? `PES ${y + 1}` : `eFootball ${y + 1}`)
+const COD = { 2003: 'Call of Duty', 2005: 'Call of Duty 2', 2006: 'Call of Duty 3', 2007: 'CoD 4: Modern Warfare', 2008: 'CoD: World at War', 2009: 'CoD: Modern Warfare 2', 2010: 'CoD: Black Ops', 2011: 'CoD: Modern Warfare 3', 2012: 'CoD: Black Ops II', 2013: 'CoD: Ghosts', 2014: 'CoD: Advanced Warfare', 2015: 'CoD: Black Ops III', 2016: 'CoD: Infinite Warfare', 2017: 'CoD: WWII', 2018: 'CoD: Black Ops 4', 2019: 'CoD: Modern Warfare', 2020: 'CoD: Black Ops Cold War', 2021: 'CoD: Vanguard', 2022: 'CoD: Modern Warfare II', 2023: 'CoD: Modern Warfare III', 2024: 'CoD: Black Ops 6', 2025: 'CoD: Black Ops 7' }
+
+function annual() {
+  const list = []
+  for (let y = 1993; y <= 2045; y += 1) {
+    list.push(g(`fifa-${y}`, fifa(y), 'ea', y, y === 1993 ? 11 : 8, 'esporte', 'futebol', Math.min(8.6, 7.4 + Math.min(1, (y - 1993) / 12)) - Math.max(0, y - 2014) * .03, Math.min(20, 2 + (y - 1993) * .8), y < 2000 ? 'playstation' : y < 2006 ? 'ps2' : y < 2014 ? 'ps3' : y < 2021 ? 'ps4' : 'ps5'))
+  }
+  for (let y = 1997; y <= 2045; y += 1) {
+    const score = y < 2001 ? 8.6 : y < 2010 ? 9 - (y - 2001) * .08 : y < 2021 ? 8.2 - (y - 2010) * .03 : 6.6
+    list.push(g(`pes-${y}`, pes(y), 'konami', y, 9, 'esporte', 'futebol', score, y < 2010 ? 3 + (y - 1997) * .3 : 3, y < 2001 ? 'playstation' : y < 2010 ? 'ps2' : y < 2014 ? 'ps3' : y < 2021 ? 'ps4' : 'ps5'))
+  }
+  for (const [year, title] of Object.entries(COD)) {
+    const y = Number(year)
+    list.push(g(`cod-${y}`, title, 'activision', y, 10, 'tiro', 'militar', y < 2013 ? 9 - Math.max(0, y - 2009) * .1 : 8 - (y - 2013) * .04, y < 2007 ? 3 : Math.min(26, 8 + (y - 2007) * 2) - Math.max(0, y - 2013) * .8, y < 2006 ? 'pc' : y < 2014 ? 'xbox360' : y < 2021 ? 'ps4' : 'ps5', y === 2007))
+  }
+  return list
+}
+
+export const ALL_HISTORIC_GAMES = [...HISTORIC_GAMES, ...annual()].sort((a, b) => a.year - b.year || a.month - b.month)
+
+// Manchetes datadas: aparecem no letreiro no ano em que aconteceram.
+export const MILESTONES = [
+  { year: 1983, text: 'Crash dos videogames: lojas devolvem cartuchos às pilhas' },
+  { year: 1983, text: 'Atari enterra cartuchos de E.T. no deserto do Novo México' },
+  { year: 1985, text: 'Nintendo exige selo de qualidade em todo cartucho de NES' },
+  { year: 1989, text: 'Tetris vem junto do Game Boy e vira febre no ônibus' },
+  { year: 1990, text: 'Tectoy lança o Master System no Brasil com jogos traduzidos' },
+  { year: 1991, text: '"Genesis does what Nintendon\'t": a Sega provoca na TV' },
+  { year: 1993, text: 'Doom circula por shareware e trava redes de faculdade' },
+  { year: 1994, text: 'Sony entra no mercado: PlayStation chega ao Japão' },
+  { year: 1995, text: 'Saturn chega de surpresa nas lojas e pega todo mundo desprevenido' },
+  { year: 1996, text: 'Pokémon nasce no Game Boy e o recreio nunca mais é o mesmo' },
+  { year: 1998, text: 'Ocarina of Time ensina a indústria a mirar em 3D' },
+  { year: 1999, text: 'Lan houses se espalham pelo Brasil ao som de Counter-Strike' },
+  { year: 2000, text: 'PlayStation 2 também toca DVD e vira o aparelho da sala' },
+  { year: 2001, text: 'Microsoft entra na briga com o Xbox' },
+  { year: 2001, text: 'Sega anuncia que vai parar de fabricar consoles' },
+  { year: 2003, text: 'Valve lança a Steam; muita gente reclama da atualização' },
+  { year: 2004, text: 'World of Warcraft faz gente faltar no trabalho' },
+  { year: 2006, text: 'Wii Sports leva avós para o boliche na sala' },
+  { year: 2007, text: 'iPhone chega e o celular vira console de bolso' },
+  { year: 2008, text: 'App Store abre e qualquer um pode vender joguinho por 1 dólar' },
+  { year: 2009, text: 'Minecraft em alfa vira assunto em todo fórum' },
+  { year: 2011, text: 'Twitch nasce e assistir gente jogando vira esporte' },
+  { year: 2012, text: 'Kickstarter: fãs financiam jogos que editoras recusaram' },
+  { year: 2013, text: 'GTA V passa de 1 bilhão de dólares em três dias' },
+  { year: 2014, text: 'Microsoft compra a Mojang e o Minecraft' },
+  { year: 2016, text: 'Pokémon GO lota praças e parques do país inteiro' },
+  { year: 2017, text: 'Battle royale vira o gênero mais copiado do planeta' },
+  { year: 2017, text: 'Xbox Game Pass estreia: jogos por assinatura' },
+  { year: 2018, text: 'Free Fire domina os celulares brasileiros' },
+  { year: 2020, text: 'Com todo mundo em casa, videogames batem recordes' },
+  { year: 2022, text: 'Microsoft anuncia a compra da Activision Blizzard' },
+  { year: 2023, text: 'Google desliga o Stadia e devolve o dinheiro de todo mundo' },
+  { year: 2025, text: 'Nintendo Switch 2 chega com fila na porta das lojas' },
+]
