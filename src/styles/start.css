@@ -77,7 +77,8 @@
   .dock-label { font-size: 9.5px; }
 
   .cart-slot { bottom: calc(76px + var(--safe-bottom)); }
-  .slot-btn { height: 58px; font-size: 18px; padding: 0 20px 0 12px; }
+  .slot-btn { height: 58px; font-size: 18px; padding: 0 20px 0 12px; white-space: nowrap; }
+  .plaque-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cart { bottom: calc(72px + var(--safe-bottom)); width: calc(100vw - 16px); grid-template-columns: auto 1fr; padding: 14px 10px 10px; gap: 8px; }
   .cart-label .cover { width: 48px; }
   .cart-side { grid-column: 1 / -1; width: auto; grid-template-columns: auto 1fr auto auto; align-items: center; }

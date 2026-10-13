@@ -6,6 +6,23 @@ O projeto usa versões `MAJOR.MINOR.PATCH`:
 - `MINOR`: novo sistema jogável;
 - `PATCH`: correção, balanceamento ou texto.
 
+## 1.0.0 — Escritório Vivo — 2026-10-13
+
+Reescrita completa. Save novo: a série 0.x não é migrada.
+
+- **Escritório 3D** em three.js: cinco plantas (quarto, garagem, salinha, escritório, sede), móveis procedurais, monitores que mudam com a era e luz de noite no crunch.
+- **Bonecos com vida própria**: sentam e digitam quando há projeto, tomam café, jogam fliperama, deitam no sofá, dormem na mesa quando cansam e conversam entre si com balões de pictograma e vozinhas.
+- **Ideias**: um ! amarelo aparece sobre a cabeça de alguém; clicar no boneco abre a decisão.
+- **Gato do escritório, Camelô visitante e romance** entre colegas.
+- **Criação em etapas**: gênero, tema, plataforma, tamanho e promessa da capa, com capa de cartucho gerada e título sorteado.
+- **Desenvolvimento em semanas** com deck de velocidade, três fases, foco por fase com gráfico "o gênero pede × seu jogo tem", ritmo tranquilo/normal/crunch, bugs e hype.
+- **Revelação de lançamento** com quatro críticos virando as cartas, carimbo da nota, fatores da nota em setas, comentários de fãs da época e evolução da equipe.
+- **Mercado vivo**: 16 rivais paródia, paradas semanais, modas, Bobo Awards por envelope, conquistas com raridade e títulos de legado.
+- **Conteúdo**: 151 eventos (57 absurdos), 40 ideias, 47 promessas, 40 freelas, 26 itens do Camelô, 67 conquistas, 94 manchetes, 24 veículos de crítica e 130 ícones próprios.
+- **Plataformas paródia** com datas reais: Nintendinho, Mega Draive, PlayStação, XCaixa, Ninten Suítch e companhia.
+- **Balanceamento medido** por robô jogador (`npm run balance`) e protegido por teste de regressão.
+- Interface nova: adesivos com contorno e sombra dura, Bricolage Grotesque + Martian Mono, céu por era, layout próprio para celular.
+
 ## 0.11.0 — Promessa da Capa — 2026-08-13
 
 - Curva comercial histórica e premiações no ritmo do jogador.

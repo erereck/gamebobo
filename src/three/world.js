@@ -200,7 +200,7 @@ export class OfficeWorld {
     const half = span / this.zoom
     const aspect = this.aspect ?? 1.6
     const portrait = aspect < 1
-    const halfH = portrait ? half / aspect * .62 : half * .62
+    const halfH = portrait ? half / aspect * .74 : half * .66
     this.camera.left = -halfH * aspect
     this.camera.right = halfH * aspect
     this.camera.top = halfH

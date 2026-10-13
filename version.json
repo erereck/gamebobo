@@ -1,8 +1,8 @@
 {
-  "version": "0.11.0",
-  "codename": "Promessa da Capa",
-  "saveSchema": 6,
-  "releasedAt": "2026-08-13",
+  "version": "1.0.0",
+  "codename": "Escritório Vivo",
+  "saveSchema": 100,
+  "releasedAt": "2026-10-13",
   "promptIds": [
     "P-001",
     "P-002",
@@ -21,6 +21,7 @@
     "P-015",
     "P-016",
     "P-017",
-    "P-018"
+    "P-018",
+    "P-019"
   ]
 }

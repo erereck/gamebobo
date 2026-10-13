@@ -1,90 +1,42 @@
-# Gamebobo — sistema de interface
+# Gamebobo — sistema de interface (1.0)
 
 ## Direção
 
-Uma escrivaninha de dev brasileiro no começo dos anos 2000: gabinete bege, CRT azul, papel de formulário, etiqueta vermelha e fósforo verde. Deve parecer um jogo de carreira, não um dashboard de startup nem uma paródia de Windows 95.
+Um diorama de brinquedo flutuando no céu da era. A interface são objetos de jogo de verdade colados por cima: placa de estúdio, calendário de mesa, deck de videocassete, cartucho com etiqueta, adesivos. Nada de painel de startup.
 
-## Assinatura
+## Assinaturas
 
-A **fita da carreira** registra mês, decisão e consequência em blocos físicos. Ela aparece na tela principal, no histórico, em eventos e no resumo de lançamento.
-
-## Profundidade
-
-Sombras curtas e discretas, como papel e caixas apoiados numa mesa. Inputs são insetos. CRT é a única superfície escura e serve para trabalho em andamento ou tendência dominante.
+- **Cartucho do projeto**: corpo cinza com ranhuras, etiqueta com a capa gerada, trilho de fases e quatro tubos de ensaio (diversão, visual, som, ideia) com a marca do que o gênero pede.
+- **Deck de videocassete**: pausa, normal, rápido, turbo. A tecla acesa fica rosa quando uma janela segura o tempo.
+- **Adesivo**: contorno de 2,5 px na cor tinta, sombra dura de 3 a 7 px para baixo, cantos de 12 a 24 px. Clicar afunda o adesivo.
+- **Capa procedural**: gradiente do par gênero+tema, padrão de ícones do gênero, medalhão com o ícone do tema, faixa da plataforma e título em caixa alta.
 
 ## Tokens
 
-- mesa `#d7c9aa`
-- papel `#f3ecd9`
-- papel fundo `#e4d8ba`
-- tinta `#17253b`
-- CRT `#14243b`
-- fósforo `#b7df68`
-- etiqueta `#d85240`
-- unidade de espaço: 4 px
-- raio: 3 / 7 / 11 px
+- tinta `#1d1a24`, papel `#fff8ec`, papel 2 `#f4ead8`
+- tomate `#ff5d3a` (ação principal), sol `#ffd23f` (destaque), céu `#3fb8ff`, menta `#52d977`, uva `#b57bff`, rosa `#ff6bd6`
+- pilares: diversão `#ff7a45`, visual `#3fb8ff`, som `#b57bff`, ideia `#ffc93c`
 
 ## Tipografia
 
-- Display: Arial Black, condensada por tracking negativo.
-- Interface: Trebuchet MS / Arial Narrow.
-- Datas, números e metadados: Courier New.
-- Texto editorial: Georgia itálico, usado com parcimônia.
+- Bricolage Grotesque Variable, peso 800, para títulos e rótulos.
+- Martian Mono para números, datas e metadados.
 
-## Hierarquia
+## Regras de texto
 
-O projeto ou acontecimento atual é sempre o foco. Estatísticas formam uma faixa secundária. Mercado aparece como recorte, nunca como painel equivalente ao projeto.
+- Título de evento com até 7 palavras. Botão com até 3. Resultado com até 8.
+- Efeitos aparecem como ícone + seta (▲ pouco, ▲▲ muito). Aposta mostra a chance em %.
+- Nenhum parágrafo explicativo em tela de jogo.
 
-## Componentes
+## Movimento
 
-- Botão primário: 44 px, etiqueta vermelha, 3 px de raio, texto 12/900.
-- Botão secundário: 44 px, papel fundo, borda baixa.
-- Card de bancada: papel, raio 7 px, sombra curta.
-- Card CRT: azul, fósforo apenas para valor focal.
-- Modal: raio 11 px, entrada 200–220 ms, backdrop azul escuro.
-- Linha de era: papel contínuo; a era atual vira etiqueta vermelha, não um card flutuante.
-- Pessoa: retrato tipográfico em CRT, nome, função e uma linha humana; botão de gestão fica subordinado.
-- Tecnologia futura: papel fundo e opacidade baixa. Tecnologia dominada usa fósforo com baixa saturação.
-- Relação entre estúdios: régua horizontal com extremos vermelho e verde, sem criar uma nova paleta.
-- Mercado de licenças: fichário estreito à esquerda e um único dossiê dominante à direita. Nunca virar grade de loja.
-- Dossiê de IP: cabeçalho CRT, carimbo inclinado, fita de métricas, termos em quatro colunas e anexo físico de cláusulas.
-- Contrato ativo: fita horizontal de vigência; verde-fósforo significa assinado, vermelho significa recusa, disputa ou violação.
-- Leilão: quadro CRT com lances comparáveis na mesma linha. O dinheiro mínimo e o prazo ficam visíveis antes da ação.
-- Crossover: duas etiquetas de IP lado a lado. Não criar cor própria; o risco aparece em texto, royalties e pressão.
-- Mesa corporativa: valuation em carta dominante, fichário estreito de empresas e um dossiê de relação; proposta de aquisição usa CRT porque altera a estrutura do save.
-- Relação empresarial: quatro marcos na mesma régua — contato, parceria, IP confiada e aquisição. Não usar XP, medalhas ou cores por companhia.
-- Brief encomendado: fita CRT com IP, nota, prazo e bônus; no formulário, a licença obrigatória recebe “BRIEF” e não pode ser desmarcada.
-- Entrada da carreira: capa “Edição Zero” em CRT ao lado de uma ficha de inscrição em papel. Save existente vira “edição encontrada”; nunca usar tela de login ou onboarding em carrossel.
-- Ficha de inscrição: campos insetos, ano em fita CRT, perfis como recortes de papel e moeda em três carimbos. Botão de início só ativa com fundador e estúdio preenchidos.
-- Scrollbar: trilho em papel fundo e polegar de etiqueta vermelha, fino no documento e em superfícies roláveis; barras horizontais de navegação podem continuar ocultas quando o gesto já é evidente.
-- Aviso da linha do tempo: papel modal com fita regressiva de 8 segundos no rodapé; etiqueta vermelha perde comprimento da esquerda para a direita, pausa durante interação e nunca é usada em decisões obrigatórias.
-- Configurações: folha única aberta pelo ícone de engrenagem no cabeçalho; switches ampliados para efeitos e avisos, carimbos existentes para moeda e ação destrutiva subordinada no rodapé.
-- Player da bancada: deck CRT dentro das configurações, com capa 80 px (64 px mobile), faixa e artista como foco, play circular em fósforo e volume numa segunda linha. Música e efeitos são controles separados; nunca usar a superfície preta ou verde do Spotify literalmente.
-- Iconografia: SVGs próprios em `24×24`, traço `1.8`, pontas arredondadas e `currentColor`; não misturar emojis ou outra biblioteca. Botão apenas com ícone exige `aria-label`, `title` e área mínima `44×44 px`.
-- Navegação ilustrada: abas usam ícone + nome e dispensam numeração serial. O nome permanece porque as oito áreas ainda precisam ensinar sua função ao jogador novo.
-- Ferramentas do cabeçalho: somente configurações permanece como ação; moeda e música moram na folha de configurações para o cabeçalho caber em 390 px sem esconder a marca.
-- Revelação de lançamento: 700 ms de nota lacrada, contagem de 3,2 s com desaceleração forte, veredito editorial e só depois consequências. A espera longa é exclusiva desse momento raro; demais entradas ficam em 160–260 ms.
-- Carimbo de estouro: aparece dentro das consequências, sem abrir outro modal. Usa CRT e fósforo para um sucesso inesperado; um fenômeno troca a borda pela etiqueta vermelha e aumenta apenas a palavra focal. Não antecipar a raridade antes das vendas contarem.
-- Movimento de bancada: filhos diretos de cada tela assentam como folhas em cascata, aba ativa recebe um carimbo curto e o item mais novo da fita entra lateralmente. Somente `transform` e `opacity`; sempre respeitar movimento reduzido.
-- Pulso numérico: caixa, energia e estresse contam por 682 ms, desaceleram no fim e recebem etiqueta temporária de delta sem alterar o layout; verde-fósforo é melhora e vermelho é piora, considerando que menos estresse é positivo.
-- Retorno ao topo: ações que mudam o momento da carreira voltam ao primeiro conteúdo útil em 240 ms com desaceleração quartic; movimento reduzido troca a viagem por reposicionamento imediato.
-- Faixa de carreira mobile: fita horizontal rolável com fundador/idade, caixa, energia, estresse, saúde, seguidores e reputação. Os quatro primeiros ocupam o primeiro enquadramento e deixam uma lasca da próxima célula visível como convite ao gesto; nenhuma métrica é cortada ou removida.
-- Impacto antes do clique: ações mensais e decisões mostram custo, faixa ou até três consequências mecânicas; `ESCOLHER` sozinho não é informação suficiente.
-- Linguagem de época: divulgação e mercado usam revista/lojista nos anos 1980, demo/locadora nos 1990, site/portal nos 2000 e loja/criador somente depois de seus marcos.
-- Boletim da imprensa: nota central representa o jogo; recortes menores mostram 2–4 redações historicamente disponíveis, com divergência curta e texto próprio. Discordância dá textura, não loteria.
-- Chat ao vivo: superfície CRT compacta, nomes coloridos apenas para identidade e dez mensagens distintas. O percentual de aprovação reage à nota; chat só aparece depois da consolidação do vídeo/streaming.
-- Circuito de eventos: credencial do mês domina a folha, próximas datas ficam numa agenda CRT lateral. Feira local abre a escada; palcos reais exigem ano, mês, reputação e caixa.
-- Pasta de produção: um único CRT concentra título, trilho de protótipo/produção/polimento, promessa, progresso, pendências e playtest. Nenhuma fase ganha tela própria.
-- Promessa da capa: folha clara presa ao CRT, com uma frase humana, público e peso de escopo. É a identidade do jogo; não usar árvore de recursos.
-- Playtest: anexo de papel com faixa de nota, “funciona” e “trava”. Nunca revela a nota final nem exige passar o mês.
-- Ficha de projeto mobile: escolhas extensas usam `select` nativo; promessas formam uma faixa horizontal com a recomendada inteira e a próxima parcialmente visível. O formulário não pode virar catálogo vertical de chips.
-- Ação contextual: o primeiro botão mensal nomeia o trabalho real da fase — fechar protótipo, produzir ou polir — e descreve impacto em uma linha.
-- Cerimônia de prêmios: folha rolável com um envelope dominante por vez; categorias já abertas viram recibos horizontais, vitórias ganham confete de 1,1 s e `Jogo do Ano` é sempre o último e maior envelope. Não há avanço automático, contador ou rótulo de último envelope: o único botão se chama `CONTINUAR` em todas as etapas, bloqueia toques repetidos por 900 ms e depois espera indefinidamente. Deve permanecer alcançável em 390×500 px; `Melhor Indie` só aparece a partir de 2004 e nenhuma categoria adota dourado fora da paleta.
+- Entradas com mola (`cubic-bezier(.34,1.56,.64,1)`), 250 a 450 ms.
+- A revelação das críticas é o único momento longo: 4,6 s, pulável com um toque.
+- Movimento reduzido desliga animações.
 
-## Regras
+## 3D
 
-- Não usar gradiente decorativo.
-- Não introduzir outra cor de destaque sem função semântica.
-- Não transformar todas as informações em cards iguais.
-- Atalhos devem funcionar quando aparecem visualmente.
-- Testar em 390 px e desktop.
+- Câmera ortográfica isométrica, giro limitado entre 11° e 79°, zoom de 0,75× a 2,8×.
+- Bonecos chibi em primitivas: cabeça grande, olhos que piscam, bochechas, nove cortes de cabelo, óculos, fone e boné.
+- Balões são pictogramas desenhados com os mesmos ícones da interface.
+- Crunch = noite: sol baixo, monitores e luminárias acesos, caixas de pizza nas mesas.

@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-019 — 2026-10-13 — Escritório Vivo
+
+Pedido: major update com visualizador 3D (bonequinhos minimalistas andando, conversando como no The Sims 4 e sentando na mesa quando focados, sem controle direto), reformular os sistemas pensando como jogador, cortar texto, usar etapas de escolha, balancear recompensas e evitar menus genéricos, inspirado no modo Rumo ao Estrelato do futbobo.
+
+Resultado: versão 1.0.0. Jogo reescrito com escritório three.js, motor semanal novo, criação em etapas, revelação de críticas, mercado com rivais e prêmios, conteúdo paródia ampliado e balanceamento medido por robô.
+
 ## P-018 — 2026-08-13 — Demanda de Verdade
 
 Pedido: Tornar as premiações mais lentas e compreensíveis com um botão CONTINUAR neutro em todas as etapas, sem revelar quantos envelopes faltam, e recalibrar vendas de forma sistêmica usando a referência de um Mega Drive 94/100 em 1991, aplicando a mesma lógica a eras, escalas, distribuição, editoras, rivais, receita e fenômenos raros.

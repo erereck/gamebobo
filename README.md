@@ -1,8 +1,8 @@
 # Gamebobo
 
-Um jogo de carreira sobre fazer jogos e conviver com o resultado. A meta não é encontrar uma fórmula perfeita: é terminar o save com histórias que só aconteceram naquela linha do tempo.
+Um jogo rápido sobre montar um estúdio de games. Você decide o que fazer; os bonequinhos fazem acontecer num escritório 3D que dá para girar, dar zoom e espiar.
 
-Versão atual: **0.11.0 — Promessa da Capa**.
+Versão atual: **1.0.0 — Escritório Vivo**.
 
 ## Começar
 
@@ -13,134 +13,71 @@ npm install
 npm run dev
 ```
 
-Outros comandos:
+No Windows com scripts do PowerShell bloqueados, use `npm.cmd` no lugar de `npm`.
 
 ```bash
-npm run build       # gera a versão de produção em dist/
-npm run test        # testa as regras centrais sem abrir o navegador
-npm run balance     # simula 25 mil lançamentos por era e imprime percentis
-npm run balance:audit -- 100 # audita projetos, planos, culturas, cauda rara e carreiras
-npm run version -- patch "descrição curta"
-npm run prompt -- "resumo do pedido que originou a mudança"
+npm run build      # versão de produção em dist/
+npm run test       # regras do motor, conteúdo e uma carreira de regressão
+npm run balance    # robô jogador: npm run balance -- 18 25 sensato|preguicoso|ousado
 ```
 
-No Windows com execução de scripts PowerShell bloqueada, use `npm.cmd` no lugar de `npm`.
+O site usa o caminho-base `/gamebobo/`. Todo envio para `main` roda testes, gera o build e publica no GitHub Pages pelo workflow `.github/workflows/deploy-pages.yml`.
 
-## Publicação
+## Como se joga
 
-O site usa o caminho-base `/gamebobo/`. Todo envio para a branch `main` executa testes, gera o build e publica no GitHub Pages pelo workflow `.github/workflows/deploy-pages.yml`.
+1. **Novo jogo** abre uma ficha em etapas: gênero, tema, plataforma, tamanho e a promessa da capa. Cada escolha vira uma etiqueta e a próxima linha aparece.
+2. O tempo corre em semanas. O deck de videocassete pausa ou acelera.
+3. A equipe senta e trabalha. Orbes coloridos saem dos monitores: diversão, visual, som e ideia. Os tubos do cartucho mostram o que o gênero pede e o que o jogo tem.
+4. No começo da produção e do polimento você escolhe um foco com um clique.
+5. Um **!** amarelo sobre a cabeça de alguém é uma ideia. Clique no boneco para decidir.
+6. Lançamento: quatro críticos viram as cartas, a nota é carimbada e os fãs comentam. Depois, as vendas sobem nas paradas semana a semana.
 
-Para validar a mesma build localmente:
-
-```bash
-npm run build
-npm run preview
-```
-
-O save continua no navegador do jogador (`localStorage`), portanto não exige conta nem servidor. No celular, o manifesto permite instalar o Gamebobo na tela inicial como aplicativo.
+Entre um jogo e outro: contratar, treinar, mudar de escritório, decorar, pesquisar, pegar freelas, comprar do Camelô e torcer nos Bobo Awards.
 
 ## Mapa rápido
 
 | Onde | O que mora lá |
 |---|---|
-| `src/app/` | Estado global, navegação e composição da aplicação |
-| `src/components/` | Peças visuais reutilizáveis; não contém regra de jogo |
-| `src/features/` | Interfaces ligadas a um sistema específico, como projeto ou lançamento |
-| `src/screens/` | As oito telas principais |
-| `src/game/data/` | Conteúdo editável: eventos, traços, gêneros, mercados e textos |
-| `src/game/engine/` | Regras puras: reducer, pontuação, calendário, pós-lançamento |
-| `src/game/persistence/` | Save, migrações e compatibilidade com versões anteriores |
-| `src/styles/` | Tokens, base, componentes e responsividade |
-| `docs/` | Visão, arquitetura, voz editorial, schema do save e histórico de prompts |
-| `.interface-design/system.md` | Contrato visual para futuras sessões |
-| `scripts/` | Versionamento e registro de prompts |
-
-Se você não sabe onde colocar uma mudança, consulte [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) antes de criar um arquivo novo.
+| `src/game/data/` | Gêneros, temas, combinações, plataformas paródia, economia, equipe |
+| `src/game/data/content/` | Eventos, ideias, críticos, comentários, nomes, rivais, títulos, freelas, Camelô, conquistas, manchetes e promessas |
+| `src/game/engine/` | Regras puras: reducer, semana, projeto, nota, vendas, mercado, progresso |
+| `src/three/` | Escritório 3D: plantas, móveis, bonecos, cérebro dos bonecos, balões e partículas |
+| `src/features/` | Interface por assunto: HUD, criação, modais, painéis, início |
+| `src/ui/` | Ícones próprios, capa procedural, avatar 2D, fichas de efeito |
+| `src/styles/` | Tokens, base, HUD, folhas, modais, painéis e layout móvel |
+| `scripts/balance.mjs` | Robô que joga carreiras inteiras e imprime notas, retorno e ritmo |
+| `docs/` | Visão, arquitetura, balanceamento, save, conteúdo e histórico de pedidos |
 
 ### Quero mudar…
 
-| Mudança | Arquivo principal |
+| Mudança | Arquivo |
 |---|---|
-| gêneros, temas ou escalas | `src/game/data/catalog.js` |
-| consoles e datas regionais | `src/game/data/platformHistory.js` |
-| IPs, titulares e condições-base | `src/game/data/licenses.js` |
-| expansão ampla de IPs | `src/game/data/licenseExpansion.js` |
-| cláusulas de licenciamento | `src/game/data/licenseClauses.js` |
-| jogos, empresas e marcos reais citados | `src/game/data/industryHistory.js` |
-| Top 20 histórico de cada década | `src/game/data/salesHistory.js` |
-| estúdios fictícios da turma inicial | `src/game/data/startupStudios.js` |
-| empresas parceiras e suas IPs | `src/game/data/corporatePartners.js` |
-| ranking, vendas amadurecidas e recordes | `src/game/engine/charts.js` |
-| confiança, encomendas, valuation e aquisições | `src/game/engine/corporate.js` |
-| negociação, leilão, contrato e reputação de IP | `src/game/engine/licensing.js` |
-| traços e upgrades do quarto | `src/game/data/traits.js` |
-| evento durante um projeto | `src/game/data/projectEvents.js` |
-| promessas, fases, público e peso de escopo | `src/game/data/projectPromises.js` |
-| evento depois do lançamento | `src/game/data/postLaunchEvents.js` |
-| vida pessoal | `src/game/data/personalEvents.js` |
-| equipe, cargos, cultura e escritórios | `src/game/data/team.js` e `src/game/engine/studio.js` |
-| contratos, editoras e empréstimos | `src/game/data/business.js` e `src/game/engine/business.js` |
-| eras, tecnologia e pesquisa | `src/game/data/eras.js` |
-| prêmios anuais e cerimônia | `src/game/data/awards.js`, `src/game/engine/awards.js` e `src/features/awards/AwardsModal.jsx` |
-| eventos entre estúdios, equipe ou franquias | `competitorEvents.js`, `studioEvents.js` ou `franchiseEvents.js` |
-| gêneros que podem nascer no save | `src/game/data/hybridGenres.js` |
-| nota, demanda histórica, vendas e margem | `src/game/engine/scoring.js` e `src/game/engine/sales-model.js` |
-| metas, percentis e auditoria de balanceamento | `docs/BALANCE.md` e `scripts/balance-audit.mjs` |
-| passagem do mês e mercado | `src/game/engine/world.js` |
-| ações disponíveis | `src/game/engine/reducer.js` e `src/features/career/MonthActions.jsx` |
-| texto e tom | `docs/CONTENT_GUIDE.md`, depois o arquivo em `data/` |
-| cor, espaço ou tipografia | `src/styles/tokens.css` e `.interface-design/system.md` |
-| versão mostrada no jogo | rode `npm run version`; não edite os arquivos gerados à mão |
-| pacote externo de IPs | `docs/LICENSE_PACKS.md` e o exemplo em `public/content-packs/` |
-| entrada, continuar save e ficha de carreira | `src/features/onboarding/` e `src/styles/onboarding.css` |
-| moedas e conversão de exibição | `src/game/engine/utils.js` e `state.settings.currency` |
-| avisos temporizados e configurações | `src/features/events/InfoModal.jsx`, `src/features/settings/SettingsModal.jsx` e `state.settings.timelineNotices` |
-| trilha, loop e Media Session | `src/app/music.js` e `src/features/settings/MusicPlayer.jsx` |
-| ícones SVG da interface | `src/components/ui/Icon.jsx` |
-| músicas, capas e créditos | `src/assets/music/` e `docs/CREDITS.md` |
-| canais de divulgação de cada época | `src/game/data/marketingEras.js` e `src/game/data/eraLanguage.js` |
-| veículos, notas e textos da crítica | `src/game/data/reviews.js` e `src/game/engine/scoring.js` |
-| campanhas com criadores e chat ao vivo | `src/game/data/creatorCoverage.js` e `src/features/events/DecisionModal.jsx` |
-| feiras locais, BGS, E3, gamescom e palcos digitais | `src/game/data/gameEvents.js` e `src/screens/IndustryScreen.jsx` |
-| limites de vendas dos concorrentes | `src/game/engine/market.js` e `npm run balance` |
-| feedback numérico no cabeçalho | `src/components/layout/StatStrip.jsx` e `src/components/ui/CountUp.jsx` |
+| preços, tamanhos, escritórios, decoração, pesquisa, divulgação, eras | `src/game/data/economy.js` |
+| o que cada gênero pede e quais combinações funcionam | `src/game/data/genres.js` |
+| consoles e datas | `src/game/data/platforms.js` |
+| traços, perfis do fundador, prêmios e títulos de legado | `src/game/data/staff.js` |
+| fórmula da nota | `src/game/engine/quality.js` |
+| fórmula de vendas | `src/game/engine/sales.js` |
+| o que acontece a cada semana | `src/game/engine/tick.js` |
+| comportamento dos bonecos | `src/three/agents.js` |
+| móveis e plantas dos escritórios | `src/three/furniture.js` e `src/three/layouts.js` |
 
 ## Regra de dependência
 
-O fluxo deve apontar nesta direção:
+`data → engine → features → app`, com `three/` lendo apenas um resumo do estado (`features/office/viewModel.js`).
 
-`data → engine → features/screens → app`
+- `engine` não importa React, CSS nem three.js.
+- O 3D nunca altera o save; ele recebe o estado e os efeitos de cada semana.
+- Telas enviam ações ao reducer; não editam o estado na mão.
 
-- `engine` não importa React nem CSS.
-- `data` não conhece componentes.
-- componentes genéricos não alteram o save diretamente.
-- telas enviam ações ao reducer; não editam o estado na mão.
+## Save
 
-## Saves
-
-O save é automático e local. A versão 0.6 preserva saves das versões 0.2 a 0.5 e também migra o protótipo `gamebobo-save-v1`. Regras de migração estão em [docs/SAVE_SCHEMA.md](docs/SAVE_SCHEMA.md).
-
-## O loop em camadas
-
-- **Mês:** trabalhar, estudar, pesquisar, descansar, divulgar ou avançar uma build.
-- **Projeto:** promessa de capa, protótipo, produção, polimento, playtest, pendências, orçamento, hype, editora e plano de lançamento.
-- **Pós-lançamento:** vendas de cauda, patches, comunidade, prêmios, franquias e rivalidades.
-- **Estúdio:** contratações, salários, cultura, escritório, pesquisa, dívida e reputação.
-- **Décadas:** novas plataformas, eras tecnológicas, gêneros que nascem no save e sucessores que mantêm o mundo vivo depois do fundador.
-- **Direitos:** pedidos recusados, propostas, royalties, cláusulas, leilões exclusivos, crossovers e memória de cada IP.
-- **Paradas:** Top 20 por década e geral, arquivo histórico progressivo, jogos do jogador, rivais alternativos e sucessos da turma de garagem.
-- **Empresas:** portfólio, confiança, parcerias, encomendas de IP, valuation, contraproposta e aquisição sem encerrar o save.
-
-## Conteúdo histórico e distribuição
-
-O banco incluído usa nomes reais como referência para uma simulação local e uma linha do tempo alternativa. Ele não inclui logos, artes, modelos ou material audiovisual de terceiros. Ser pequeno, gratuito ou indie não cria por si só autorização para publicar um jogo usando propriedades e marcas alheias. Antes de distribuir uma build com esse catálogo, revise [docs/CONTENT_NOTICE.md](docs/CONTENT_NOTICE.md) e decida entre licenciamento, catálogo original ou pacote externo mantido pelo usuário.
-
-Pacotes externos já podem ser importados pela própria tela de Licenças. O formato está em [docs/LICENSE_PACKS.md](docs/LICENSE_PACKS.md).
+Automático e local (`localStorage`, chave `gamebobo-3d-save`). Saves da série 0.x não são migrados: o conceito mudou demais. Veja [docs/SAVE_SCHEMA.md](docs/SAVE_SCHEMA.md).
 
 ## Antes de entregar uma mudança
 
 1. `npm run test`
 2. `npm run build`
-3. Jogar pelo menos um mês e abrir todas as telas.
-4. Verificar 390 px e desktop.
-5. Atualizar `CHANGELOG.md` e `docs/PROMPTS.md` quando a mudança veio de um novo pedido.
+3. Jogar um lançamento completo e abrir todos os painéis.
+4. Conferir 375 px e desktop.
+5. Se mexeu em nota ou economia, rodar `npm run balance` e comparar com [docs/BALANCE.md](docs/BALANCE.md).
