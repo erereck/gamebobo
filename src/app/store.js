@@ -4,6 +4,8 @@ import { SAVE_SCHEMA } from '../game/engine/state.js'
 
 const SAVE_KEY = 'gamebobo-3d-save'
 
+let saveTimer = 0
+
 function createStore() {
   let state = null
   const listeners = new Set()
@@ -16,6 +18,10 @@ function createStore() {
       state = next
       if (state?.fx?.length) for (const listener of fxListeners) listener(state.fx, state)
       for (const listener of listeners) listener()
+      if (state && action.type !== 'TICK' && action.type !== 'DISMISS_TOAST') {
+        clearTimeout(saveTimer)
+        saveTimer = setTimeout(() => writeSave(state), 400)
+      }
     },
     subscribe(listener) {
       listeners.add(listener)
@@ -85,3 +91,6 @@ export const hasLegacySave = () => {
     return false
   }
 }
+
+// Atalho de depuração apenas no modo de desenvolvimento.
+if (import.meta.env?.DEV && typeof window !== 'undefined') window.__gb = { store, dispatch }

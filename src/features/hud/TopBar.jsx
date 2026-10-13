@@ -8,6 +8,7 @@ import { MONTHS, eraAt } from '../../game/data/economy.js'
 import { legacyTitle, nextLegacyTitle } from '../../game/engine/progress.js'
 import { TICKER } from '../../game/data/content/ticker.js'
 import { isBlocked } from '../../game/engine/tick.js'
+import { activeRivals } from '../../game/engine/market.js'
 
 function Delta({ value }) {
   const [shown, setShown] = useState(null)
@@ -33,7 +34,7 @@ function Ticker({ state }) {
   }, [])
   if (!pool.length) return null
   const item = pool[(index + state.year) % pool.length]
-  const text = item.text.replaceAll('{studio}', state.studio.name).replaceAll('{rival}', 'Konamy')
+  const text = item.text.replaceAll('{studio}', state.studio.name).replaceAll('{rival}', activeRivals(state.year)[(index + state.year) % Math.max(1, activeRivals(state.year).length)]?.name ?? 'a concorrência')
   const source = state.year < 1996 ? 'REVISTA' : state.year < 2008 ? 'PORTAL' : state.year < 2016 ? 'FEED' : 'CLIPE'
   return (
     <div className="ticker" aria-live="off">

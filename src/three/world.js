@@ -297,7 +297,12 @@ export class OfficeWorld {
     // decoração comprada: paredes primeiro, depois chão
     const wallPositions = [...layout.wallSlots, ...layout.posters]
     let wallCursor = 0
-    let floorCursor = 0
+    const freeSlots = layout.floorSlots.map(slot => ({ ...slot, nearWall: slot.x < -w / 2 + 1.6 || slot.z < -d / 2 + 1.6 }))
+    const takeSlot = tall => {
+      let index = tall ? freeSlots.findIndex(slot => slot.nearWall) : freeSlots.findIndex(slot => !slot.nearWall)
+      if (index < 0) index = 0
+      return freeSlots.splice(index, 1)[0]
+    }
     this.hasCat = false
     for (const id of view.decor) {
       if (id === 'cat') this.hasCat = true
@@ -309,9 +314,10 @@ export class OfficeWorld {
         if (!slot) continue
         this.add(built, slot.x, slot.z, slot.rot)
       } else {
-        const slot = layout.floorSlots[floorCursor++]
+        const tall = F.TALL_DECOR.has(id)
+        const slot = takeSlot(tall)
         if (!slot) continue
-        const rot = slot.rot ?? snapRot(Math.atan2(-slot.x, -slot.z))
+        const rot = slot.rot ?? (slot.nearWall ? (slot.x < -w / 2 + 1.6 ? Math.PI / 2 : 0) : snapRot(Math.atan2(-slot.x, -slot.z)))
         this.add(built, slot.x, slot.z, rot)
       }
       if (built.trophies) this.extras.trophies = built.trophies

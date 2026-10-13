@@ -16,13 +16,12 @@ function WantHave({ project }) {
         const have = project.pts[p.id] / total
         const gap = want - have
         return (
-          <div key={p.id} className="wh" style={{ '--c': p.color }}>
+          <div key={p.id} className={`wh ${gap > .05 ? 'need' : ''}`} style={{ '--c': p.color }}>
             <div className="wh-bars">
               <i className="wh-want" style={{ height: `${want / .55 * 100}%` }} />
               <i className="wh-have" style={{ height: `${Math.min(1, have / .55) * 100}%` }} />
             </div>
             <Icon name={p.icon} size={14} stroke={2.4} />
-            <span className={`wh-gap ${gap > .05 ? 'need' : ''}`}>{gap > .05 ? '▲' : ''}</span>
           </div>
         )
       })}

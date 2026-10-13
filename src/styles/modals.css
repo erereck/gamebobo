@@ -57,7 +57,8 @@
 .wh-want { position: absolute; bottom: 0; left: 0; right: 0; border: 2px dashed var(--ink); border-radius: 6px 6px 0 0; }
 .wh-have { position: relative; width: 60%; background: var(--c); border: 2px solid var(--ink); border-radius: 4px 4px 0 0; transition: height .5s; }
 .wh .icon { color: var(--c); filter: drop-shadow(0 1px 0 var(--ink)); }
-.wh-gap { height: 12px; font-size: 10px; color: var(--tomato); font-weight: 800; }
+.wh.need .wh-want { border-color: var(--tomato); background: rgba(255,93,58,.12); animation: pulse 1.2s ease-in-out infinite; }
+.wh.need .icon { animation: pulse 1.2s ease-in-out infinite; }
 .focus-row { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .focus-card { display: grid; justify-items: center; gap: 6px; padding: 14px 8px 12px; background: #fff; border: var(--line); border-radius: var(--r); box-shadow: var(--shadow); transition: transform .14s var(--ease-pop), box-shadow .1s; }
 .focus-card:hover { transform: translateY(-4px) rotate(-1.5deg); box-shadow: 0 8px 0 var(--ink); }

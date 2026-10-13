@@ -431,3 +431,4 @@ export const DECOR_BUILDERS = {
 }
 
 export const WALL_DECOR = new Set(['whiteboard', 'trophyshelf', 'neon'])
+export const TALL_DECOR = new Set(['arcade', 'fridge', 'coffee', 'aquarium'])

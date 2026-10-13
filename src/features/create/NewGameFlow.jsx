@@ -92,7 +92,7 @@ export function NewGameFlow({ onClose }) {
 
   useEffect(() => {
     const el = scroller.current
-    if (el) requestAnimationFrame(() => el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }))
+    if (el) el.scrollTo({ top: 0 })
   }, [current])
 
   const set = patch => {

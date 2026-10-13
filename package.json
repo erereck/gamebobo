@@ -8,17 +8,16 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test src/game/engine/*.test.js",
-    "balance": "node scripts/monte-carlo.mjs",
-    "balance:audit": "node scripts/balance-audit.mjs",
+    "balance": "node scripts/balance.mjs",
     "version": "node scripts/bump-version.mjs",
     "prompt": "node scripts/log-prompt.mjs"
   },
   "dependencies": {
-    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
-    "@fontsource/martian-mono": "^5.3.0",
+    "@fontsource-variable/bricolage-grotesque": "5.3.0",
+    "@fontsource/martian-mono": "5.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "three": "^0.180.0"
+    "three": "0.180.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "4.7.0",

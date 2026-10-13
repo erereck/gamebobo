@@ -131,6 +131,7 @@ function monthly(state, random) {
     else toast(state, { kind: 'bad', icon: 'warning', title: 'Caixa no vermelho', sub: `${3 - state.debtMonths} meses até a falência` })
   } else state.debtMonths = 0
 
+  maybeRomance(state, random)
   const tw = absWeek(state)
   if (!state.visitor && tw - state.lastCamelo > 16 && random() < .14) {
     const pool = CAMELO_ITEMS.filter(item => (item.minYear ?? 0) <= state.year && (item.maxYear ?? 9999) >= state.year)
@@ -140,6 +141,22 @@ function monthly(state, random) {
     fx(state, { type: 'visitor' })
   }
   checkAchievements(state)
+}
+
+// Escritório é lugar de trabalho... e às vezes de romance.
+function maybeRomance(state, random) {
+  state.couples ??= []
+  state.couples = state.couples.filter(([a, b]) => state.staff.some(p => p.id === a) && state.staff.some(p => p.id === b))
+  const single = state.staff.filter(p => !state.couples.some(pair => pair.includes(p.id)))
+  if (single.length < 2 || state.staff.length < 3 || random() > .025) return
+  const a = pick(single, random)
+  const b = pick(single.filter(p => p !== a), random)
+  state.couples.push([a.id, b.id])
+  a.mood = clamp(a.mood + 12, 0, 100)
+  b.mood = clamp(b.mood + 12, 0, 100)
+  const first = name => name.split(' ')[0]
+  toast(state, { kind: 'good', icon: 'heart', title: `${first(a.name)} + ${first(b.name)}`, sub: 'Romance no escritório' })
+  log(state, 'heart', `${a.name} e ${b.name} estão juntos`)
 }
 
 function trends(state, random) {

@@ -53,6 +53,7 @@ export function createGame(options = {}, random = Math.random) {
     chart: [],
     freelas: [],
     ideas: [],
+    couples: [],
     visitor: null,
     buffs: { score: 0, sales: 1 },
     queue: [],
@@ -74,6 +75,8 @@ export function createGame(options = {}, random = Math.random) {
     settings: { sound: true, music: true, musicVolume: .22, speed: 1 },
   }
   state.market.trendUntil = absWeek(state) + int(20, 34, random)
+  state.lastEventWeek = absWeek(state) + 3
+  state.lastCamelo = absWeek(state) + 10
   state.freelas = generateFreelas(state, random)
   return state
 }
