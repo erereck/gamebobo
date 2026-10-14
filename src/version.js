@@ -22,6 +22,11 @@ export const VERSION_INFO = Object.freeze({
     "P-016",
     "P-017",
     "P-018",
-    "P-019"
+    "P-019",
+    "P-020",
+    "P-021",
+    "P-022",
+    "P-023",
+    "P-024"
   ]
 })

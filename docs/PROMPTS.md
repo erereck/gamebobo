@@ -1,10 +1,40 @@
 # Registro de prompts
 
-## P-019 — 2026-10-13 — Escritório Vivo
+## P-024 — 2026-10-14 — Indústria de Verdade
+
+Pedido: voltar aos nomes originais de consoles, empresas e jogos em vez das paródias, porque o projeto é pequeno e não comercial e isso deixa o jogo mais interessante que mais um tycoon genérico, e colocar ainda mais empresas e jogos reais.
+
+Resultado: versão 1.0.0. Plataformas, 65 empresas, 129 jogos históricos, séries anuais, imprensa, manchetes e eventos reais.
+
+## P-023 — 2026-10-13 — Escritório Vivo
 
 Pedido: major update com visualizador 3D (bonequinhos minimalistas andando, conversando como no The Sims 4 e sentando na mesa quando focados, sem controle direto), reformular os sistemas pensando como jogador, cortar texto, usar etapas de escolha, balancear recompensas e evitar menus genéricos, inspirado no modo Rumo ao Estrelato do futbobo.
 
-Resultado: versão 1.0.0. Jogo reescrito com escritório three.js, motor semanal novo, criação em etapas, revelação de críticas, mercado com rivais e prêmios, conteúdo paródia ampliado e balanceamento medido por robô.
+Resultado: versão 1.0.0. Jogo reescrito com escritório three.js, motor semanal novo, criação em etapas, revelação de críticas, mercado com rivais e prêmios e balanceamento medido por robô. Os sistemas das versões 0.12 a 0.14 (P-019 a P-022) foram refeitos na arquitetura nova.
+
+## P-022 — 2026-08-24 — Outra Vida
+
+Pedido: Transformar a criação de save em uma escolha de modo de jogo que mude profundamente cada carreira. Manter o Tradicional igual ao jogo atual, criar um Realista com menos dinheiro, notas 90+ e prêmios mais difíceis, um Portátil restrito a consoles de bolso, uma Franquia Singular presa para sempre à primeira série e um Estúdio Adquirido que já começa sob uma empresa com equipe e encomendas; inventar outros modos capazes de tornar cada gameplay única.
+
+Resultado: versão 0.14.0. O novo save ganhou uma tela dedicada de modos persistentes. Além dos cinco pedidos, chegaram Autor Solo, Indie Eterno, Império Arcade e Antologia. As regras são aplicadas pelo motor e refletidas na interface: plataformas, escalas, tipos de projeto, contratação e aquisições inválidas deixam de aparecer ou ficam explicitamente bloqueadas. O Realista preserva as vendas do modelo-base enquanto reduz em 30% a receita dos jogos, comprime a faixa de notas de elite e endurece premiações; saves antigos continuam como Tradicional.
+
+## P-021 — 2026-08-24 — Quem Faz o Jogo
+
+Pedido: Transformar a aba de equipe em um gerenciador real de times: permitir mover cada funcionário por um dropdown ao lado de desligar, criar novas equipes sem limite de membros, acelerar projetos ao concentrar mais gente e reforçar com funcionários próprios as equipes de estúdios comprados.
+
+Resultado: versão 0.13.0. Funcionários passaram a pertencer a equipes de produção persistentes, novas equipes podem ser criadas sob demanda e o ritmo de cada projeto depende do tamanho e força da equipe realmente atribuída, com retorno decrescente. Estúdios adquiridos mantêm sua equipe nativa e aceitam reforços internos; saves antigos são hidratados sem perder projetos paralelos legados.
+
+## P-020 — 2026-08-23 — Dez Slots
+
+Pedido: Adicionar suporte a múltiplos saves locais, com até dez carreiras independentes, e publicar como versão 0.12.1.
+
+Resultado: versão 0.12.1. O save único virou um gerenciador de dez slots com criação, continuação, exclusão, troca pelo menu de configurações, autosave preso ao slot ativo e migração automática da carreira antiga para o slot 1. Testes protegem isolamento entre slots, exclusão e compatibilidade com saves anteriores.
+
+## P-019 — 2026-08-23 — Linha de Produção
+
+Pedido: Expandir o Gamebobo com ports e coletâneas misturáveis, remakes, remasters, spinoffs, produção simultânea, aquisição de estúdios, mais escritórios, demos, recusa de editoras, recrutamento progressivamente mais caro, mistura de gêneros e temas, eventos como E3 com escolha do jogo divulgado, herança automática de franquia, acessórios e motion controls, multiplataforma com delegação, GOTY anual com jogos reais e lançamentos para fliperama.
+
+Resultado: versão 0.12.0. O projeto ganhou um pipeline único para edições e múltiplas plataformas, equipes paralelas e estúdios subsidiários, periféricos históricos, demos, showcases mensais, choques de mercado, carreira de franquia mais rica, recrutamento escalável, arcade e uma premiação anual que sempre registra o vencedor da indústria.
 
 ## P-018 — 2026-08-13 — Demanda de Verdade
 
