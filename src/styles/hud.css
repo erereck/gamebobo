@@ -249,3 +249,17 @@
 .train-btn { width: 46px; height: 42px; display: grid; place-items: center; background: var(--c); border: var(--line); border-radius: var(--r-sm); box-shadow: var(--shadow-sm); color: var(--ink); }
 .train-btn:active { transform: translateY(3px); box-shadow: none; }
 .salary { display: flex; align-items: center; gap: 4px; justify-content: center; font-family: var(--mono); font-size: 10px; color: var(--ink-2); }
+
+/* ---------- vários projetos ---------- */
+.cart-tabs { position: absolute; left: 14px; right: 14px; bottom: calc(100% + 6px); display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; padding-top: 4px; }
+.cart-tab { display: inline-flex; align-items: center; gap: 5px; max-width: 170px; height: 30px; padding: 0 10px; flex: none; border: 2px solid var(--ink); border-radius: 10px 10px 4px 4px; background: #d9d3e3; font-weight: 800; font-size: 12px; box-shadow: 0 2px 0 var(--ink); transition: transform .12s var(--ease-pop); }
+.cart-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cart-tab.on { background: var(--sun); transform: translateY(-3px); }
+.cart-tab.ready { animation: pulse 1.2s ease-in-out infinite; background: var(--mint); }
+.cart-tab-new { padding: 0 8px; background: var(--paper); }
+.cart-tab:disabled { opacity: .4; }
+.cart-meta .type-chip { background: var(--grape); color: #fff; }
+.cart-meta .fast { background: #d8f8df; }
+.cart-meta .slow { background: #ffe0dc; }
+.cart-meta .demo-chip { background: #2b2734; color: var(--sun); font-family: var(--mono); }
+.demo-btn { width: 100%; background: #c9f2ff; }

@@ -115,12 +115,12 @@ export class StaffAgent {
     const w = this.world
     const info = this.info
     if (info.status !== 'ok') return this.leave()
-    const working = w.view.working
+    const working = Boolean(info.working)
     const trait = info.trait
     const r = Math.random()
     if (working) {
       if (info.energy < 18 && r < .5) return this.goToDesk('sleep')
-      let breakChance = .1 + (trait === 'tagarela' ? .12 : 0) + (trait === 'cafe' ? .08 : 0) + (info.energy < 35 ? .1 : 0) - (w.view.pace === 'crunch' ? .06 : 0)
+      let breakChance = .1 + (trait === 'tagarela' ? .12 : 0) + (trait === 'cafe' ? .08 : 0) + (info.energy < 35 ? .1 : 0) - (info.pace === 'crunch' ? .06 : 0)
       if (trait === 'preguica' && r < .12) return this.goToDesk('sleep')
       if (r < breakChance) {
         const options = []
@@ -240,7 +240,7 @@ export class StaffAgent {
         const dx = target[0] - this.x
         const dz = target[1] - this.z
         const dist = Math.hypot(dx, dz)
-        const v = (w.view.pace === 'crunch' && w.view.working ? 1.75 : 1.25) * dt
+        const v = (this.info.pace === 'crunch' && this.info.working ? 1.75 : 1.25) * dt
         if (dist <= v) {
           this.root.position.x = target[0]
           this.root.position.z = target[1]
@@ -264,12 +264,12 @@ export class StaffAgent {
         if (Math.random() < .35) w.deskChat(this)
       }
       if (this.timer <= 0) {
-        if (!w.view.working) this.setIdle(.2)
+        if (!this.info.working) this.setIdle(.2)
         else this.decide()
       }
     } else if (this.state === 'sit' || this.state === 'sleep') {
       if (this.state === 'sleep' && Math.random() < dt * .4) this.bubble.show('emote', 'zzz', { color: '#6c63ff', duration: 1.8 })
-      if (this.timer <= 0 || (w.view.working && this.state === 'sit')) this.decide()
+      if (this.timer <= 0 || (this.info.working && this.state === 'sit')) this.decide()
     } else if (this.state === 'waitChat') {
       if (this.timer <= 0) this.setIdle()
     } else if (this.state === 'activity' || this.state === 'celebrate' || this.state === 'sad') {

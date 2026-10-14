@@ -1,6 +1,8 @@
 import { useGame } from '../../app/store.js'
 import { Icon } from '../../ui/Icon.jsx'
-import { TECHS } from '../../game/data/economy.js'
+import { OFFICES, TECHS } from '../../game/data/economy.js'
+import { localStaff } from '../../game/engine/teams.js'
+import { allowsHiring } from '../../game/engine/modes.js'
 
 export const DOCK_ITEMS = [
   { id: 'team', label: 'Equipe', icon: 'team' },
@@ -15,7 +17,7 @@ export function Dock({ active, onOpen }) {
   const researchReady = TECHS.some(tech => !state.techs.includes(tech.id) && tech.year <= state.year && state.rp >= tech.rp)
   const badges = {
     research: researchReady,
-    team: state.staff.length < [1, 3, 6, 10, 16][state.office] && state.candidates.length > 0 && state.games.length > 0,
+    team: allowsHiring(state) && localStaff(state).length < OFFICES[state.office].cap && state.candidates.length > 0 && state.games.length > 0,
   }
   return (
     <nav className="dock" aria-label="Painéis">

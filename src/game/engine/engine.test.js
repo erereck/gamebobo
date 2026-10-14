@@ -16,9 +16,9 @@ import { DECOR, TECHS, MARKETING, START_ERAS } from '../data/economy.js'
 import { PLATFORMS, availablePlatforms } from '../data/platforms.js'
 import { liveStats } from './progress.js'
 
-const newGame = (seed = 1, startYear = 1980) => {
+const newGame = (seed = 1, startYear = 1980, modeId = 'tradicional') => {
   const random = mulberry32(seed)
-  const state = reducer(null, { type: 'NEW_GAME', options: { founderName: 'Teste', studioName: 'Estúdio Teste', startYear, profileId: 'programador' } }, random)
+  const state = reducer(null, { type: 'NEW_GAME', options: { founderName: 'Teste', studioName: 'Estúdio Teste', startYear, profileId: 'programador', modeId } }, random)
   return { state, random }
 }
 
@@ -28,6 +28,7 @@ function runUntil(state, random, predicate, limit = 400) {
     const item = state.queue[0]
     if (!item) state = reducer(state, { type: 'TICK' }, random)
     else if (item.kind === 'phase') state = reducer(state, { type: 'SET_FOCUS', focus: item.phase === 1 ? 'conteudo' : 'cacabugs' }, random)
+    else if (item.kind === 'expo') state = reducer(state, { type: 'EXPO_PICK', targetId: null }, random)
     else if ((item.kind === 'event' || item.kind === 'idea') && !item.result) state = reducer(state, { type: 'CHOOSE', index: 0 }, random)
     else if (item.kind === 'ready') return state
     else if (item.kind === 'bankrupt') state = reducer(state, { type: 'BANKRUPT', choice: 'home' }, random)
@@ -52,7 +53,7 @@ test('um jogo micro vai do início ao lançamento', () => {
   let { state, random } = newGame(42)
   const before = state.money
   state = reducer(state, { type: 'START_GAME', choice: { genre: 'acao', theme: 'ninja', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title: 'Ninja Teste' } }, random)
-  assert.ok(state.project, 'projeto criado')
+  assert.equal(state.projects.length, 1, 'projeto criado')
   assert.ok(state.money < before, 'custo cobrado')
   state = runUntil(state, random, s => s.queue[0]?.kind === 'ready')
   assert.equal(state.queue[0]?.kind, 'ready')
@@ -150,10 +151,11 @@ test('balanceamento: carreira de dez anos não explode nem afunda', () => {
         else if (item.kind === 'phase') state = reducer(state, { type: 'SET_FOCUS', focus: item.phase === 1 ? 'conteudo' : 'acabamento' }, random)
         else if ((item.kind === 'event' || item.kind === 'idea') && !item.result) state = reducer(state, { type: 'CHOOSE', index: 0 }, random)
         else if (item.kind === 'bankrupt') state = reducer(state, { type: 'BANKRUPT', choice: 'home' }, random)
+        else if (item.kind === 'expo') state = reducer(state, { type: 'EXPO_PICK', targetId: null }, random)
         else state = reducer(state, { type: 'CLOSE' }, random)
         continue
       }
-      if (!state.project) {
+      if (!state.projects.length) {
         const known = Object.entries(state.combos).find(([, rating]) => rating === 3)
         const [genre, theme] = known && random() < .6 ? known[0].split(':') : ['acao', ['ninja', 'herois', 'mitologia', 'zumbi'][seed % 4]]
         const size = state.money > 300000 && state.office >= 1 && state.staff.length >= 3 ? 'medio' : state.money > 90000 ? 'pequeno' : 'micro'
@@ -173,4 +175,98 @@ test('balanceamento: carreira de dez anos não explode nem afunda', () => {
   const median = scores[Math.floor(scores.length / 2)]
   assert.ok(median >= 5.5 && median <= 8.6, `mediana ${median}`)
   assert.ok(scores.filter(s => s >= 9.5).length / scores.length < .1, 'notas 9,5+ continuam raras')
+})
+
+const ready = state => state.queue[0]?.kind === 'ready'
+
+test('modos restringem plataformas, tamanhos, contratação e combinações', () => {
+  let { state, random } = newGame(11, 1990, 'portatil')
+  assert.equal(reducer(state, { type: 'START_GAME', choice: { genre: 'puzzle', theme: 'animais', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title: 'X' } }, random), state, 'portátil não aceita PC')
+  assert.notEqual(reducer(state, { type: 'START_GAME', choice: { genre: 'puzzle', theme: 'animais', platform: 'gameboy', size: 'micro', hook: HOOKS[0].id, title: 'X' } }, random), state)
+  ;({ state, random } = newGame(12, 1990, 'indie'))
+  assert.equal(reducer(state, { type: 'START_GAME', choice: { genre: 'acao', theme: 'ninja', platform: 'pc', size: 'medio', hook: HOOKS[0].id, title: 'X' } }, random), state, 'indie não faz médio')
+  ;({ state, random } = newGame(13, 1990, 'solo'))
+  state.money = 1e9
+  assert.equal(reducer(state, { type: 'HIRE', id: state.candidates[0].id }, random), state, 'solo não contrata')
+  ;({ state, random } = newGame(14, 1980, 'arcade'))
+  assert.notEqual(reducer(state, { type: 'START_GAME', choice: { genre: 'acao', theme: 'espaco', platform: 'arcade', size: 'micro', hook: HOOKS[0].id, title: 'X' } }, random), state, 'arcade usa fliperama')
+  ;({ state, random } = newGame(15, 1990, 'antologia'))
+  state.money = 1e9
+  state = reducer(state, { type: 'START_GAME', choice: { genre: 'rpg', theme: 'fantasia', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title: 'Um' } }, random)
+  state = runUntil(state, random, ready)
+  state = reducer(state, { type: 'RELEASE' }, random)
+  state = reducer(state, { type: 'CLOSE' }, random)
+  assert.equal(reducer(state, { type: 'START_GAME', choice: { genre: 'rpg', theme: 'fantasia', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title: 'Dois' } }, random), state, 'antologia não repete combinação')
+})
+
+test('estúdio adquirido começa com equipe, dona e encomenda', () => {
+  const { state } = newGame(21, 1995, 'adquirido')
+  assert.equal(state.staff.length, 4)
+  assert.ok(state.mode.parent?.name)
+  assert.ok(state.mode.brief?.genre)
+  assert.equal(state.office, 2)
+})
+
+test('franquia única trava a série depois do primeiro jogo', () => {
+  let { state, random } = newGame(31, 1990, 'franquia')
+  state.money = 1e9
+  state = reducer(state, { type: 'START_GAME', choice: { genre: 'plataforma', theme: 'animais', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title: 'Saga' } }, random)
+  assert.ok(state.mode.franchise)
+  state = runUntil(state, random, ready)
+  state = reducer(state, { type: 'RELEASE' }, random)
+  state = reducer(state, { type: 'CLOSE' }, random)
+  assert.equal(reducer(state, { type: 'START_GAME', choice: { genre: 'rpg', theme: 'fantasia', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title: 'Outra' } }, random), state, 'nada de IP nova')
+  const port = reducer(state, { type: 'START_GAME', choice: { type: 'port', sources: [state.games[0].id], platforms: ['nes'], title: 'Saga NES' } }, random)
+  assert.notEqual(port, state, 'porte da própria série é permitido')
+})
+
+test('porte e coletânea são rápidos e saem com nota', () => {
+  let { state, random } = newGame(41, 1995)
+  state.money = 1e9
+  for (const title of ['A', 'B']) {
+    state = reducer(state, { type: 'START_GAME', choice: { genre: 'acao', theme: 'ninja', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title } }, random)
+    state = runUntil(state, random, ready)
+    state = reducer(state, { type: 'RELEASE' }, random)
+    state = reducer(state, { type: 'CLOSE' }, random)
+  }
+  assert.equal(reducer(state, { type: 'START_GAME', choice: { type: 'port', sources: [state.games[0].id], platforms: ['pc'], title: 'Mesmo PC' } }, random), state, 'porte precisa de outra plataforma')
+  state = reducer(state, { type: 'START_GAME', choice: { type: 'collection', sources: state.games.map(game => game.id), platforms: ['playstation'], title: 'Coletânea' } }, random)
+  assert.equal(state.projects.length, 1)
+  assert.ok(state.projects[0].totalWeeks <= 6, 'coletânea é curta')
+  state = runUntil(state, random, ready)
+  state = reducer(state, { type: 'RELEASE' }, random)
+  assert.equal(state.games.at(-1).type, 'collection')
+  assert.ok(state.games.at(-1).score >= 1)
+})
+
+test('duas equipes tocam dois projetos ao mesmo tempo', () => {
+  let { state, random } = newGame(51, 1995)
+  state.money = 1e9
+  state.office = 2
+  for (let i = 0; i < 2; i += 1) state = reducer(state, { type: 'HIRE', id: state.candidates[0].id }, random)
+  state = reducer(state, { type: 'CREATE_TEAM' }, random)
+  const team = state.teams[1]
+  state = reducer(state, { type: 'MOVE_STAFF', staffId: state.staff[1].id, teamId: team.id }, random)
+  state = reducer(state, { type: 'START_GAME', choice: { genre: 'rpg', theme: 'fantasia', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title: 'Um', teamId: 'main' } }, random)
+  state = reducer(state, { type: 'START_GAME', choice: { genre: 'puzzle', theme: 'escola', platform: 'pc', size: 'micro', hook: HOOKS[0].id, title: 'Dois', teamId: team.id } }, random)
+  assert.equal(state.projects.length, 2)
+  state = runUntil(state, random, s => s.week > 3)
+  assert.ok(state.projects.every(project => project.week > 0), 'os dois avançam')
+})
+
+test('comprar um estúdio cria equipe remota e cancela os clássicos dele', () => {
+  let { state, random } = newGame(61, 1992)
+  state.money = 1e12
+  state = reducer(state, { type: 'ACQUIRE', rivalId: 'id' }, random)
+  assert.ok(state.acquired.includes('id'))
+  assert.ok(state.teams.some(team => team.remote && team.rivalId === 'id'))
+  state = runUntil(state, random, s => s.year >= 1994, 3000)
+  assert.ok(!state.rivalGames.some(game => game.title === 'Doom'), 'Doom não sai mais pela id')
+})
+
+test('o Jogo do Ano da indústria fica registrado', () => {
+  let { state, random } = newGame(71, 1990)
+  state = runUntil(state, random, s => s.year >= 1993, 3000)
+  assert.ok(state.goty.length >= 2)
+  assert.ok(state.goty.every(entry => entry.title && entry.year))
 })

@@ -72,6 +72,7 @@ export const OFFICES = [
   { level: 2, id: 'salinha', label: 'Salinha', cap: 6, cost: 90000, rent: 1800, slots: 7 },
   { level: 3, id: 'escritorio', label: 'Escritório', cap: 10, cost: 500000, rent: 5000, slots: 10 },
   { level: 4, id: 'sede', label: 'Sede', cap: 16, cost: 2500000, rent: 14000, slots: 13 },
+  { level: 5, id: 'torre', label: 'Torre', cap: 24, cost: 6500000, rent: 32000, slots: 16 },
 ]
 
 export const DECOR = [

@@ -4,14 +4,18 @@ import { Icon } from '../../ui/Icon.jsx'
 import { fmtMoney, fmtNum } from '../../ui/format.js'
 import { PILLARS } from '../../game/data/staff.js'
 import { freelaNeed } from '../../game/engine/freelas.js'
-import { activeStaff, personOutput } from '../../game/engine/staff.js'
+import { personOutput } from '../../game/engine/staff.js'
+import { freeTeams, teamMembers } from '../../game/engine/teams.js'
+import { useState } from 'react'
 import { PACES, moneyScale } from '../../game/data/economy.js'
 import { yearFloat } from '../../game/engine/state.js'
 
 export function FreelaSheet({ onClose }) {
   const state = useGame()
   const year = yearFloat(state)
-  const teamOut = activeStaff(state).reduce((sum, person) => sum + personOutput(state, person, PACES.normal), 0)
+  const teams = freeTeams(state)
+  const [teamId, setTeamId] = useState(teams[0]?.id)
+  const teamOut = teamMembers(state, teamId ?? 'main').reduce((sum, person) => sum + personOutput(state, person, PACES.normal), 0)
   return (
     <div className="sheet-backdrop" onClick={event => event.target === event.currentTarget && onClose()}>
       <section className="sheet freela" aria-label="Freelas">
@@ -19,6 +23,11 @@ export function FreelaSheet({ onClose }) {
           <div className="sheet-title"><Icon name="briefcase" size={20} />Freelas</div>
           <button type="button" className="icon-btn" aria-label="Fechar" onClick={onClose}><Icon name="close" size={20} /></button>
         </header>
+        {teams.length > 1 && (
+          <div className="team-pick">
+            {teams.map(team => <button key={team.id} type="button" className={`toggle-chip ${team.id === teamId ? 'on' : ''}`} onClick={() => setTeamId(team.id)}><Icon name="team" size={13} stroke={2.6} />{team.name}</button>)}
+          </div>
+        )}
         <div className="freela-list">
           {state.freelas.map(item => {
             const need = freelaNeed(item, year)
@@ -42,7 +51,7 @@ export function FreelaSheet({ onClose }) {
                   <span className="job-weeks"><Icon name="clock" size={12} stroke={2.6} />{item.weeks} sem</span>
                   <span className={`job-risk risk-${risk}`}>{risk === 'easy' ? 'tranquilo' : risk === 'tight' ? 'apertado' : 'puxado'}</span>
                 </div>
-                <button type="button" className="btn btn-small btn-tomato" onClick={() => { sfx.select(); dispatch({ type: 'START_FREELA', id: item.id }); onClose() }}>Pegar</button>
+                <button type="button" className="btn btn-small btn-tomato" onClick={() => { sfx.select(); dispatch({ type: 'START_FREELA', id: item.id, teamId }); onClose() }}>Pegar</button>
               </article>
             )
           })}

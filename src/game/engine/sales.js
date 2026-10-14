@@ -10,16 +10,23 @@ export const tailWeeks = quality => 3 + Math.max(0, quality - 50) / 6
 
 // Vendas totais previstas para um lançamento; o tick distribui isso semana a semana.
 export function lifetimeSales(ctx, random = Math.random) {
-  const { quality, year, t, platformId, sizeId, genre, theme, fans, hype, trend, sequel, salesMult = 1, techSales = 1 } = ctx
-  const platform = platformById(platformId)
+  const { quality, year, t, platformId, platformIds, sizeId, genre, theme, fans, hype, trend, sequel, salesMult = 1, techSales = 1, noBreakout = false } = ctx
+  const ids = platformIds?.length ? platformIds : [platformId]
   const size = sizeById(sizeId)
-  const pf = Math.max(.15, (platformSize(platform, t) / 2) ** .6)
-  const fit = platformFit(platform, genre)
+  // Plataforma principal conta inteira; as delegadas somam metade cada (público já dividido).
+  const WEIGHTS = [1, .5, .45]
+  let pf = 0
+  for (let i = 0; i < ids.length; i += 1) {
+    const platform = platformById(ids[i])
+    const fit = platformFit(platform, genre)
+    const fitF = fit > 0 ? 1.15 : fit < 0 ? .8 : 1
+    pf += Math.max(.15, (platformSize(platform, t) / 2) ** .6) * fitF * (WEIGHTS[i] ?? .4)
+  }
   const trendF = (trend?.genre === genre ? 1.15 : 1) * (trend?.theme === theme ? 1.08 : 1)
   const comboF = { 3: 1.15, 2: 1.05, 1: 1, 0: .85 }[comboRating(genre, theme)]
-  const fitF = fit > 0 ? 1.15 : fit < 0 ? .8 : 1
+  const fitF = 1
   const luck = Math.exp(gauss(random) * .16)
-  const breakoutChance = quality >= 80 ? .03 + (quality - 80) * .004 : 0
+  const breakoutChance = !noBreakout && quality >= 80 ? .03 + (quality - 80) * .004 : 0
   const breakout = random() < breakoutChance
   const breakoutMult = breakout ? 2 + random() * 2.2 : 1
   const copies = demandAt(year) * qualityCurve(quality) * pf * size.reach * fansFactor(fans) * hypeFactor(hype)

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { dispatch, useGame, clearSave, writeSave, store } from '../../app/store.js'
+import { dispatch, useGame, deleteSlot, writeSave, store } from '../../app/store.js'
+import { modeById } from '../../game/data/modes.js'
 import { sfx } from '../../app/audio.js'
 import { Icon } from '../../ui/Icon.jsx'
 import { VERSION_INFO } from '../../version.js'
@@ -27,13 +28,15 @@ export function SettingsPanel({ onClose }) {
         <input type="range" min="0" max="0.6" step="0.02" value={state.settings.musicVolume} onChange={event => set('musicVolume', Number(event.target.value))} aria-label="Volume da música" />
       </label>
       <p className="tip"><Icon name="info" size={14} />Arraste o escritório para girar. Role para dar zoom. Clique num boneco para ver o crachá.</p>
+      <div className="mode-badge"><Icon name={modeById(state.mode?.id).icon} size={16} />{modeById(state.mode?.id).label}<small>espaço {state.slot ?? 1}</small></div>
       <button type="button" className="btn" onClick={() => { writeSave(store.getState()); sfx.chime() }}><Icon name="check" size={16} />Salvar agora</button>
+      <button type="button" className="btn" onClick={() => { writeSave(store.getState()); onClose(); dispatch({ type: 'LOAD', state: null }) }}><Icon name="cards" size={16} />Trocar de save</button>
       {!confirm ? (
-        <button type="button" className="btn btn-ghost danger" onClick={() => setConfirm(true)}><Icon name="refresh" size={16} />Nova carreira</button>
+        <button type="button" className="btn btn-ghost danger" onClick={() => setConfirm(true)}><Icon name="x" size={16} />Apagar esta carreira</button>
       ) : (
         <div className="confirm">
           <span>Apagar este save?</span>
-          <button type="button" className="btn btn-small btn-tomato" onClick={() => { clearSave(); onClose(); dispatch({ type: 'LOAD', state: null }) }}>Apagar</button>
+          <button type="button" className="btn btn-small btn-tomato" onClick={() => { deleteSlot(state.slot ?? 1); onClose(); dispatch({ type: 'LOAD', state: null }) }}>Apagar</button>
           <button type="button" className="btn btn-small" onClick={() => setConfirm(false)}>Não</button>
         </div>
       )}

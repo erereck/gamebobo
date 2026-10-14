@@ -2,7 +2,10 @@ import { useSyncExternalStore } from 'react'
 import { reducer, afterLoad } from '../game/engine/reducer.js'
 import { SAVE_SCHEMA } from '../game/engine/state.js'
 
-const SAVE_KEY = 'gamebobo-3d-save'
+// Dez carreiras independentes, cada uma no seu espaço do navegador.
+export const SLOT_COUNT = 10
+const slotKey = slot => `gamebobo-3d-slot-${slot}`
+const LEGACY_3D_KEY = 'gamebobo-3d-save'
 
 let saveTimer = 0
 
@@ -18,6 +21,7 @@ function createStore() {
       state = next
       if (state?.fx?.length) for (const listener of fxListeners) listener(state.fx, state)
       for (const listener of listeners) listener()
+      if (!state) clearTimeout(saveTimer)
       if (state && action.type !== 'TICK' && action.type !== 'DISMISS_TOAST') {
         clearTimeout(saveTimer)
         saveTimer = setTimeout(() => writeSave(state), 400)
@@ -42,46 +46,71 @@ export function useGame() {
 
 export const dispatch = action => store.dispatch(action)
 
-export function loadSave() {
+const read = key => {
   try {
-    const raw = localStorage.getItem(SAVE_KEY)
+    const raw = localStorage.getItem(key)
     if (!raw) return null
     const parsed = JSON.parse(raw)
-    if (parsed?.schema !== SAVE_SCHEMA) return null
-    return afterLoad(parsed)
+    return parsed?.schema === SAVE_SCHEMA ? parsed : null
   } catch {
     return null
   }
+}
+
+// O save único das primeiras builds 3D vira o espaço 1.
+function migrateSingleSave() {
+  try {
+    const old = localStorage.getItem(LEGACY_3D_KEY)
+    if (old && !localStorage.getItem(slotKey(1))) localStorage.setItem(slotKey(1), old)
+    if (old) localStorage.removeItem(LEGACY_3D_KEY)
+  } catch {
+    // sem armazenamento
+  }
+}
+
+export function loadSave(slot) {
+  const parsed = read(slotKey(slot))
+  if (!parsed) return null
+  parsed.slot = slot
+  return afterLoad(parsed)
 }
 
 export function writeSave(state) {
   if (!state) return
   try {
     const { fx, toasts, ...rest } = state
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...rest, fx: [], toasts: [], savedAt: Date.now() }))
+    localStorage.setItem(slotKey(state.slot ?? 1), JSON.stringify({ ...rest, fx: [], toasts: [], savedAt: Date.now() }))
   } catch {
     // Sem armazenamento (aba anônima, cota cheia): o jogo continua na memória.
   }
 }
 
-export function clearSave() {
+export function deleteSlot(slot) {
   try {
-    localStorage.removeItem(SAVE_KEY)
+    localStorage.removeItem(slotKey(slot))
   } catch {
     // nada a fazer
   }
 }
 
-export function peekSave() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw)
-    if (parsed?.schema !== SAVE_SCHEMA) return null
-    return { studio: parsed.studio?.name, year: parsed.year, games: parsed.games?.length ?? 0, founder: parsed.staff?.find(p => p.founder)?.name, look: parsed.staff?.find(p => p.founder)?.look }
-  } catch {
-    return null
-  }
+export function listSlots() {
+  migrateSingleSave()
+  return Array.from({ length: SLOT_COUNT }, (_, i) => {
+    const slot = i + 1
+    const parsed = read(slotKey(slot))
+    if (!parsed) return { slot, empty: true }
+    const founder = parsed.staff?.find(person => person.founder)
+    return {
+      slot,
+      studio: parsed.studio?.name,
+      year: parsed.year,
+      games: parsed.games?.length ?? 0,
+      founder: founder?.name,
+      look: founder?.look,
+      mode: parsed.mode?.id ?? 'tradicional',
+      savedAt: parsed.savedAt ?? 0,
+    }
+  })
 }
 
 export const hasLegacySave = () => {

@@ -21,13 +21,14 @@ src/app            store, relógio, áudio, música
 
 ## Janelas e avisos
 
-- `state.queue`: momentos que pausam o tempo (evento, ideia, foco de fase, pronto para lançar, revelação, prêmios, falência).
+- `state.queue`: momentos que pausam o tempo (evento, ideia, foco de fase, pronto para lançar, revelação, prêmios, feira, falência). Itens de projeto levam `projectId`.
+- `state.projects`: um projeto por equipe. `engine/teams.js` liga pessoas, equipes e projetos; `engine/modes.js` concentra as regras de cada modo.
 - `state.toasts`: avisos que somem sozinhos (conquista, parada, freela, romance).
 - `state.ideas`: os ! sobre as cabeças. Clicar no boneco transforma a ideia em janela.
 
 ## 3D
 
-- `layouts.js`: cinco plantas com mesas, posições de decoração e de pôsteres.
+- `layouts.js`: seis plantas com mesas, posições de decoração e de pôsteres.
 - `furniture.js`: móveis procedurais com pontos de interação (sentar, café, jogar, olhar).
 - `nav.js`: grade de 0,5 com A*.
 - `character.js`: boneco em primitivas com poses misturadas (andar, sentar, digitar, beber, jogar, comemorar, dormir).

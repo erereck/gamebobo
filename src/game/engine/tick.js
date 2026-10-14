@@ -10,19 +10,26 @@ import { generateFreelas } from './freelas.js'
 import { workWeek } from './project.js'
 import { eventContext, pickEvent, pickIdea } from './events.js'
 import { checkAchievements, runAwards, updateLegacy } from './progress.js'
+import { activeShock, gameProjects } from './project.js'
+import { localStaff, projectOfTeam, teamOf } from './teams.js'
+import { modeFans, modeRevenue } from './modes.js'
+import { EXPOS, SHOCKS } from '../data/modes.js'
 import { weeklyShare } from './sales.js'
 import { absWeek, fx, log, scaled, toast, yearFloat } from './state.js'
 import { clamp, int, makeId, pick, sample } from './rng.js'
 
-export const BLOCKING = new Set(['event', 'idea', 'phase', 'ready', 'review', 'awards', 'bankrupt', 'welcome'])
+export const BLOCKING = new Set(['event', 'idea', 'phase', 'ready', 'review', 'awards', 'bankrupt', 'welcome', 'expo'])
 export const isBlocked = state => state.queue.some(item => BLOCKING.has(item.kind))
 
 function updateStaff(state) {
   const decor = decorTotals(state.decor)
-  const working = Boolean(state.project && !state.project.ready)
-  const pace = PACES[state.project?.pace] ?? PACES.normal
-  const teamMood = state.staff.reduce((sum, person) => sum + (traitById(person.trait)?.teamMood ?? 0), 0)
+  const teamMood = localStaff(state).reduce((sum, person) => sum + (traitById(person.trait)?.teamMood ?? 0), 0)
+  let crunching = false
   for (const person of state.staff) {
+    const project = projectOfTeam(state, teamOf(person))
+    const working = Boolean(project && !project.ready)
+    const pace = PACES[project?.pace] ?? PACES.normal
+    if (working && pace.id === 'crunch') crunching = true
     if (person.status !== 'ok') {
       person.away -= 1
       if (person.away <= 0) returnFromAway(state, person)
@@ -42,7 +49,7 @@ function updateStaff(state) {
       fx(state, { type: 'leave', staffId: person.id })
     }
   }
-  if (working && pace.id === 'crunch') state.stats.crunchWeeks += 1
+  if (crunching) state.stats.crunchWeeks += 1
 }
 
 function returnFromAway(state, person) {
@@ -69,10 +76,10 @@ function sellGames(state) {
     game.weekly = weekly
     game.sold += weekly
     game.age += 1
-    const revenue = Math.round(weekly * game.price * moneyScale(yearFloat(state)) / moneyScale(game.year))
+    const revenue = Math.round(weekly * game.price * (game.share ?? 1) * modeRevenue(state) * moneyScale(yearFloat(state)) / moneyScale(game.year))
     game.revenue += revenue
     weekRevenue += revenue
-    state.fans += Math.round(weekly * (game.score / 10) ** 2 * .05 * decor.fans)
+    state.fans += Math.round(weekly * (game.score / 10) ** 2 * .05 * decor.fans * modeFans(state))
     state.stats.totalCopies += weekly
     state.stats.totalRevenue += revenue / moneyScale(yearFloat(state))
     if (game.age > game.tau * 3 + 6 && weekly < Math.max(30, game.copies * .003)) {
@@ -115,7 +122,11 @@ function monthly(state, random) {
   const living = 380
   const total = Math.round((salaries + rent + living) * scale) + loan
   state.money -= total
-  if (state.project?.kind === 'game') state.project.labor = (state.project.labor ?? 0) + total
+  // Cada projeto carrega o salário da equipe que trabalha nele.
+  for (const project of gameProjects(state)) {
+    const payroll = state.staff.filter(person => teamOf(person) === project.teamId && !person.founder).reduce((sum, person) => sum + person.salary, 0)
+    project.labor = (project.labor ?? 0) + Math.round(payroll * scale)
+  }
   fx(state, { type: 'expense', amount: total })
   if (state.loan) {
     state.loan.months -= 1
@@ -125,7 +136,7 @@ function monthly(state, random) {
     }
   }
   state.candidates = createCandidates(state.year, state.legacy, random)
-  if (!state.project && random() < .5) state.freelas = generateFreelas(state, random)
+  if (random() < .5) state.freelas = generateFreelas(state, random)
   if (state.money < 0) {
     state.debtMonths += 1
     if (state.debtMonths >= 3) state.queue.push({ kind: 'bankrupt', id: makeId('q') })
@@ -133,6 +144,7 @@ function monthly(state, random) {
   } else state.debtMonths = 0
 
   maybeRomance(state, random)
+  maybeExpo(state)
   const tw = absWeek(state)
   if (!state.visitor && tw - state.lastCamelo > 16 && random() < .14) {
     const pool = CAMELO_ITEMS.filter(item => (item.minYear ?? 0) <= state.year && (item.maxYear ?? 9999) >= state.year)
@@ -148,8 +160,8 @@ function monthly(state, random) {
 function maybeRomance(state, random) {
   state.couples ??= []
   state.couples = state.couples.filter(([a, b]) => state.staff.some(p => p.id === a) && state.staff.some(p => p.id === b))
-  const single = state.staff.filter(p => !state.couples.some(pair => pair.includes(p.id)))
-  if (single.length < 2 || state.staff.length < 3 || random() > .025) return
+  const single = localStaff(state).filter(p => !state.couples.some(pair => pair.includes(p.id)))
+  if (single.length < 2 || localStaff(state).length < 3 || random() > .025) return
   const a = pick(single, random)
   const b = pick(single.filter(p => p !== a), random)
   state.couples.push([a.id, b.id])
@@ -188,6 +200,31 @@ function announcePlatforms(state) {
   }
 }
 
+// Feira do mês: escolha qual jogo vai para o palco.
+function maybeExpo(state) {
+  const month = Math.floor(state.week / WEEKS_PER_MONTH)
+  const expo = EXPOS.find(item => item.month === month && item.from <= state.year && item.to >= state.year && state.fans >= item.minFans)
+  if (!expo) return
+  const key = `${expo.id}-${state.year}`
+  state.expos ??= []
+  if (state.expos.includes(key)) return
+  const hasTarget = gameProjects(state).length || state.games.some(game => game.onMarket)
+  if (!hasTarget) return
+  state.expos.push(key)
+  state.queue.push({ kind: 'expo', id: makeId('q'), expoId: expo.id, year: state.year })
+}
+
+function announceShocks(state) {
+  const tw = absWeek(state)
+  for (const shock of SHOCKS) {
+    const start = (shock.start[0] - 1980) * WEEKS_PER_YEAR + shock.start[1] * WEEKS_PER_MONTH
+    if (start === tw && tw > (state.startYear - 1980) * WEEKS_PER_YEAR) {
+      toast(state, { kind: 'info', icon: shock.icon, title: shock.title, sub: 'O mercado mudou' })
+      log(state, shock.icon, shock.title)
+    }
+  }
+}
+
 function trends(state, random) {
   const tw = absWeek(state)
   if (tw < state.market.trendUntil) return
@@ -203,7 +240,7 @@ function trends(state, random) {
 function maybeEvent(state, random) {
   const tw = absWeek(state)
   if (isBlocked(state) || tw - state.lastEventWeek < 5) return
-  const p = state.project?.kind === 'game' ? .07 : .055
+  const p = gameProjects(state).length ? .07 : .055
   if (random() > p) return
   const event = pickEvent(state, random)
   if (!event) return
@@ -215,13 +252,17 @@ function maybeEvent(state, random) {
 }
 
 function maybeIdea(state, random) {
-  const project = state.project
-  if (!project || project.kind !== 'game' || project.ready) return
   const tw = absWeek(state)
   state.ideas = state.ideas.filter(idea => idea.until > tw && state.staff.some(person => person.id === idea.staffId && person.status === 'ok'))
-  const max = state.staff.length >= 6 ? 2 : 1
+  // Só quem está no escritório e num jogo em produção tem ideia (é preciso clicar no boneco).
+  const busy = localStaff(state).filter(person => {
+    const project = projectOfTeam(state, teamOf(person))
+    return person.status === 'ok' && project?.kind === 'game' && !project.ready
+  })
+  if (!busy.length) return
+  const max = busy.length >= 6 ? 2 : 1
   if (state.ideas.length >= max || random() > .09) return
-  const free = activeStaff(state).filter(person => !state.ideas.some(idea => idea.staffId === person.id))
+  const free = busy.filter(person => !state.ideas.some(idea => idea.staffId === person.id))
   if (!free.length) return
   const idea = pickIdea(state, random)
   if (!idea) return
@@ -231,14 +272,15 @@ function maybeIdea(state, random) {
 }
 
 function research(state) {
-  const working = Boolean(state.project)
-  const ideaSum = activeStaff(state).reduce((sum, person) => sum + person.skills.idea, 0)
-  state.rp += ideaSum / 70 * (working ? 1 : 1.8) + .3
+  const ideaSum = activeStaff(state).reduce((sum, person) => sum + person.skills.idea * (projectOfTeam(state, teamOf(person)) ? 1 : 1.8), 0)
+  state.rp += ideaSum / 70 + .3
 }
 
 function yearEnd(state, random) {
   const finished = state.year - 1
   const ceremony = runAwards(state, finished, random)
+  const goty = state.goty?.at(-1)
+  if (goty?.year === finished && !goty.mine) toast(state, { kind: 'info', icon: 'trophy', title: `Jogo do Ano ${finished}`, sub: `${goty.title} · ${goty.studio}` })
   if (ceremony) {
     state.queue.push({ id: makeId('q'), ...ceremony })
     updateLegacy(state)
@@ -264,6 +306,7 @@ export function tick(state, random = Math.random) {
   sellGames(state)
   announceReleases(state, stepRivals(state, random))
   announcePlatforms(state)
+  announceShocks(state)
   updateChart(state)
   research(state)
   trends(state, random)

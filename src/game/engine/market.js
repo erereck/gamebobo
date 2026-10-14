@@ -65,7 +65,7 @@ export function stepRivals(state, random = Math.random) {
   releases.push(...releaseHistoric(state, tw))
   for (const slot of state.rivals) {
     const rival = rivalById(slot.id)
-    if (!rival || rival.foundedYear > state.year || (rival.closedYear && rival.closedYear <= state.year)) continue
+    if (!rival || rival.foundedYear > state.year || (rival.closedYear && rival.closedYear <= state.year) || state.acquired?.includes(rival.id)) continue
     slot.next -= 1
     if (slot.next <= 0) {
       const tier = TIER[rivalTierAt(rival, state.year)] ?? TIER[2]
@@ -99,6 +99,8 @@ function releaseHistoric(state, tw) {
   while (state.historyCursor < ALL_HISTORIC_GAMES.length && historicWeek(ALL_HISTORIC_GAMES[state.historyCursor]) <= tw) {
     const entry = ALL_HISTORIC_GAMES[state.historyCursor]
     state.historyCursor += 1
+    // Estúdio que você comprou não lança mais o próprio clássico: a história muda.
+    if (state.acquired?.includes(entry.studio)) continue
     const rival = rivalById(entry.studio)
     const quality = entry.score * 10
     const game = {

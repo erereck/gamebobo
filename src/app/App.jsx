@@ -61,7 +61,7 @@ function Game() {
   const [badge, setBadge] = useState(null)
   const era = eraAt(state.year)
   const speed = state.settings.speed
-  const night = state.project && !state.project.ready && state.project.pace === 'crunch'
+  const night = state.projects.some(project => !project.ready && project.pace === 'crunch')
   const paused = Boolean(panel || sheet)
   useClock(paused, speed)
   useFxSounds()

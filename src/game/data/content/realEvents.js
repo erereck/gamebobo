@@ -57,12 +57,4 @@ export const REAL_EVENTS = [
     { label: 'Topa', effects: { money: 6000, fansPct: -0.08, mood: -10 }, result: 'Fãs contaram os dedos.' },
     { label: 'Recusa', effects: { mood: 10, fansPct: 0.03 }, result: 'A equipe te abraçou.' },
   ] },
-  { id: 'bgs', icon: 'users', title: 'Convite pra estande na Brasil Game Show', when: { phase: 'dev', minYear: 2009 }, weight: 3, choices: [
-    { label: 'Monta estande', effects: { money: -4000, hype: 18, energy: -10 }, result: 'Fila de duas horas.' },
-    { label: 'Só visita', effects: { mood: 6, rp: 5 }, result: 'Voltou cheio de brinde.' },
-  ] },
-  { id: 'e3-trailer', icon: 'play', title: 'Seu trailer pode passar na E3', when: { phase: 'dev', minYear: 1995, maxYear: 2019 }, weight: 2, choices: [
-    { label: 'Paga o espaço', effects: { money: -5000, hype: 22 }, result: 'Aplaudiram de pé. Acho.' },
-    { label: 'Posta online', effects: { hype: 6 }, result: 'Duzentas visualizações.' },
-  ] },
 ]

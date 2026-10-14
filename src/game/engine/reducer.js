@@ -1,20 +1,26 @@
 import { CAMELO_ITEMS } from '../data/content/camelo.js'
 import { DECOR, MARKETING, OFFICES, PHASES, PHASE_FOCUS, START_MONEY, TECHS, moneyScale } from '../data/economy.js'
+import { EXPOS, projectTypeById } from '../data/modes.js'
+import { platformById } from '../data/platforms.js'
 import { traitById } from '../data/staff.js'
 import { applyEffects, resolveChoice } from './effects.js'
 import { eventById, fillText, ideaById } from './events.js'
 import { freelaNeed } from './freelas.js'
-import { polishMore, releaseProject, startFreela, startGameProject } from './project.js'
+import { polishMore, projectById, releaseDemo, releaseProject, startFreela, startGameProject } from './project.js'
 import { checkAchievements, updateLegacy } from './progress.js'
-import { createGame, fx, log, scaled, toast, yearFloat } from './state.js'
+import { createGame, fx, log, newBrief, scaled, toast, yearFloat } from './state.js'
 import { techHypeMultiplier } from './staff.js'
 import { tick } from './tick.js'
+import { MAIN_TEAM, acquireStudio, createTeam, freeTeams, hasDeskFor, localStaff, moveToTeam, projectOfStaff, projectOfTeam, teamMembers, teamOf } from './teams.js'
+import { allowsHiring, allowsPlatform, allowsSize, allowsTeams, allowsType, comboBlocked } from './modes.js'
 import { clamp, makeId } from './rng.js'
 
 export const decorCost = (state, item) => scaled(state, item.cost)
 export const officeCost = (state, level) => scaled(state, OFFICES[level].cost)
 export const trainCost = (state, person) => scaled(state, 1400 + person.level * 450)
 export const techCost = (state, tech) => scaled(state, tech.cost)
+// Contratar fica mais caro conforme o estúdio cresce.
+export const hireFee = (state, candidate) => Math.round(candidate.salary * moneyScale(yearFloat(state)) * (1 + localStaff(state).length * .15))
 
 function popQueue(state) {
   state.queue.shift()
@@ -24,15 +30,42 @@ function choose(state, index, random) {
   const item = state.queue[0]
   if (!item || item.result) return
   let choice = null
-  if (item.kind === 'event') choice = eventById(item.eventId)?.choices?.[index]
-  if (item.kind === 'idea') choice = ideaById(item.ideaId)?.choices?.[index]
+  let ctx = {}
+  if (item.kind === 'event') {
+    choice = eventById(item.eventId)?.choices?.[index]
+    ctx = { projectId: item.ctx?.projectId }
+  }
+  if (item.kind === 'idea') {
+    choice = ideaById(item.ideaId)?.choices?.[index]
+    ctx = { projectId: projectOfStaff(state, item.ctx?.staffId)?.id }
+  }
   if (!choice) return
   const outcome = resolveChoice(choice, random)
-  const chips = applyEffects(state, outcome.effects)
+  const chips = applyEffects(state, outcome.effects, ctx)
   item.result = { index, text: fillText(outcome.text, state, item.ctx), chips, win: outcome.win }
   if (item.kind === 'idea' && index === 0) state.stats.ideasAccepted += 1
   if (outcome.win === true) fx(state, { type: 'cheer' })
   if (outcome.win === false) fx(state, { type: 'sigh' })
+}
+
+// Confere se a escolha da ficha respeita o modo de carreira e as regras do tipo de projeto.
+export function validChoice(state, choice) {
+  const type = projectTypeById(choice.type)
+  if (!allowsType(state, type.id)) return false
+  const platforms = choice.platforms?.length ? choice.platforms : [choice.platform]
+  if (!platforms.length || platforms.some(id => !allowsPlatform(state, platformById(id)))) return false
+  if (choice.size && !allowsSize(state, choice.size)) return false
+  const sources = (choice.sources ?? []).map(id => state.games.find(game => game.id === id))
+  if (sources.some(game => !game)) return false
+  if (type.source === 'game' || type.source === 'franchise') if (sources.length !== 1) return false
+  if (type.source === 'many' && (sources.length < 2 || sources.length > 4)) return false
+  if (type.id === 'port' && platforms.includes(sources[0]?.platform)) return false
+  const lock = state.mode?.franchise
+  if (state.mode?.id === 'franquia' && lock && sources.some(game => game.franchise !== lock.id)) return false
+  if (type.id === 'original' && comboBlocked(state, choice.genre, choice.theme)) return false
+  const team = choice.teamId ?? MAIN_TEAM
+  if (projectOfTeam(state, team) || !teamMembers(state, team).length) return false
+  return true
 }
 
 export function reducer(current, action, random = Math.random) {
@@ -60,60 +93,71 @@ export function reducer(current, action, random = Math.random) {
 
     case 'SET_FOCUS': {
       const item = state.queue[0]
-      if (item?.kind !== 'phase' || !state.project) return current
+      const project = projectById(state, item?.projectId)
+      if (item?.kind !== 'phase' || !project) return current
       const list = PHASE_FOCUS[PHASES[item.phase].id]
       if (!list.some(focus => focus.id === action.focus)) return current
-      state.project.focus[item.phase] = action.focus
+      project.focus[item.phase] = action.focus
       popQueue(state)
       return state
     }
 
     case 'RELEASE': {
-      if (state.queue[0]?.kind !== 'ready' || !state.project) return current
+      const item = state.queue[0]
+      if (item?.kind !== 'ready' || !projectById(state, item.projectId)) return current
       popQueue(state)
-      releaseProject(state, random)
+      releaseProject(state, item.projectId, random)
+      if (state.mode?.parent) newBrief(state, random)
       return state
     }
 
     case 'POLISH_MORE': {
-      if (state.queue[0]?.kind !== 'ready' || !state.project) return current
+      const item = state.queue[0]
+      if (item?.kind !== 'ready' || !projectById(state, item.projectId)) return current
       popQueue(state)
-      polishMore(state)
+      polishMore(state, item.projectId)
       return state
     }
 
     case 'START_GAME': {
-      if (state.project) return current
+      if (!validChoice(state, action.choice)) return current
       startGameProject(state, action.choice)
       return state
     }
 
     case 'START_FREELA': {
-      if (state.project) return current
       const item = state.freelas.find(freela => freela.id === action.id)
-      if (!item) return current
-      startFreela(state, item, freelaNeed(item, yearFloat(state)))
+      const team = action.teamId ?? freeTeams(state)[0]?.id
+      if (!item || !team || projectOfTeam(state, team)) return current
+      startFreela(state, item, freelaNeed(item, yearFloat(state)), team)
       return state
     }
 
     case 'CANCEL_PROJECT': {
-      if (!state.project) return current
-      log(state, 'x', `Cancelou ${state.project.title}`)
-      state.project = null
-      state.ideas = []
-      for (const person of state.staff) person.mood = clamp(person.mood - 10, 0, 100)
+      const project = projectById(state, action.projectId)
+      if (!project) return current
+      log(state, 'x', `Cancelou ${project.title}`)
+      state.projects = state.projects.filter(item => item !== project)
+      state.queue = state.queue.filter(item => item.projectId !== project.id)
+      for (const person of teamMembers(state, project.teamId, false)) person.mood = clamp(person.mood - 10, 0, 100)
       return state
     }
 
     case 'SET_PACE': {
-      if (!state.project) return current
-      state.project.pace = action.pace
+      const project = projectById(state, action.projectId)
+      if (!project) return current
+      project.pace = action.pace
       fx(state, { type: 'pace', pace: action.pace })
       return state
     }
 
+    case 'DEMO': {
+      if (!releaseDemo(state, action.projectId)) return current
+      return state
+    }
+
     case 'MARKET': {
-      const project = state.project
+      const project = projectById(state, action.projectId)
       const channel = MARKETING.find(item => item.id === action.id)
       if (!project || project.kind !== 'game' || !channel) return current
       const cost = scaled(state, channel.cost)
@@ -130,9 +174,34 @@ export function reducer(current, action, random = Math.random) {
       project.hype = clamp(project.hype + gained, 0, 100)
       const chips = [{ key: 'money', value: -cost }, { key: 'hype', value: gained }]
       if (channel.fansPct) chips.push(...applyEffects(state, { fansPct: channel.fansPct }))
-      project.lastMarketing = { id: channel.id, win, gained }
       toast(state, { kind: win === false ? 'bad' : 'good', icon: channel.icon, title: win === false ? 'Flopou' : win ? 'Viralizou!' : channel.label, chips })
       fx(state, { type: 'hype', amount: gained })
+      return state
+    }
+
+    case 'EXPO_PICK': {
+      const item = state.queue[0]
+      if (item?.kind !== 'expo') return current
+      const expo = EXPOS.find(entry => entry.id === item.expoId)
+      popQueue(state)
+      if (!action.targetId || !expo) return state
+      const cost = scaled(state, expo.cost)
+      if (state.money < cost) return state
+      state.money -= cost
+      const project = projectById(state, action.targetId)
+      const game = state.games.find(entry => entry.id === action.targetId)
+      if (project) {
+        const gained = Math.round(expo.hype * (1 - project.hype / 130))
+        project.hype = clamp(project.hype + gained, 0, 100)
+        toast(state, { kind: 'good', icon: 'users', title: `${project.title} no palco`, sub: expo.name, chips: [{ key: 'money', value: -cost }, { key: 'hype', value: gained }] })
+        fx(state, { type: 'hype', amount: gained })
+      } else if (game?.onMarket) {
+        const extra = Math.round((game.copies - game.sold) * (expo.sales - 1) * 2)
+        game.copies += extra
+        toast(state, { kind: 'good', icon: 'users', title: `${game.title} no palco`, sub: expo.name, chips: [{ key: 'money', value: -cost }, { key: 'copies', value: extra }] })
+      }
+      applyEffects(state, { fansPct: .02 })
+      log(state, 'users', `Levou um jogo para a ${expo.name}`)
       return state
     }
 
@@ -147,10 +216,12 @@ export function reducer(current, action, random = Math.random) {
 
     case 'HIRE': {
       const candidate = state.candidates.find(item => item.id === action.id)
-      if (!candidate || state.staff.length >= OFFICES[state.office].cap) return current
-      const fee = Math.round(candidate.salary * moneyScale(yearFloat(state)))
+      if (!candidate || !allowsHiring(state) || !hasDeskFor(state)) return current
+      const fee = hireFee(state, candidate)
+      if (state.money < fee) return current
       state.money -= fee
       candidate.hiredAt = state.year
+      candidate.team = action.teamId && !state.teams.find(team => team.id === action.teamId)?.remote ? action.teamId : MAIN_TEAM
       state.staff.push(candidate)
       state.candidates = state.candidates.filter(item => item.id !== action.id)
       log(state, 'users', `Contratou ${candidate.name}`)
@@ -167,6 +238,24 @@ export function reducer(current, action, random = Math.random) {
       for (const other of state.staff) other.mood = clamp(other.mood - 6, 0, 100)
       log(state, 'door', `${person.name} saiu`)
       fx(state, { type: 'fire', staffId: person.id })
+      return state
+    }
+
+    case 'CREATE_TEAM': {
+      if (!allowsTeams(state)) return current
+      createTeam(state)
+      return state
+    }
+
+    case 'MOVE_STAFF': {
+      if (!moveToTeam(state, action.staffId, action.teamId)) return current
+      return state
+    }
+
+    case 'ACQUIRE': {
+      if (!acquireStudio(state, action.rivalId, random)) return current
+      fx(state, { type: 'cheer', big: true })
+      checkAchievements(state)
       return state
     }
 
@@ -276,9 +365,12 @@ export function reducer(current, action, random = Math.random) {
         toast(state, { kind: 'info', icon: 'cash', title: 'Empréstimo na conta', sub: '24 parcelas' })
       } else {
         state.staff = state.staff.filter(person => person.founder)
+        for (const person of state.staff) person.team = MAIN_TEAM
+        state.teams = [{ id: MAIN_TEAM, name: 'Equipe principal' }]
         state.office = 0
         state.decor = state.decor.slice(0, OFFICES[0].slots)
-        state.project = null
+        state.projects = []
+        state.queue = state.queue.filter(item => !item.projectId)
         state.ideas = []
         state.money = Math.round(START_MONEY * .6 * moneyScale(yearFloat(state)))
         state.fans = Math.round(state.fans * .6)
@@ -308,6 +400,14 @@ export function reducer(current, action, random = Math.random) {
 export function afterLoad(state) {
   state.fx = []
   state.toasts = []
+  state.projects ??= []
+  state.teams ??= [{ id: MAIN_TEAM, name: 'Equipe principal' }]
+  state.acquired ??= []
+  state.goty ??= []
+  state.mode ??= { id: 'tradicional', franchise: null, parent: null, brief: null }
+  for (const person of state.staff) person.team ??= MAIN_TEAM
   updateLegacy(state)
   return state
 }
+
+export { teamOf }

@@ -36,6 +36,13 @@ O site usa o caminho-base `/gamebobo/`. Todo envio para `main` roda testes, gera
 
 Entre um jogo e outro: contratar, treinar, mudar de escritório, decorar, pesquisar, pegar freelas, comprar do Camelô e torcer nos Bobo Awards.
 
+Mais fundo:
+
+- **Modos de carreira**: nove regras permanentes escolhidas na criação do save, de Realista a Império Arcade.
+- **Equipes**: várias equipes tocam projetos ao mesmo tempo; estúdios reais podem ser comprados e viram equipes remotas.
+- **Tipos de projeto**: sequência, spin-off, remake, remaster, porte, coletânea, multiplataforma e gêneros híbridos.
+- **Dez saves**: cada carreira vive no próprio espaço.
+
 ## Mapa rápido
 
 | Onde | O que mora lá |
@@ -60,6 +67,8 @@ Entre um jogo e outro: contratar, treinar, mudar de escritório, decorar, pesqui
 | jogos históricos, séries anuais e manchetes datadas | `src/game/data/history.js` |
 | empresas rivais e seu porte por época | `src/game/data/content/rivals.js` |
 | traços, perfis do fundador, prêmios e títulos de legado | `src/game/data/staff.js` |
+| modos, tipos de projeto, editoras, feiras, periféricos e choques de mercado | `src/game/data/modes.js` e `src/game/engine/modes.js` |
+| equipes e compra de estúdios | `src/game/engine/teams.js` |
 | fórmula da nota | `src/game/engine/quality.js` |
 | fórmula de vendas | `src/game/engine/sales.js` |
 | o que acontece a cada semana | `src/game/engine/tick.js` |
@@ -76,7 +85,7 @@ Entre um jogo e outro: contratar, treinar, mudar de escritório, decorar, pesqui
 
 ## Save
 
-Automático e local (`localStorage`, chave `gamebobo-3d-save`). Saves da série 0.x não são migrados: o conceito mudou demais. Veja [docs/SAVE_SCHEMA.md](docs/SAVE_SCHEMA.md).
+Automático e local (`localStorage`, dez espaços `gamebobo-3d-slot-1` a `gamebobo-3d-slot-10`). Saves da série 0.x não são migrados: o conceito mudou demais. Veja [docs/SAVE_SCHEMA.md](docs/SAVE_SCHEMA.md).
 
 ## Antes de entregar uma mudança
 

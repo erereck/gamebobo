@@ -544,7 +544,10 @@ export class OfficeWorld {
       this.agentLayer.add(this.visitor.root)
     } else if (!view.visitor && this.visitor && this.visitor.state !== 'leave') this.visitor.leave()
 
-    for (const desk of this.desks) if (desk.pizza) desk.pizza.visible = view.working && view.pace === 'crunch' && desk.index < view.staff.length
+    for (const desk of this.desks) {
+      const person = view.staff[desk.index]
+      if (desk.pizza) desk.pizza.visible = Boolean(person?.working && person.pace === 'crunch')
+    }
   }
 
   handleFx(list) {
@@ -602,7 +605,7 @@ export class OfficeWorld {
     this.updateCamera()
 
     // dia e noite: crunch apaga o sol e acende os monitores
-    const nightTarget = this.view.working && this.view.pace === 'crunch' ? 1 : 0
+    const nightTarget = this.view.crunch ? 1 : 0
     this.night += (nightTarget - this.night) * Math.min(1, dt * 1.5)
     const n = this.night
     this.hemi.intensity = 1.25 - .8 * n

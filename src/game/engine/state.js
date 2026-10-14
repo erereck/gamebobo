@@ -2,10 +2,13 @@ import { FOUNDER_PROFILES } from '../data/staff.js'
 import { START_MONEY, TECHS, WEEKS_PER_YEAR, eraSkillFactor, moneyScale } from '../data/economy.js'
 import { RIVALS } from '../data/content/rivals.js'
 import { createFounder, randomLook } from './staff.js'
-import { createCandidates } from './staff.js'
+import { createCandidate, createCandidates } from './staff.js'
+import { PUBLISHERS, modeById } from '../data/modes.js'
+import { genreById, unlockedGenres, unlockedThemes } from '../data/genres.js'
+import { modeStartMoney } from './modes.js'
 import { historyCursorFor, rollTrend } from './market.js'
 import { generateFreelas } from './freelas.js'
-import { clamp, int } from './rng.js'
+import { clamp, int, pick } from './rng.js'
 
 export const SAVE_SCHEMA = 100
 
@@ -15,6 +18,7 @@ export const scaled = (state, value) => Math.round(value * moneyScale(yearFloat(
 
 export function createGame(options = {}, random = Math.random) {
   const year = clamp(Number(options.startYear) || 1980, 1980, 2030)
+  const mode = modeById(options.modeId)
   const profile = FOUNDER_PROFILES.find(item => item.id === options.profileId) ?? FOUNDER_PROFILES[0]
   const founderName = String(options.founderName || 'Você').trim().slice(0, 22) || 'Você'
   const studioName = String(options.studioName || 'Estúdio Bobo').trim().slice(0, 28) || 'Estúdio Bobo'
@@ -33,7 +37,9 @@ export function createGame(options = {}, random = Math.random) {
     year,
     week: 0,
     startYear: year,
-    money: Math.round(START_MONEY * moneyScale(year)),
+    money: Math.round(START_MONEY * moneyScale(year) * modeStartMoney(mode.id)),
+    mode: { id: mode.id, franchise: null, parent: null, brief: null },
+    slot: options.slot ?? 1,
     fans: 0,
     rp: 0,
     legacy: 0,
@@ -43,7 +49,10 @@ export function createGame(options = {}, random = Math.random) {
     kits: ['pc'],
     staff: [founder],
     candidates: createCandidates(year, 0, random),
-    project: null,
+    projects: [],
+    teams: [{ id: 'main', name: 'Equipe principal' }],
+    acquired: [],
+    goty: [],
     games: [],
     franchises: {},
     combos: {},
@@ -79,6 +88,9 @@ export function createGame(options = {}, random = Math.random) {
   state.historyCursor = historyCursorFor(absWeek(state) - 1)
   state.lastCamelo = absWeek(state) + 10
   state.freelas = generateFreelas(state, random)
+  // Portátil em janeiro de 1980: espera o Game & Watch chegar às lojas.
+  if (mode.id === 'portatil' && year === 1980) state.week = 12
+  if (mode.id === 'adquirido') startAcquired(state, random)
   return state
 }
 
@@ -94,3 +106,24 @@ export function toast(state, toastItem) {
 }
 
 export const fx = (state, item) => state.fx.push(item)
+
+// Estúdio Adquirido: começa numa garagem com três pessoas e uma dona exigente.
+function startAcquired(state, random) {
+  const owners = PUBLISHERS.filter(publisher => publisher.from <= state.year && publisher.to >= state.year && !publisher.indie)
+  const parent = pick(owners, random)
+  state.mode.parent = { id: parent.id, name: parent.name }
+  state.office = 2
+  for (const focus of ['fun', 'art', 'idea']) {
+    const person = createCandidate(state.year, 120, random, focus)
+    state.staff.push(person)
+  }
+  newBrief(state, random)
+}
+
+// Encomenda da dona: um gênero e um tema que pagam bônus se você entregar.
+export function newBrief(state, random = Math.random) {
+  if (!state.mode?.parent) return
+  const genre = pick(unlockedGenres(state.year, state.techs), random)
+  const theme = pick(unlockedThemes(state.year), random)
+  state.mode.brief = { genre: genre.id, theme: theme.id, bonus: 6000 + state.office * 6000 }
+}

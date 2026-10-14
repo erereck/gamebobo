@@ -5,6 +5,7 @@ import { moneyScale } from '../data/economy.js'
 import { applyEffects } from './effects.js'
 import { toast, yearFloat, log } from './state.js'
 import { gauss } from './rng.js'
+import { modeAwardPenalty } from './modes.js'
 import { RIVALS, rivalTierAt } from '../data/content/rivals.js'
 
 export function liveStats(state) {
@@ -70,7 +71,7 @@ export function registerCombo(state, genre, theme) {
 export function runAwards(state, year, random = Math.random) {
   const mine = state.games.filter(game => game.year === year).map(game => ({
     title: game.title, studio: state.studio.name, mine: true, gameId: game.id, score: game.score, copies: game.copies,
-    pillars: game.share,
+    pillars: game.pillars ?? game.share,
   }))
   const theirs = state.rivalGames.filter(game => game.year === year).map(game => ({
     title: game.title, studio: game.studio, mine: false, score: game.score, copies: game.copies,
@@ -78,6 +79,12 @@ export function runAwards(state, year, random = Math.random) {
     pillars: { fun: .25, art: .25, sound: .25, idea: .25, [game.pillar]: .4 },
   }))
   const pool = [...mine, ...theirs]
+  if (!pool.length) return null
+  // O Jogo do Ano da indústria fica registrado mesmo quando você não concorre.
+  const penalty = modeAwardPenalty(state)
+  const goty = [...pool].sort((a, b) => (b.score - (b.mine ? penalty : 0)) - (a.score - (a.mine ? penalty : 0)))[0]
+  state.goty ??= []
+  state.goty.push({ year, title: goty.title, studio: goty.studio, mine: goty.mine, score: goty.score })
   if (!mine.length || pool.length < 3) return null
   const categories = []
   for (const award of AWARDS) {
@@ -85,8 +92,10 @@ export function runAwards(state, year, random = Math.random) {
     if (field.length < 2) continue
     const rank = entry => {
       if (award.id === 'vendas') return entry.copies
-      if (award.pillar) return entry.score + (entry.pillars?.[award.pillar] ?? .25) * 6 + gauss(random) * .35
-      return entry.score + gauss(random) * .15
+      const handicap = entry.mine ? penalty : 0
+      if (award.pillar) return entry.score - handicap + (entry.pillars?.[award.pillar] ?? .25) * 6 + gauss(random) * .35
+      if (award.id === 'goty') return entry === goty ? 99 : entry.score - handicap
+      return entry.score - handicap + gauss(random) * .15
     }
     const ranked = field.map(entry => ({ entry, value: rank(entry) })).sort((a, b) => b.value - a.value).slice(0, 3)
     if (!ranked.some(item => item.entry.mine)) continue

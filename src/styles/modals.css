@@ -158,3 +158,13 @@
 .awards-dots { display: flex; gap: 6px; }
 .awards-dots i { width: 8px; height: 8px; border-radius: 50%; background: #4a4458; }
 .awards-dots i.on { background: var(--sun); } .awards-dots i.past { background: #8a82a0; }
+
+/* ---------- feira ---------- */
+.expo-icon { background: var(--sky); }
+.expo-targets { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.expo-target { display: grid; justify-items: center; gap: 4px; padding: 10px 6px; background: #fff; border: 2px solid var(--ink); border-radius: var(--r); box-shadow: 0 3px 0 var(--ink); transition: transform .12s var(--ease-pop); }
+.expo-target:hover:not(:disabled) { transform: translateY(-3px) rotate(-1deg); }
+.expo-target:disabled { opacity: .45; }
+.expo-target .cover { border: 2px solid var(--ink); border-radius: 4px; }
+.expo-target b { font-weight: 800; font-size: 12px; line-height: 1.1; }
+.expo-target small { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--ink-2); font-weight: 700; }

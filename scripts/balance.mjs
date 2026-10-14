@@ -53,8 +53,8 @@ function pickChoice(state, random) {
   return { genre, theme, platform, size, hook, title: `Jogo ${state.games.length + 1}` }
 }
 
-function bestFocus(state, phaseIndex) {
-  const project = state.project
+function bestFocus(state, phaseIndex, projectId) {
+  const project = state.projects.find(item => item.id === projectId)
   const genre = genreById(project.genre)
   const total = Object.values(project.pts).reduce((a, b) => a + b, 0) || 1
   const options = PHASE_FOCUS[PHASES[phaseIndex].id]
@@ -80,17 +80,19 @@ function act(state, random) {
       }
       return { type: 'CLOSE' }
     }
-    if (item.kind === 'phase') return { type: 'SET_FOCUS', focus: STYLE === 'preguicoso' ? PHASE_FOCUS[PHASES[item.phase].id][0].id : bestFocus(state, item.phase) }
+    if (item.kind === 'phase') return { type: 'SET_FOCUS', focus: STYLE === 'preguicoso' ? PHASE_FOCUS[PHASES[item.phase].id][0].id : bestFocus(state, item.phase, item.projectId) }
+    if (item.kind === 'expo') return { type: 'EXPO_PICK', targetId: STYLE === 'preguicoso' ? null : state.projects[0]?.id ?? null }
     if (item.kind === 'ready') {
-      const total = Object.values(state.project.pts).reduce((a, b) => a + b, 0) || 1
-      if (STYLE !== 'preguicoso' && state.project.bugs / total > .1 && (state.project.totalWeeks - state.project.baseWeeks) < 4) return { type: 'POLISH_MORE' }
+      const project = state.projects.find(entry => entry.id === item.projectId)
+      const total = Object.values(project.pts).reduce((a, b) => a + b, 0) || 1
+      if (STYLE !== 'preguicoso' && project.bugs / total > .1 && (project.totalWeeks - project.baseWeeks) < 4) return { type: 'POLISH_MORE' }
       return { type: 'RELEASE' }
     }
     if (item.kind === 'bankrupt') return { type: 'BANKRUPT', choice: state.usedLoan ? 'home' : 'loan' }
     return { type: 'CLOSE' }
   }
   if (STYLE === 'preguicoso') {
-    if (!state.project) {
+    if (!state.projects.length) {
       const choice = pickChoice(state, random)
       const cost = projectCost(state, choice).total
       if (cost <= state.money) return { type: 'START_GAME', choice }
@@ -106,7 +108,7 @@ function act(state, random) {
   }
   // escritório
   const next = OFFICES[state.office + 1]
-  if (next && state.staff.length >= OFFICES[state.office].cap && next.cost * scale * 2.2 < state.money && !state.project) return { type: 'UPGRADE_OFFICE' }
+  if (next && state.staff.length >= OFFICES[state.office].cap && next.cost * scale * 2.2 < state.money && !state.projects.length) return { type: 'UPGRADE_OFFICE' }
   // contratar
   if (state.staff.length < OFFICES[state.office].cap && state.games.length >= 2 && state.candidates.length) {
     const best = [...state.candidates].sort((a, b) => (b.skills.fun + b.skills.art + b.skills.sound + b.skills.idea) / b.salary - (a.skills.fun + a.skills.art + a.skills.sound + a.skills.idea) / a.salary)[0]
@@ -117,15 +119,15 @@ function act(state, random) {
     if (state.decor.includes(item.id) || state.decor.length >= OFFICES[state.office].slots) continue
     if (item.cost * scale * 12 < state.money) return { type: 'BUY_DECOR', id: item.id }
   }
-  if (!state.project) {
+  if (!state.projects.length) {
     if (state.freelas.length && state.money < projectCost(state, { size: 'pequeno', platform: 'pc' }).total * 1.2) return { type: 'START_FREELA', id: state.freelas[0].id }
     const choice = pickChoice(state, random)
     const cost = projectCost(state, choice).total
     if (cost <= state.money) return { type: 'START_GAME', choice }
     if (state.freelas.length) return { type: 'START_FREELA', id: state.freelas[0].id }
-  } else if (state.project.kind === 'game' && state.project.hype < 45 && random() < .08) {
+  } else if (state.projects[0].kind === 'game' && state.projects[0].hype < 45 && random() < .08) {
     const channels = MARKETING.filter(c => c.from <= state.year && c.to >= state.year && c.cost * scale < state.money * .06)
-    if (channels.length) return { type: 'MARKET', id: channels[Math.floor(random() * channels.length)].id }
+    if (channels.length) return { type: 'MARKET', id: channels[Math.floor(random() * channels.length)].id, projectId: state.projects[0].id }
   }
   return { type: 'TICK' }
 }

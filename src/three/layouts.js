@@ -92,6 +92,30 @@ export const LAYOUTS = [
   },
 ]
 
+LAYOUTS.push({
+  id: 'torre', w: 20, d: 14, wallH: 3.1, floor: 'tile', rug: { x: 6, z: 4.2, w: 5, d: 3.4, color: '#a0c4ff' },
+  desks: [...pod(-6.6, -4.2), ...pod(-2.2, -4.2), ...pod(2.2, -4.2), ...pod(-6.6, .2), ...pod(-2.2, .2), ...pod(2.2, .2)],
+  fixed: [
+    { kind: 'door', x: -10, z: 6, rot: H, wall: 'left' },
+    { kind: 'window', x: -6.6, z: -7, rot: 0, wall: 'back', width: 2.6 },
+    { kind: 'window', x: -.2, z: -7, rot: 0, wall: 'back', width: 2.6 },
+    { kind: 'window', x: 6.2, z: -7, rot: 0, wall: 'back', width: 2.6 },
+    { kind: 'window', x: -10, z: -2, rot: H, wall: 'left', width: 2.2 },
+    { kind: 'meeting', x: 7.2, z: -3.6, rot: 0 },
+    { kind: 'meeting', x: 7.2, z: .4, rot: 0 },
+    { kind: 'server', x: 9.4, z: -6.4, rot: 0 },
+    { kind: 'server', x: 8.7, z: -6.4, rot: 0 },
+    { kind: 'server', x: 8, z: -6.4, rot: 0 },
+    { kind: 'cooler', x: 9.5, z: 2.6, rot: -H },
+    { kind: 'lamp', x: -9.4, z: -6.4, rot: 0 },
+    { kind: 'bookshelf', x: 3.4, z: -6.8, rot: 0 },
+    { kind: 'bookshelf', x: -3.4, z: -6.8, rot: 0 },
+  ],
+  posters: [{ x: -10, z: -4.6, rot: H }, { x: -10, z: -3.5, rot: H }, { x: 1.6, z: -7, rot: 0 }, { x: -1.6, z: -7, rot: 0 }, { x: -10, z: 2.6, rot: H }, { x: -10, z: 3.7, rot: H }],
+  floorSlots: [{ x: 6, z: 3.4 }, { x: 8.6, z: 5.8 }, { x: 3.4, z: 5.8 }, { x: 9, z: 4 }, { x: .6, z: 5.6 }, { x: -2, z: 5.6 }, { x: -4.6, z: 5.6 }, { x: -8.2, z: 5.2 }, { x: 4.6, z: 2.6 }, { x: -8.8, z: -6.2 }, { x: 9.2, z: -1.6 }, { x: -.2, z: 3.4 }, { x: -6.4, z: 3.4 }, { x: 2.8, z: 3.6 }],
+  wallSlots: [{ x: -4.9, z: -7, rot: 0 }, { x: -10, z: 0, rot: H }, { x: 4.6, z: -7, rot: 0 }],
+})
+
 export const FLOOR_STYLES = {
   wood: { color: '#c9a27a', line: '#b88f66' },
   concrete: { color: '#a7a9ac', line: '#9a9c9f' },

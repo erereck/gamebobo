@@ -107,6 +107,18 @@ export function CollectionPanel() {
               ))}
             </div>
           )}
+          {state.goty?.length > 0 && (
+            <div className="goty-list">
+              <b className="shelf-title">Jogos do Ano</b>
+              {[...state.goty].reverse().slice(0, 30).map(entry => (
+                <div key={entry.year} className={`goty-row ${entry.mine ? 'mine' : ''}`}>
+                  <span className="goty-year">{entry.year}</span>
+                  <span className="goty-title"><b>{entry.title}</b><small>{entry.studio}</small></span>
+                  {entry.mine && <Icon name="trophy" size={16} />}
+                </div>
+              ))}
+            </div>
+          )}
           <div className="ach-count"><b>{state.achievements.length}</b> de {ACHIEVEMENTS.length} conquistas</div>
           <div className="ach-grid">
             {ACHIEVEMENTS.map(item => {

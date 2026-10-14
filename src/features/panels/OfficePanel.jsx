@@ -15,7 +15,7 @@ export function OfficePanel() {
   return (
     <div className="officep">
       <div className="office-now">
-        <div className="office-level">{Array.from({ length: 5 }, (_, i) => <i key={i} className={i <= state.office ? 'on' : ''} />)}</div>
+        <div className="office-level">{OFFICES.map((_, i) => <i key={i} className={i <= state.office ? 'on' : ''} />)}</div>
         <b>{office.label}</b>
         <span><Icon name="users" size={14} />{office.cap} mesas</span>
         <span><Icon name="cash" size={14} />{fmtMoney(Math.round(office.rent * scale))}/mês</span>

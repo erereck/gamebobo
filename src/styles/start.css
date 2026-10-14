@@ -112,3 +112,33 @@
   .phase-title { font-size: 32px; }
   .staff-badge { left: 8px !important; right: 8px; width: auto; top: auto !important; bottom: calc(80px + var(--safe-bottom)); }
 }
+
+/* ---------- espaços de save e modos ---------- */
+.slots-card h1 { margin: 0; font-weight: 800; font-size: 30px; letter-spacing: -.03em; }
+.slots { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.slot { position: relative; display: flex; align-items: stretch; background: #fff; border: 2px solid var(--ink); border-radius: var(--r); box-shadow: 0 3px 0 var(--ink); }
+.slot-main { flex: 1; display: flex; align-items: center; gap: 8px; padding: 8px 26px 8px 8px; border: 0; background: none; text-align: left; min-width: 0; }
+.slot-main:hover { background: #fff8e1; border-radius: var(--r); }
+.slot-num { position: absolute; top: -8px; left: -6px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 10px; font-weight: 700; z-index: 1; }
+.slot-info { display: grid; min-width: 0; line-height: 1.15; }
+.slot-info b { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot-info small { font-family: var(--mono); font-size: 10px; color: var(--ink-2); }
+.slot-mode { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 800; color: var(--tomato-2); }
+.slot-trash { position: absolute; top: 4px; right: 4px; display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-3); }
+.slot-trash:hover { background: #ffe0dc; color: var(--bad); }
+.slot-confirm { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255,248,236,.96); border-radius: var(--r); }
+.slot-empty { flex-direction: column; justify-content: center; align-items: center; gap: 2px; min-height: 64px; border-style: dashed; box-shadow: none; background: transparent; color: var(--ink-2); font-weight: 800; }
+.slot-empty:hover { background: #fff; color: var(--ink); }
+.mode-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.mode-tile { display: grid; justify-items: center; gap: 2px; padding: 10px 4px; border: 2px solid var(--ink); border-radius: var(--r-sm); background: #fff; box-shadow: 0 3px 0 var(--ink); transition: transform .12s var(--ease-pop); }
+.mode-tile:hover { transform: translateY(-2px); }
+.mode-tile.on { background: var(--sun); transform: rotate(-1.5deg); }
+.mode-tile b { font-weight: 800; font-size: 12px; line-height: 1.1; text-align: center; }
+.mode-tile small { font-family: var(--mono); font-size: 8.5px; color: var(--ink-2); text-transform: uppercase; }
+.mode-rules { list-style: none; margin: 0; padding: 10px 12px; display: grid; gap: 4px; background: #fff; border: 2px dashed var(--ink-3); border-radius: var(--r-sm); animation: step-in .3s var(--ease-out); }
+.mode-rules li { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; }
+.mode-rules .icon { color: var(--good); }
+@media (max-width: 760px) {
+  .slots { grid-template-columns: 1fr; }
+  .mode-tiles { grid-template-columns: repeat(3, 1fr); }
+}

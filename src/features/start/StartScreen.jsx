@@ -1,34 +1,74 @@
 import { useMemo, useState } from 'react'
-import { dispatch, loadSave, peekSave, hasLegacySave } from '../../app/store.js'
+import { dispatch, deleteSlot, hasLegacySave, listSlots, loadSave } from '../../app/store.js'
 import { sfx, vibrate } from '../../app/audio.js'
 import { Icon } from '../../ui/Icon.jsx'
 import { Avatar } from '../../ui/Avatar.jsx'
 import { OfficeView } from '../office/OfficeView.jsx'
 import { FOUNDER_PROFILES, LOOKS, traitById } from '../../game/data/staff.js'
 import { START_ERAS, eraAt } from '../../game/data/economy.js'
+import { GAME_MODES, modeById } from '../../game/data/modes.js'
 import { STUDIO_NAME_IDEAS, FIRST_NAMES } from '../../game/data/content/names.js'
 import { randomLook } from '../../game/engine/staff.js'
 import { pick } from '../../game/engine/rng.js'
 import { VERSION_INFO } from '../../version.js'
 
-const STEPS = ['name', 'studio', 'year', 'profile', 'look']
+const STEPS = ['mode', 'name', 'studio', 'year', 'profile', 'look']
+
+function SlotPicker({ slots, onNew, onRefresh }) {
+  const [confirm, setConfirm] = useState(null)
+  return (
+    <section className="start-card slots-card">
+      <h1>Suas carreiras</h1>
+      <div className="slots">
+        {slots.map(slot => slot.empty ? (
+          <button key={slot.slot} type="button" className="slot slot-empty" onClick={() => { sfx.select(); onNew(slot.slot) }}>
+            <span className="slot-num">{slot.slot}</span>
+            <Icon name="plus" size={22} />
+            <small>Nova</small>
+          </button>
+        ) : (
+          <div key={slot.slot} className="slot">
+            <button type="button" className="slot-main" onClick={() => { sfx.fanfare(); const loaded = loadSave(slot.slot); if (loaded) dispatch({ type: 'LOAD', state: loaded }) }}>
+              <span className="slot-num">{slot.slot}</span>
+              <Avatar look={slot.look} size={44} />
+              <span className="slot-info">
+                <b>{slot.studio}</b>
+                <small>{slot.year} · {slot.games} jogos</small>
+                <span className="slot-mode"><Icon name={modeById(slot.mode).icon} size={11} stroke={2.6} />{modeById(slot.mode).label}</span>
+              </span>
+            </button>
+            {confirm === slot.slot ? (
+              <span className="slot-confirm">
+                <button type="button" className="btn btn-small btn-tomato" onClick={() => { deleteSlot(slot.slot); setConfirm(null); onRefresh() }}>Apagar</button>
+                <button type="button" className="btn btn-small" onClick={() => setConfirm(null)}>Não</button>
+              </span>
+            ) : (
+              <button type="button" className="slot-trash" aria-label="Apagar save" title="Apagar" onClick={() => { sfx.back(); setConfirm(slot.slot) }}><Icon name="x" size={16} /></button>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
 
 export function StartScreen() {
-  const save = useMemo(() => peekSave(), [])
+  const [slots, setSlots] = useState(() => listSlots())
+  const used = slots.filter(slot => !slot.empty)
   const legacy = useMemo(() => hasLegacySave(), [])
-  const [mode, setMode] = useState(save ? 'continue' : 'new')
+  const [creating, setCreating] = useState(() => (used.length ? null : 1))
   const [step, setStep] = useState(0)
-  const [form, setForm] = useState(() => ({ founderName: '', studioName: '', startYear: null, profileId: null, look: { ...randomLook(), extra: 'nada' } }))
-  const era = eraAt(form.startYear ?? save?.year ?? 1980)
+  const [form, setForm] = useState(() => ({ modeId: null, founderName: '', studioName: '', startYear: null, profileId: null, look: { ...randomLook(), extra: 'nada' } }))
+  const era = eraAt(form.startYear ?? 1980)
 
   const view = useMemo(() => ({
     office: 0,
     era,
     decor: ['plant'],
     studioName: form.studioName || 'Gamebobo',
-    staff: [{ id: 'founder', name: form.founderName, look: mode === 'continue' && save?.look ? save.look : form.look, founder: true, trait: 'zen', energy: 100, status: 'ok', top: 'fun' }],
-    working: step >= 3,
-    pace: 'normal',
+    staff: [{ id: 'founder', name: form.founderName, look: form.look, founder: true, trait: 'zen', energy: 100, status: 'ok', top: 'fun', working: step >= 4, pace: 'normal' }],
+    working: step >= 4,
+    crunch: false,
     ideas: [],
     visitor: false,
     couples: [],
@@ -36,10 +76,11 @@ export function StartScreen() {
     trophies: 0,
     topics: ['gamepad', 'bulb', 'pizza', 'heart'],
     sound: false,
-  }), [era.id, form.look, form.studioName, step, mode])
+  }), [era.id, form.look, form.studioName, step])
 
   const current = STEPS[step]
   const canNext = {
+    mode: form.modeId !== null,
     name: form.founderName.trim().length > 0,
     studio: form.studioName.trim().length > 0,
     year: form.startYear !== null,
@@ -47,16 +88,16 @@ export function StartScreen() {
     look: true,
   }[current]
 
+  const start = () => {
+    sfx.fanfare()
+    dispatch({ type: 'NEW_GAME', options: { ...form, slot: creating } })
+  }
   const next = () => {
     if (!canNext) return
     sfx.select()
     vibrate(8)
     if (step < STEPS.length - 1) setStep(step + 1)
     else start()
-  }
-  const start = () => {
-    sfx.fanfare()
-    dispatch({ type: 'NEW_GAME', options: form })
   }
   const setLook = patch => {
     sfx.click()
@@ -73,23 +114,31 @@ export function StartScreen() {
         <small>{VERSION_INFO.version} · {VERSION_INFO.codename}</small>
       </div>
 
-      {mode === 'continue' && save ? (
-        <section className="start-card">
-          <div className="save-card">
-            <Avatar look={save.look} size={64} />
-            <div>
-              <b>{save.studio}</b>
-              <small>{save.founder} · {save.year} · {save.games} jogos</small>
-            </div>
-          </div>
-          <button type="button" className="btn btn-big btn-tomato" onClick={() => { sfx.fanfare(); const loaded = loadSave(); if (loaded) dispatch({ type: 'LOAD', state: loaded }) }}>
-            <Icon name="play" size={20} /> Continuar
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={() => { sfx.click(); setMode('new') }}>Nova carreira</button>
-        </section>
+      {creating === null ? (
+        <SlotPicker slots={slots} onNew={slot => { setCreating(slot); setStep(0) }} onRefresh={() => setSlots(listSlots())} />
       ) : (
         <section className="start-card">
           <div className="start-steps">{STEPS.map((s, i) => <i key={s} className={i < step ? 'done' : i === step ? 'now' : ''} />)}</div>
+
+          {current === 'mode' && (
+            <div className="start-step" key="mode">
+              <h1>Que carreira?</h1>
+              <div className="mode-tiles">
+                {GAME_MODES.map(mode => (
+                  <button key={mode.id} type="button" className={`mode-tile ${form.modeId === mode.id ? 'on' : ''}`} onClick={() => { sfx.select(); setForm(f => ({ ...f, modeId: mode.id })) }}>
+                    <Icon name={mode.icon} size={22} />
+                    <b>{mode.label}</b>
+                    <small>{mode.tag}</small>
+                  </button>
+                ))}
+              </div>
+              {form.modeId && (
+                <ul className="mode-rules">
+                  {modeById(form.modeId).rules.map(rule => <li key={rule}><Icon name="check" size={12} stroke={3} />{rule}</li>)}
+                </ul>
+              )}
+            </div>
+          )}
 
           {current === 'name' && (
             <div className="start-step" key="name">
@@ -179,13 +228,14 @@ export function StartScreen() {
           )}
 
           <div className="start-nav">
-            {step > 0 && <button type="button" className="btn btn-ghost" onClick={() => { sfx.back(); setStep(step - 1) }}><Icon name="back" size={16} /></button>}
+            {(step > 0 || used.length > 0) && (
+              <button type="button" className="btn btn-ghost" onClick={() => { sfx.back(); if (step > 0) setStep(step - 1); else setCreating(null) }}><Icon name="back" size={16} /></button>
+            )}
             <button type="button" className="btn btn-big btn-tomato" disabled={!canNext} onClick={next}>
               {step === STEPS.length - 1 ? <><Icon name="home" size={20} />Abrir o quarto</> : <>Próximo<Icon name="play" size={16} /></>}
             </button>
           </div>
-          {legacy && step === 0 && <p className="legacy-note"><Icon name="info" size={12} />Saves da versão antiga não passam para o 3D.</p>}
-          {save && <button type="button" className="link-btn" onClick={() => setMode('continue')}>Voltar ao save</button>}
+          {legacy && step === 0 && <p className="legacy-note"><Icon name="info" size={12} />Saves da versão antiga (0.x) não passam para o 3D.</p>}
         </section>
       )}
     </div>

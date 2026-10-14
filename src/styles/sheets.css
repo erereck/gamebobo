@@ -128,3 +128,20 @@
 .camelo-result { margin: 0 16px 10px; padding: 10px; border: var(--line); border-radius: var(--r); display: grid; gap: 6px; justify-items: center; animation: pop-in .3s var(--ease-pop); }
 .camelo-result.good { background: #d8f8df; } .camelo-result.bad { background: #ffe0dc; }
 .camelo-foot { display: flex; justify-content: center; padding: 0 0 14px; }
+
+/* ---------- ficha: extras ---------- */
+.toggle-chip { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 5px 10px; border: 2px solid var(--ink); border-radius: 999px; background: #fff; font-weight: 800; font-size: 12px; letter-spacing: 0; }
+.toggle-chip.on { background: var(--grape); color: #fff; }
+.step-label .toggle-chip + .toggle-chip { margin-left: 6px; }
+.step-confirm { margin-top: 12px; width: 100%; }
+.step-confirm b { font-family: var(--mono); font-size: 12px; }
+.plat-order { position: absolute; top: 18px; right: 8px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--grape); color: #fff; font-family: var(--mono); font-size: 11px; font-weight: 700; border: 2px solid var(--ink); }
+.brief-tag { position: absolute; top: -9px; left: 50%; transform: translateX(-50%) rotate(-3deg); padding: 1px 8px; background: var(--tomato); color: #fff; font-size: 9px; font-weight: 800; text-transform: uppercase; border: 2px solid var(--ink); border-radius: 999px; white-space: nowrap; }
+.tile-pub { gap: 3px; }
+.pub-no { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--bad); border: 2px solid var(--bad); padding: 1px 8px; border-radius: 6px; transform: rotate(-6deg); }
+.tile-accessory { background: #f3e6ff; }
+.sticker-acc { background: var(--grape); color: #fff; }
+.fits-acc { background: var(--grape); color: #fff; }
+.team-pick { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 16px 0; }
+.bill .pos { color: var(--good); }
+.empty.small { padding: 6px; font-size: 12px; }

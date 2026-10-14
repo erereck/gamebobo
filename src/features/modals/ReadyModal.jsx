@@ -5,8 +5,8 @@ import { Cover } from '../../ui/Cover.jsx'
 import { fmtNum } from '../../ui/format.js'
 import { totalPoints } from '../../game/engine/quality.js'
 
-export function ReadyModal({ state }) {
-  const project = state.project
+export function ReadyModal({ item, state }) {
+  const project = state.projects.find(entry => entry.id === item.projectId)
   if (!project) return null
   const total = totalPoints(project.pts)
   const bugRatio = project.bugs / Math.max(1, total)

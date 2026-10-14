@@ -4,7 +4,8 @@ import { scaled } from './state.js'
 import { clamp } from './rng.js'
 
 // Aplica um pacote de efeitos e devolve fichinhas para a interface mostrar.
-export function applyEffects(state, effects = {}) {
+// ctx.projectId escolhe o projeto afetado; sem ele, o primeiro jogo em produção.
+export function applyEffects(state, effects = {}, ctx = {}) {
   const chips = []
   if (!effects) return chips
   if (effects.money) {
@@ -39,7 +40,7 @@ export function applyEffects(state, effects = {}) {
     state.buffs.sales *= effects.salesMult
     chips.push({ key: 'sales', value: Math.round((effects.salesMult - 1) * 100) })
   }
-  const project = state.project
+  const project = (ctx.projectId && state.projects?.find(item => item.id === ctx.projectId)) || state.projects?.find(item => item.kind === 'game') || null
   if (project && project.kind === 'game') {
     if (effects.hype) {
       project.hype = clamp(project.hype + effects.hype, 0, 100)

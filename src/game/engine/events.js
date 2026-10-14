@@ -11,17 +11,19 @@ const REPEAT_AFTER = 48 * 7
 export const EVENTS = [...BASE_EVENTS, ...REAL_EVENTS]
 
 export function eventContext(state, random = Math.random) {
-  const employees = state.staff.filter(person => !person.founder && person.status === 'ok')
+  const devProject = state.projects.find(project => project.kind === 'game') ?? null
+  const employees = state.staff.filter(person => !person.founder && person.status === 'ok' && !state.teams?.find(team => team.id === (person.team ?? 'main'))?.remote)
   const founder = state.staff.find(person => person.founder)
   const rivals = activeRivals(state.year)
   return {
     staffId: employees.length ? pick(employees, random).id : null,
     founder: founder?.name ?? 'Você',
     studio: state.studio.name,
-    game: state.project?.kind === 'game' ? state.project.title : null,
+    projectId: devProject?.id ?? null,
+    game: devProject?.title ?? null,
     lastgame: state.games.at(-1)?.title ?? null,
     rival: rivals.length ? pick(rivals, random).name : 'a concorrência',
-    platform: state.project?.platform ? platformById(state.project.platform)?.label : null,
+    platform: devProject?.platform ? platformById(devProject.platform)?.label : null,
   }
 }
 
@@ -43,7 +45,7 @@ export function fillText(text, state, ctx = {}) {
 
 function matches(event, state) {
   const when = event.when ?? {}
-  const phase = state.project?.kind === 'game' ? 'dev' : 'idle'
+  const phase = state.projects.some(project => project.kind === 'game') ? 'dev' : 'idle'
   if (when.phase && when.phase !== 'any' && when.phase !== phase) return false
   if (when.minYear && state.year < when.minYear) return false
   if (when.maxYear && state.year > when.maxYear) return false
@@ -68,8 +70,8 @@ export function pickEvent(state, random = Math.random) {
 }
 
 export function pickIdea(state, random = Math.random) {
-  const project = state.project
-  if (!project || project.kind !== 'game') return null
+  const project = state.projects.find(item => item.kind === 'game')
+  if (!project) return null
   const pool = IDEAS.filter(idea => (idea.minYear ?? 0) <= state.year && (idea.maxYear ?? 9999) >= state.year && state.seenEvents[`idea:${idea.id}`] === undefined)
   return weighted(pool, idea => (idea.genres?.includes(project.genre) ? 3 : 1), random)
 }

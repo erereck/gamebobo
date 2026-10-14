@@ -30,14 +30,14 @@ function WantHave({ project }) {
 }
 
 export function PhaseModal({ item, state }) {
-  const project = state.project
+  const project = state.projects.find(entry => entry.id === item.projectId)
   if (!project) return null
   const phase = PHASES[item.phase]
   const options = PHASE_FOCUS[phase.id]
   return (
     <div className="modal-backdrop">
       <article className="phase-card">
-        <div className="phase-kicker">Fase {item.phase + 1} de 3</div>
+        <div className="phase-kicker">{project.title} · fase {item.phase + 1} de 3</div>
         <h2 className="phase-title">{phase.label}</h2>
         <div className="phase-legend"><span><i className="lg-want" />o gênero pede</span><span><i className="lg-have" />seu jogo tem</span></div>
         <WantHave project={project} />

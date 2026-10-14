@@ -19,6 +19,11 @@ Reescrita completa. Save novo: a série 0.x não é migrada.
 - **Revelação de lançamento** com quatro críticos virando as cartas, carimbo da nota, fatores da nota em setas, comentários de fãs da época e evolução da equipe.
 - **Indústria de verdade**: 65 empresas reais como rivais, com fundação, fechamento e porte por época; 129 jogos históricos saindo no mês real, mais FIFA, Winning Eleven/PES e Call of Duty todo ano. Sucessos históricos entram nas paradas, disputam prêmios e puxam a moda do mercado.
 - **Mercado vivo**: paradas semanais, modas, Bobo Awards por envelope (incluindo Indie do Ano), conquistas com raridade e títulos de legado.
+- **Sistemas da 0.12 a 0.14 refeitos no 3D**:
+  - 10 espaços de save, com troca pelas configurações e migração automática.
+  - 9 modos de carreira: Tradicional, Realista, Portátil, Franquia Única, Estúdio Adquirido (com encomendas da dona), Autor Solo, Indie Eterno, Império Arcade e Antologia.
+  - Equipes de produção com projetos simultâneos, troca de pessoas por menu, ritmo que depende da força da equipe e compra de estúdios reais (que deixam de lançar os próprios clássicos).
+  - Linha de produção: sequência, spin-off, remake, remaster, porte e coletânea; multiplataforma com delegação; gêneros híbridos; editoras que pagam parte e podem recusar; demos com pista da nota; feiras anuais (CES, E3, TGS, Gamescom, BGS, Summer Game Fest) com escolha do jogo; periféricos históricos (pistola de luz, guitarra, Wii Remote, Kinect…); choques de mercado reais; Fliperama e Game & Watch como plataformas; sexta sede, a Torre; contratação mais cara conforme o estúdio cresce; Jogo do Ano da indústria registrado todo ano.
 - **Manchetes e eventos reais**: crash de 1983, selo da Nintendo, Tectoy traduzindo jogos, CD pirata da Santa Ifigênia, lan house, Steam, App Store, Twitch, Pokémon GO, Game Pass e mais.
 - **Conteúdo**: 167 eventos (60 absurdos, 16 históricos), 40 ideias, 47 promessas, 40 freelas, 26 itens do Camelô, 67 conquistas, 94 manchetes, 30 veículos de crítica e 130 ícones próprios.
 - **Plataformas reais** com mês de lançamento: do Atari 2600 e Intellivision ao Switch 2, passando por MSX, Neo Geo, 3DO, Stadia e Steam Deck. O console novo chega com aviso na data certa.
