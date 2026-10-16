@@ -81,14 +81,18 @@ export const rivalTierAt = (rival, year) => {
   return tier
 }
 
-// Padrões extras para títulos de jogos rivais (mesmos tokens de titles.js).
+// Padrões de editora grande: série anual, Party, Online (mesmos tokens de titles.js, em inglês).
 export const RIVAL_TITLE_PATTERNS = [
   '{noun} {num}',
   'Super {noun} {num}',
   '{hero} Party {num}',
   '{noun}: {sub}',
-  '{noun} {adj}: Edição Anual',
-  '{hero} {num}',
+  '{adj} {noun}: Annual Edition',
+  '{hero} {ed}',
   'Mega {noun} Online',
   '{noun} Saga {num}',
+  'Pro {noun} {yy}',
+  '{hero} All-Stars',
+  'Season of the {noun}',
+  '{noun} {ed}',
 ]
