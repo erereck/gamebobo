@@ -8,7 +8,7 @@
 .start-card {
   position: absolute; top: 0; bottom: 0; right: 22px; margin: auto 0; height: fit-content; max-height: calc(100% - 36px); overflow-y: auto;
   width: min(420px, calc(40vw - 20px)); z-index: 5;
-  display: flex; flex-direction: column; gap: 16px; padding: 26px 24px;
+  display: flex; flex-direction: column; gap: 16px; padding: 26px 24px; overflow-x: hidden;
   background: var(--paper); border: var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-lg);
   animation: panel-in .5s var(--ease-out);
 }
@@ -16,9 +16,9 @@
 .start-steps i { flex: 1; height: 8px; border-radius: 4px; background: var(--paper-3); border: 1.5px solid var(--ink); transition: background .3s; }
 .start-steps i.done { background: var(--mint); }
 .start-steps i.now { background: var(--sun); }
-.start-step { display: grid; gap: 14px; animation: step-in .4s var(--ease-out); }
+.start-step { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; animation: step-in .4s var(--ease-out); }
 .start-step h1 { margin: 0; font-weight: 800; font-size: 32px; letter-spacing: -.03em; line-height: 1; text-wrap: balance; }
-.field { display: flex; gap: 8px; }
+.field { display: flex; gap: 8px; min-width: 0; }
 .field input { flex: 1; min-width: 0; height: 58px; padding: 0 16px; border: var(--line); border-radius: var(--r); background: #fff; font-size: 24px; font-weight: 800; letter-spacing: -.01em; box-shadow: inset 0 3px 0 rgba(0,0,0,.06); }
 .field input::placeholder { color: var(--paper-3); }
 .field .dice { width: 58px; height: 58px; }

@@ -465,7 +465,7 @@ export class OfficeWorld {
 
   // ---------- sincronização com o estado do jogo ----------
   sync(view) {
-    const key = `${view.office}|${view.era.id}|${view.decor.join(',')}|${view.posters.map(p => p.id).join(',')}|${view.studioName}`
+    const key = `${view.office}|${view.era.id}|${view.decor.join(',')}|${view.posters.map(p => p.id).join(',')}|${view.decor.includes('neon') ? view.studioName : ''}`
     const rebuilt = key !== this.staticKey
     if (rebuilt) {
       this.staticKey = key
@@ -513,12 +513,15 @@ export class OfficeWorld {
       agent.deskIndex = index
     })
     if (rebuilt && this.initialized) {
+      // Quem ainda cabe onde estava continua lá; só quem ficou dentro de um móvel novo é empurrado.
       for (const agent of this.agents) {
         agent.releaseSpot()
-        const [x, z] = this.nav.randomWalkable()
-        agent.place(x, z, Math.random() * 6)
+        const [c, r] = this.nav.toCell(agent.x, agent.z)
+        const [nc, nr] = this.nav.walkable(c, r) ? [c, r] : this.nav.nearestWalkable(agent.x, agent.z)
+        const [x, z] = this.nav.walkable(c, r) ? [agent.x, agent.z] : this.nav.toWorld(nc, nr)
+        agent.place(x, z, agent.rot)
         agent.path = []
-        if (agent.state !== 'gone') agent.setIdle(Math.random())
+        if (agent.state !== 'gone') agent.setIdle(.3 + Math.random())
       }
       this.conversations = []
       if (this.cat) {
