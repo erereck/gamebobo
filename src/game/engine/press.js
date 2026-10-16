@@ -174,6 +174,8 @@ export function answerPress(state, item, index, random = Math.random, at = null)
     : { effects: plan.effects, text: answer.reaction, win: null }
   const chips = applyPressEffects(state, outcome.effects, game)
   item.answers.push({ index, tone: answer.tone, text: fillPress(outcome.text, item.vars), win: outcome.win, chips })
+  if (outcome.win === true) state.stats.spicyWins = (state.stats.spicyWins ?? 0) + 1
+  if (outcome.win === false) state.stats.spicyLosses = (state.stats.spicyLosses ?? 0) + 1
   if (outcome.win === true) fx(state, { type: 'cheer' })
   else if (outcome.win === false) fx(state, { type: 'sigh' })
   else if (outcome.effects?.nextHype > 0) fx(state, { type: 'hype', amount: outcome.effects.nextHype })

@@ -75,7 +75,7 @@ export function createGame(options = {}, random = Math.random) {
     stats: {
       gamesReleased: 0, totalCopies: 0, totalRevenue: 0, bestScore: 0, bestCopies: 0, awardsWon: 0, hallOfFame: 0,
       perfectGames: 0, chartNumberOnes: 0, sequelsReleased: 0, freelasDone: 0, bankruptcies: 0, crunchWeeks: 0,
-      researchDone: 0, flops: 0, ideasAccepted: 0, eventsSeen: 0, cameloDeals: 0,
+      researchDone: 0, flops: 0, ideasAccepted: 0, eventsSeen: 0, cameloDeals: 0, interviews: 0, spicyWins: 0, spicyLosses: 0,
     },
     debtMonths: 0,
     loan: null,
