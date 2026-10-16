@@ -113,7 +113,7 @@ export function stepRivals(state, random = Math.random) {
 
 export const historicWeek = entry => (entry.year - 1980) * WEEKS_PER_YEAR + entry.month * 4
 // Muda quando a lista de jogos reais muda; saves antigos recalculam onde a história está.
-export const HISTORY_VERSION = 2
+export const HISTORY_VERSION = 3
 
 // Primeiro jogo histórico que ainda vai sair a partir de uma semana absoluta.
 export function historyCursorFor(tw) {
