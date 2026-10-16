@@ -3,6 +3,7 @@ import { DECOR, MARKETING, OFFICES, PHASES, PHASE_FOCUS, START_MONEY, TECHS, mon
 import { EXPOS, projectTypeById } from '../data/modes.js'
 import { platformById } from '../data/platforms.js'
 import { traitById } from '../data/staff.js'
+import { acquiredWeek } from './almanac.js'
 import { applyEffects, resolveChoice } from './effects.js'
 import { eventById, fillText, ideaById } from './events.js'
 import { freelaNeed } from './freelas.js'
@@ -413,6 +414,18 @@ export function afterLoad(state) {
   state.projects ??= []
   state.teams ??= [{ id: MAIN_TEAM, name: 'Equipe principal' }]
   state.acquired ??= []
+  // Save antigo: a data da compra só estava no diário. Guarda agora, enquanto a linha ainda existe.
+  state.acquiredAt ??= {}
+  for (const id of state.acquired) {
+    const week = acquiredWeek(state, id)
+    if (week != null) state.acquiredAt[id] = week
+  }
+  // Parada de save antigo não tinha "sobe/desce": sem isso, todo mundo apareceria como NOVO.
+  // Só preenche o campo que falta; move: null (estreia de verdade) continua NOVO.
+  for (const entry of state.chart ?? []) {
+    if (entry.move === undefined) entry.move = 0
+    entry.weeks ??= 1
+  }
   state.goty ??= []
   state.mode ??= { id: 'tradicional', franchise: null, parent: null, brief: null }
   state.buffs = { score: 0, sales: 1, hype: 0, ...state.buffs }

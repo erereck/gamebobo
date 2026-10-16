@@ -127,19 +127,28 @@ function awkward(title) {
 const normalize = text => text.toLowerCase().replace(/[.:!?,]/g, ' ').replace(/\s+/g, ' ').trim()
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+// Nome de série de um título: antes dos dois-pontos e sem número no fim ("Elite 2: X" → "elite").
+const realBase = text => normalize(String(text).split(':')[0]).replace(/\s+(?:\d+|[ivx]+)$/, '')
+
 // Lista de bloqueio + todos os jogos de verdade do calendário (montada uma vez só).
+// Nome real com duas palavras ou mais não entra em lugar nenhum do título. Nome real de uma palavra só
+// ("Turbo", "Elite", "Rogue") é vocabulário comum: barra só o título que é exatamente ele.
+// Nome curto e marcante que não pode aparecer nunca (Doom, Zelda...) mora na TITLE_BLOCKLIST.
 let blockRule = null
+const realSingles = new Set()
 function blocked(title) {
   if (!blockRule) {
     const phrases = new Set(TITLE_BLOCKLIST)
     for (const game of ALL_HISTORIC_GAMES) {
-      const base = normalize(game.title.split(':')[0]).replace(/\s+(?:\d+|[ivx]+)$/, '')
-      if (base.length >= 4) phrases.add(base)
+      const base = realBase(game.title)
+      if (base.length < 4) continue
+      if (base.includes(' ')) phrases.add(base)
+      else realSingles.add(base)
     }
     const list = [...phrases].sort((a, b) => b.length - a.length).map(escape).join('|')
     blockRule = new RegExp(`(?:^|[^a-z0-9à-ÿ])(?:${list})(?=$|[^a-z0-9à-ÿ])`)
   }
-  return blockRule.test(normalize(title))
+  return realSingles.has(realBase(title)) || blockRule.test(normalize(title))
 }
 
 const fits = title => title.length >= 3 && title.length <= TITLE_MAX && !awkward(title) && !blocked(title)
@@ -205,6 +214,18 @@ function seriesNumber(title) {
 
 const subtitle = (genre, theme, random) => fill(pick(TITLE_WORDS.generic.sub, random), genre, theme, random)
 
+// Nome + sufixo sempre cabem no campo: o nome perde as últimas palavras (ou letras, se for uma só)
+// e não termina em "of", "the" ou pontuação ("Escape from Rattlesnake Ridge" → "Escape from Rattlesnake Remake").
+function clip(base, tail, max = FIELD_MAX) {
+  const text = String(base).trim()
+  if (text.length + tail.length <= max) return text + tail
+  let cut = text.slice(0, Math.max(1, max - tail.length))
+  if (text[cut.length] !== ' ' && cut.includes(' ')) cut = cut.replace(/\s+\S*$/, '')
+  const words = cut.replace(/[\s:,.&-]+$/, '').split(' ')
+  while (words.length > 1 && STOP.has(words.at(-1).toLowerCase())) words.pop()
+  return words.join(' ').replace(/[\s:,.&-]+$/, '') + tail
+}
+
 function firstFit(options, fallback, random, max = FIELD_MAX) {
   const pool = [...options]
   while (pool.length) {
@@ -230,7 +251,7 @@ export function sequelTitle(baseTitle, number, random = Math.random, context = {
     const title = tidy(weighted(forms, form => form[0], random)[1]())
     if (title.length <= TITLE_MAX && !awkward(title)) return title
   }
-  return plain
+  return clip(base, ` ${num}`)
 }
 
 // Spin-off: nome da série com o jeito do gênero novo ("Dragon Crest Kart", "Emberfall Café", "Pixel Patrol: Night Shift").
@@ -255,13 +276,13 @@ export function remakeTitle(title, random = Math.random) {
   const clean = stripTags(title)
   const head = stripTags(clean.split(':')[0])
   const base = franchiseName(clean)
-  return firstFit([`${clean} Remake`, `${head} Remake`, `${clean} Reborn`, `${base}: Reimagined`], `${base} Remake`, random)
+  return firstFit([`${clean} Remake`, `${head} Remake`, `${clean} Reborn`, `${base}: Reimagined`], clip(base, ' Remake'), random)
 }
 
 export function remasterTitle(title, random = Math.random) {
   const clean = stripTags(title)
   const base = franchiseName(clean)
-  return firstFit([`${clean} Remastered`, `${clean} Remastered`, `${clean} HD`, `${clean} Definitive Edition`, `${clean} Deluxe`], `${base} HD`, random)
+  return firstFit([`${clean} Remastered`, `${clean} Remastered`, `${clean} HD`, `${clean} Definitive Edition`, `${clean} Deluxe`], clip(base, ' HD'), random)
 }
 
 // Coletânea: da mesma série vira "Collection"/"Trilogy"; misturada leva o nome do estúdio.
@@ -271,8 +292,8 @@ export function collectionTitle(sources = [], studioName = '', random = Math.ran
   if (games.length && games.every(game => key(game) === key(games[0]))) {
     const base = franchiseName(games[0].title)
     const kinds = games.length === 3 ? ['Trilogy', 'Trilogy', 'Collection'] : ['Collection', 'Collection', 'Anthology', 'Legacy Collection']
-    return firstFit(kinds.map(kind => `${base} ${kind}`), `${base} Collection`, random)
+    return firstFit(kinds.map(kind => `${base} ${kind}`), clip(base, ' Collection'), random)
   }
   const studio = String(studioName).trim() || 'Studio'
-  return firstFit([`${studio} Classics`, `${studio} Greatest Hits`, `Best of ${studio}`, `${studio} Anthology`], `${studio} Classics`, random)
+  return firstFit([`${studio} Classics`, `${studio} Greatest Hits`, `Best of ${studio}`, `${studio} Anthology`], clip(studio, ' Classics'), random)
 }

@@ -173,13 +173,15 @@ function maybeRomance(state, random) {
 }
 
 // Lançamentos reais viram notícia; os grandes sucessos puxam a moda do mercado.
+// São uns 30 por ano: o diário (40 linhas) só guarda os marcos do ano, senão a história do estúdio some.
+// Semana lotada vira no máximo três avisos, dos que mais vão vender, para não engolir os seus.
+const RELEASE_TOASTS = 3
 function announceReleases(state, releases) {
-  for (const game of releases) {
-    if (!game.historic) continue
-    if (!game.annual || game.trend) {
-      toast(state, { kind: 'info', icon: genreById(game.genre)?.icon ?? 'cartridge', title: game.title, sub: `${game.studio} lançou` })
-      log(state, 'newspaper', `${game.studio} lançou ${game.title}`)
-    }
+  const news = releases.filter(game => game.historic && (!game.annual || game.trend))
+  const loud = new Set([...news].sort((a, b) => b.copies - a.copies).slice(0, RELEASE_TOASTS))
+  for (const game of news) {
+    if (loud.has(game)) toast(state, { kind: 'info', icon: genreById(game.genre)?.icon ?? 'cartridge', title: game.title, sub: `${game.studio} lançou` })
+    if (game.landmark) log(state, 'newspaper', `${game.studio} lançou ${game.title}`)
     if (game.trend) {
       state.market.trend = { genre: game.genre, theme: game.theme }
       state.market.trendUntil = absWeek(state) + 32

@@ -156,7 +156,7 @@ export default [
   r('hell-clock', 'Hell Clock', 'Rogue Snail', null, 2025, 6, 'roguelike', 'folclore', 7.8, 0.2, 'pc'),
   r('borderlands-4', 'Borderlands 4', 'Gearbox Software', '2k', 2025, 8, 'tiro', 'espaco', 8.2, 2.5, 'pc'),
   r('silksong', 'Hollow Knight: Silksong', 'Team Cherry', 'teamcherry', 2025, 8, 'plataforma', 'animais', 9.1, 5, 'pc'),
-  r('silent-hill-f', 'Silent Hill f', 'NeoBards / Konami', 'konami', 2025, 8, 'terror', 'folclore', 8.6, 1, 'ps5'),
+  r('silent-hill-f', 'Silent Hill f', 'NeoBards / Konami', 'konami', 2025, 8, 'terror', 'zumbi', 8.6, 1, 'ps5'),
   r('arc-raiders', 'ARC Raiders', 'Embark Studios', null, 2025, 9, 'tiro', 'robos', 8.6, 16, 'pc'),
   r('battlefield-6', 'Battlefield 6', 'Battlefield Studios', 'ea', 2025, 9, 'tiro', 'militar', 8.3, 8, 'pc'),
   r('dispatch', 'Dispatch', 'AdHoc Studio', null, 2025, 9, 'aventura', 'herois', 8.7, 3, 'pc'),
