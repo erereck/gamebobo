@@ -31,6 +31,8 @@ export function officeView(state) {
   return {
     office: state.office,
     era,
+    year: state.year,
+    month: Math.floor(state.week / 4) % 12,
     decor: state.decor,
     studioName: state.studio.name,
     staff,
