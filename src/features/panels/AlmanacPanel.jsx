@@ -84,7 +84,7 @@ function Podium({ list }) {
             <div className="alm-step-card">
               <Glyph entry={entry} size={18} />
               <b>{entry.title}</b>
-              <small>{entry.studio} · {entry.year}</small>
+              <small><span className="alm-step-studio" title={entry.studio}>{entry.studio}</span><span className="alm-step-year"> · {entry.year}</span></small>
               <span className="alm-step-copies">{fmtMi(entry.copies)}</span>
             </div>
             <span className="alm-step-base">{entry.rank}</span>

@@ -179,8 +179,9 @@ export function answerPress(state, item, index, random = Math.random, at = null)
   item.answers.push({ index, tone: answer.tone, text: fillPress(outcome.text, item.vars), win: outcome.win, chips })
   if (outcome.win === true) state.stats.spicyWins = (state.stats.spicyWins ?? 0) + 1
   if (outcome.win === false) state.stats.spicyLosses = (state.stats.spicyLosses ?? 0) + 1
-  if (outcome.win === true) fx(state, { type: 'cheer' })
-  else if (outcome.win === false) fx(state, { type: 'sigh' })
+  // O escritório reage já; o som fica com a tela da coletiva, depois do suspense (silent).
+  if (outcome.win === true) fx(state, { type: 'cheer', silent: true })
+  else if (outcome.win === false) fx(state, { type: 'sigh', silent: true })
   else {
     const hype = chips.find(chip => chip.key === 'hype')?.value ?? 0
     if (hype > 0) fx(state, { type: 'hype', amount: hype })

@@ -8,38 +8,9 @@ import { MONTHS, eraAt } from '../../game/data/economy.js'
 import { legacyTitle, nextLegacyTitle } from '../../game/engine/progress.js'
 import { TICKER } from '../../game/data/content/ticker.js'
 import { isBlocked } from '../../game/engine/tick.js'
-import { activeRivals, historicWeek } from '../../game/engine/market.js'
-import { ALL_HISTORIC_GAMES, MILESTONES } from '../../game/data/history.js'
-import { PLATFORMS } from '../../game/data/platforms.js'
-
-// "em 3 meses", "no mês que vem", "em 1 ano e 2 meses"
-const inMonths = months => {
-  if (months <= 1) return 'no mês que vem'
-  if (months < 12) return `em ${months} meses`
-  const years = Math.floor(months / 12)
-  const rest = months % 12
-  return `em ${years} ano${years > 1 ? 's' : ''}${rest ? ` e ${rest} ${rest > 1 ? 'meses' : 'mês'}` : ''}`
-}
-
-// Contagem regressiva de consoles e dos jogos mais esperados: o calendário de verdade no letreiro.
-function upcomingNews(state) {
-  const nowMonth = state.year * 12 + Math.floor(state.week / 4)
-  const news = []
-  for (const platform of PLATFORMS) {
-    const months = platform.year * 12 + platform.month - nowMonth
-    if (months > 0 && months <= 18 && platform.year > 1980) news.push({ text: `${platform.label} chega ${inMonths(months)}`, soon: months })
-  }
-  const tw = (state.year - 1980) * 48 + state.week
-  for (const entry of ALL_HISTORIC_GAMES) {
-    const weeks = historicWeek(entry) - tw
-    if (weeks <= 0 || weeks > 40 || /^(fifa|pes|cod)-/.test(entry.id)) continue
-    if (!entry.trend && entry.copies < 8) continue
-    news.push({ text: `Aguardado: ${entry.title} sai ${inMonths(Math.max(1, Math.round(weeks / 4)))}`, soon: weeks / 4 })
-  }
-  const top = state.chart?.[0]
-  if (top) news.push({ text: top.mine ? `${top.title} é o nº 1 das paradas!` : `Nº 1 das paradas: ${top.title} (${top.studio})` })
-  return news.sort((a, b) => (a.soon ?? 99) - (b.soon ?? 99)).slice(0, 5)
-}
+import { activeRivals } from '../../game/engine/market.js'
+import { MILESTONES } from '../../game/data/history.js'
+import { upcomingNews } from './upcoming.js'
 
 function Delta({ value }) {
   const [shown, setShown] = useState(null)
@@ -75,7 +46,7 @@ function Ticker({ state }) {
   return (
     <div className="ticker" aria-live="off">
       <span className="ticker-src">{source}</span>
-      <span key={item.text} className="ticker-text">{text}</span>
+      <span key={item.text} className="ticker-text" title={text}>{text}</span>
     </div>
   )
 }

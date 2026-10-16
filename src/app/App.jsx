@@ -33,10 +33,11 @@ function useClock(paused, speed) {
   }, [paused, speed])
 }
 
-// Sons para acontecimentos do motor.
+// Sons para acontecimentos do motor. fx "silent" tem o som tocado pela própria tela (ex.: suspense da coletiva).
 function useFxSounds() {
   useEffect(() => store.onFx(list => {
     for (const item of list) {
+      if (item.silent) continue
       if (item.type === 'sale' && Math.random() < .2) sfx.coin()
       if (item.type === 'event') sfx.alert()
       if (item.type === 'idea') sfx.pop()
