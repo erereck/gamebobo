@@ -3,7 +3,7 @@ import { ALL_HISTORIC_GAMES } from '../data/history.js'
 import { OFFICES } from '../data/economy.js'
 import { createCandidate } from './staff.js'
 import { absWeek, log, scaled, toast } from './state.js'
-import { historicWeek } from './market.js'
+import { historicRival, historicWeek } from './market.js'
 import { allowsAcquire } from './modes.js'
 import { pick } from './rng.js'
 
@@ -40,7 +40,7 @@ export function moveToTeam(state, staffId, teamId) {
   return true
 }
 
-const upcomingHits = (state, rivalId) => ALL_HISTORIC_GAMES.filter(entry => entry.studio === rivalId && historicWeek(entry) > absWeek(state) && !entry.id.match(/^(fifa|pes|cod)-/)).length
+const upcomingHits = (state, rivalId) => ALL_HISTORIC_GAMES.filter(entry => historicRival(entry) === rivalId && historicWeek(entry) > absWeek(state) && !entry.id.match(/^(fifa|pes|cod)-/)).length
 
 export function acquisitionPrice(state, rival) {
   const tier = rivalTierAt(rival, state.year)

@@ -92,8 +92,14 @@
 .chart { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 5px; }
 .chart-row { display: grid; grid-template-columns: 30px 1fr auto auto; align-items: center; gap: 8px; padding: 7px 10px 7px 6px; background: #fff; border: 2px solid var(--ink); border-left: 6px solid var(--rc); border-radius: var(--r-sm); animation: tile-in .35s var(--ease-pop) both; }
 .chart-row.mine { background: #fff3c4; box-shadow: 0 3px 0 var(--ink); transform: scale(1.02); }
-.chart-rank { font-weight: 800; font-size: 20px; text-align: center; }
+.chart-rank { font-weight: 800; font-size: 20px; text-align: center; display: grid; justify-items: center; line-height: 1; gap: 2px; }
+.chart-move { font-family: var(--mono); font-size: 8px; font-weight: 800; letter-spacing: .02em; padding: 1px 3px; border-radius: 4px; -webkit-text-stroke: 0; text-transform: uppercase; }
+.chart-move.up { color: #1b7f3b; background: #d9f7e2; }
+.chart-move.down { color: #b3261e; background: #ffe1dc; }
+.chart-move.new { color: var(--ink); background: var(--sun); }
+.chart-move.same { color: var(--ink-3); }
 .chart-row:nth-child(1) .chart-rank { color: #e0a800; -webkit-text-stroke: 1px var(--ink); font-size: 24px; }
+.chart-row:nth-child(1) .chart-move { font-size: 8px; }
 .chart-title { display: grid; line-height: 1.1; min-width: 0; }
 .chart-title b { font-weight: 800; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chart-title small { font-size: 10px; color: var(--ink-2); font-family: var(--mono); }

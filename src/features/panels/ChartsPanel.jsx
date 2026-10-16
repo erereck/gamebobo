@@ -5,6 +5,13 @@ import { fmtMoney, fmtNum, fmtScore, scoreColor } from '../../ui/format.js'
 import { genreById, themeById } from '../../game/data/genres.js'
 import { activeShock } from '../../game/engine/project.js'
 
+// ▲3 / ▼1 / NOVO / = : o movimento da semana numa etiqueta só.
+function Move({ entry }) {
+  if (entry.move === null || entry.move === undefined) return <span className="chart-move new">novo</span>
+  if (entry.move === 0) return <span className="chart-move same">{entry.topWeeks > 1 ? `${entry.topWeeks} sem` : '='}</span>
+  return <span className={`chart-move ${entry.move > 0 ? 'up' : 'down'}`}>{entry.move > 0 ? '▲' : '▼'}{Math.abs(entry.move)}</span>
+}
+
 export function ChartsPanel() {
   const state = useGame()
   const trend = state.market.trend
@@ -26,8 +33,8 @@ export function ChartsPanel() {
       <ol className="chart">
         {state.chart.map(entry => (
           <li key={entry.id} className={`chart-row ${entry.mine ? 'mine' : ''}`} style={{ '--rc': entry.color }}>
-            <span className="chart-rank">{entry.rank}</span>
-            <span className="chart-title"><b>{entry.title}</b><small>{entry.studio}</small></span>
+            <span className="chart-rank">{entry.rank}<Move entry={entry} /></span>
+            <span className="chart-title"><b>{entry.title}</b><small>{entry.studio}{entry.weeks > 1 ? ` · ${entry.weeks} sem` : ''}</small></span>
             <span className="chart-score" style={{ color: scoreColor(entry.score) }}>{fmtScore(entry.score)}</span>
             <span className="chart-sales">{fmtNum(entry.weekly)}<small>/sem</small></span>
           </li>
