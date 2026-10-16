@@ -38,7 +38,7 @@ export const LAYOUTS = [
       { kind: 'tires', x: 3.55, z: 2.55, rot: 0 },
       { kind: 'window', x: 2.0, z: -3, rot: 0, wall: 'back', width: 1.6 },
     ],
-    posters: [{ x: -4, z: .9, rot: H }, { x: .05, z: -3, rot: 0 }],
+    posters: [{ x: -4, z: .9, rot: H }, { x: .25, z: -3, rot: 0 }],
     floorSlots: [{ x: 3.4, z: -.6 }, { x: .6, z: 2.3 }, { x: 2.2, z: 2.5 }, { x: -1.6, z: 2.4 }, { x: -1.0, z: .6 }],
     wallSlots: [{ x: -4, z: -.9, rot: H }],
   },
@@ -87,7 +87,7 @@ export const LAYOUTS = [
       { kind: 'lamp', x: -7.4, z: -5.4, rot: 0 },
       { kind: 'bookshelf', x: -.4, z: -5.8, rot: 0 },
     ],
-    posters: [{ x: -8, z: -3.6, rot: H }, { x: -8, z: -2.5, rot: H }, { x: 1.7, z: -6, rot: 0 }, { x: 5.9, z: -6, rot: 0 }, { x: -8, z: 2.4, rot: H }],
+    posters: [{ x: -8, z: -3.6, rot: H }, { x: -8, z: -2.6, rot: H }, { x: 1.7, z: -6, rot: 0 }, { x: 5.9, z: -6, rot: 0 }, { x: -8, z: 2.4, rot: H }],
     floorSlots: [{ x: 4.4, z: 2.6 }, { x: 6.8, z: 4.8 }, { x: 2.0, z: 4.8 }, { x: 7.0, z: 2.4 }, { x: -1.2, z: 4.6 }, { x: -3.6, z: 4.6 }, { x: 5.4, z: .2 }, { x: -6.6, z: 4.4 }, { x: 7.2, z: .2 }, { x: -1.6, z: 3.0 }, { x: .2, z: 3.4 }],
     wallSlots: [{ x: -2.4, z: -6, rot: 0 }, { x: -8, z: .6, rot: H }],
   },
@@ -109,12 +109,13 @@ LAYOUTS.push({
     { kind: 'server', x: 8, z: -6.4, rot: 0 },
     { kind: 'cooler', x: 9.5, z: 2.6, rot: -H },
     { kind: 'lamp', x: -9.4, z: -6.4, rot: 0 },
-    { kind: 'bookshelf', x: 3.4, z: -6.8, rot: 0 },
+    // estante da direita em x 3 para o quadro do slot de parede (4.14) caber entre ela e a janela
+    { kind: 'bookshelf', x: 3.0, z: -6.8, rot: 0 },
     { kind: 'bookshelf', x: -3.4, z: -6.8, rot: 0 },
   ],
-  posters: [{ x: -10, z: -4.6, rot: H }, { x: -10, z: -3.5, rot: H }, { x: 1.6, z: -7, rot: 0 }, { x: -1.6, z: -7, rot: 0 }, { x: -10, z: 2.6, rot: H }, { x: -10, z: 3.7, rot: H }],
+  posters: [{ x: -10, z: -4.6, rot: H }, { x: -10, z: -3.5, rot: H }, { x: 1.6, z: -7, rot: 0 }, { x: -1.95, z: -7, rot: 0 }, { x: -10, z: 2.6, rot: H }, { x: -10, z: 3.7, rot: H }],
   floorSlots: [{ x: 6, z: 3.4 }, { x: 8.6, z: 5.8 }, { x: 3.4, z: 5.8 }, { x: 9, z: 4 }, { x: .6, z: 5.6 }, { x: -2, z: 5.6 }, { x: -4.6, z: 5.6 }, { x: -8.2, z: 5.2 }, { x: 4.6, z: 2.6 }, { x: -8.8, z: -6.2 }, { x: 9.2, z: -1.6 }, { x: -.2, z: 3.4 }, { x: -6.4, z: 3.4 }, { x: 2.8, z: 3.6 }],
-  wallSlots: [{ x: -4.9, z: -7, rot: 0 }, { x: -10, z: 0, rot: H }, { x: 4.6, z: -7, rot: 0 }],
+  wallSlots: [{ x: -4.55, z: -7, rot: 0 }, { x: -10, z: 0, rot: H }, { x: 4.14, z: -7, rot: 0 }],
 })
 
 export const FLOOR_STYLES = {
