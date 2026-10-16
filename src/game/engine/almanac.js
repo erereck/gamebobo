@@ -49,9 +49,12 @@ export function studioOf(entry) {
 }
 
 // ---------- compra de estúdios ----------
-// Semana exata da compra, lida no diário ("Comprou a X" · ano·semana). null se a linha já saiu do diário.
+// Semana exata da compra. A compra grava a data em acquiredAt (teams.js#acquireStudio);
+// save antigo só tem a linha do diário ("Comprou a X" · ano·semana). null se nem ela existe mais.
 export function acquiredWeek(state, rivalId) {
   if (!rivalId || !state.acquired?.includes(rivalId)) return null
+  const stored = state.acquiredAt?.[rivalId]
+  if (Number.isFinite(stored)) return stored
   const name = RIVAL_INDEX.get(rivalId)?.name
   const note = name && state.log?.find(item => item.text === `Comprou a ${name}`)
   if (!note?.at) return null
@@ -59,8 +62,9 @@ export function acquiredWeek(state, rivalId) {
   return Number.isFinite(year) && year > 0 ? weekStamp(year, Number.isFinite(week) ? week : 0) : null
 }
 
-// Sem a data exata, a compra aconteceu no máximo no último ano em que a empresa era pequena e aberta
-// (só dá para comprar porte 2 ou menor). Clássico lançado depois disso com certeza não aconteceu.
+// Sem a data exata (save antigo que já perdeu a linha do diário), a compra aconteceu no máximo no último
+// ano em que a empresa era pequena e aberta (só dá para comprar porte 2 ou menor).
+// Clássico lançado depois disso com certeza não aconteceu.
 function latestPurchase(state, rivalId) {
   const exact = acquiredWeek(state, rivalId)
   if (exact != null) return exact

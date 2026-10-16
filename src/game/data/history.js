@@ -10,27 +10,56 @@ export const HISTORIC_GAMES = REAL_GAMES
 const g = (id, title, studio, rivalId, year, month, genre, theme, score, copies, platform, trend = false) => ({ id, title, studio, rivalId, year, month, genre, theme, score, copies, platform, trend })
 
 // Séries que voltam todo ano, como no calendário de verdade.
-const fifa = y => (y <= 1993 ? 'FIFA International Soccer' : y <= 2022 ? `FIFA ${String((y + 1) % 100).padStart(2, '0')}` : `EA Sports FC ${(y + 1) % 100}`)
-const pes = y => (y <= 2000 ? `Winning Eleven ${y - 1995}` : y <= 2006 ? `Pro Evolution Soccer ${y - 2000}` : y <= 2020 ? `PES ${y + 1}` : `eFootball ${y + 1}`)
-const COD = { 2003: 'Call of Duty', 2005: 'Call of Duty 2', 2006: 'Call of Duty 3', 2007: 'CoD 4: Modern Warfare', 2008: 'CoD: World at War', 2009: 'CoD: Modern Warfare 2', 2010: 'CoD: Black Ops', 2011: 'CoD: Modern Warfare 3', 2012: 'CoD: Black Ops II', 2013: 'CoD: Ghosts', 2014: 'CoD: Advanced Warfare', 2015: 'CoD: Black Ops III', 2016: 'CoD: Infinite Warfare', 2017: 'CoD: WWII', 2018: 'CoD: Black Ops 4', 2019: 'CoD: Modern Warfare', 2020: 'CoD: Black Ops Cold War', 2021: 'CoD: Vanguard', 2022: 'CoD: Modern Warfare II', 2023: 'CoD: Modern Warfare III', 2024: 'CoD: Black Ops 6', 2025: 'CoD: Black Ops 7' }
+// Os anos fora da regra têm o nome de verdade da caixa.
+const FIFA_NAMES = { 1999: 'FIFA 2000', 2000: 'FIFA 2001', 2001: 'FIFA Football 2002', 2002: 'FIFA Football 2003', 2003: 'FIFA Football 2004', 2004: 'FIFA Football 2005' }
+const PES_NAMES = { 1997: 'Winning Eleven 97', 2000: 'Winning Eleven 2000', 2001: 'Pro Evolution Soccer' }
+const fifa = y => FIFA_NAMES[y] ?? (y <= 1993 ? 'FIFA International Soccer' : y <= 2022 ? `FIFA ${String((y + 1) % 100).padStart(2, '0')}` : `EA Sports FC ${(y + 1) % 100}`)
+const pes = y => PES_NAMES[y] ?? (y <= 2000 ? `Winning Eleven ${y - 1995}` : y <= 2006 ? `Pro Evolution Soccer ${y - 2000}` : y <= 2020 ? `PES ${y + 1}` : `eFootball ${y + 1}`)
+// Console da Sony da vez, sempre dentro da vida do aparelho; depois do PS6, a nuvem.
+const sony = y => (y < 2021 ? 'ps4' : y < 2029 ? 'ps5' : y <= 2040 ? 'ps6' : 'nuvem')
+const fifaPlatform = y => (y <= 1994 ? 'megadrive' : y < 2000 ? 'playstation' : y < 2007 ? 'ps2' : y < 2014 ? 'ps3' : sony(y))
+const pesPlatform = y => (y < 2001 ? 'playstation' : y < 2010 ? 'ps2' : y < 2014 ? 'ps3' : sony(y))
+// Call of Duty: [título, mês real (0-11), milhões vendidos (aprox.)].
+const COD = {
+  2003: ['Call of Duty', 9, 4.5], 2005: ['Call of Duty 2', 9, 6], 2006: ['Call of Duty 3', 10, 7],
+  2007: ['CoD 4: Modern Warfare', 10, 17], 2008: ['CoD: World at War', 10, 15], 2009: ['CoD: Modern Warfare 2', 10, 25],
+  2010: ['CoD: Black Ops', 10, 26], 2011: ['CoD: Modern Warfare 3', 10, 26], 2012: ['CoD: Black Ops II', 10, 24],
+  2013: ['CoD: Ghosts', 10, 19], 2014: ['CoD: Advanced Warfare', 10, 15], 2015: ['CoD: Black Ops III', 10, 26],
+  2016: ['CoD: Infinite Warfare', 10, 14], 2017: ['CoD: WWII', 10, 20], 2018: ['CoD: Black Ops 4', 9, 20],
+  2019: ['CoD: Modern Warfare', 9, 30], 2020: ['CoD: Black Ops Cold War', 10, 30], 2021: ['CoD: Vanguard', 10, 15],
+  2022: ['CoD: Modern Warfare II', 9, 25], 2023: ['CoD: Modern Warfare III', 10, 18], 2024: ['CoD: Black Ops 6', 9, 20],
+  2025: ['CoD: Black Ops 7', 10, 12],
+}
 
 function annual() {
   const list = []
   for (let y = 1993; y <= 2045; y += 1) {
-    list.push(g(`fifa-${y}`, fifa(y), 'EA Sports', 'ea', y, y === 1993 ? 11 : 8, 'esporte', 'futebol', Math.min(8.6, 7.4 + Math.min(1, (y - 1993) / 12)) - Math.max(0, y - 2014) * .03, Math.min(20, 2 + (y - 1993) * .8), y < 2000 ? 'playstation' : y < 2006 ? 'ps2' : y < 2014 ? 'ps3' : y < 2021 ? 'ps4' : 'ps5'))
+    list.push(g(`fifa-${y}`, fifa(y), 'EA Sports', 'ea', y, y === 1993 ? 11 : 8, 'esporte', 'futebol', Math.min(8.6, 7.4 + Math.min(1, (y - 1993) / 12)) - Math.max(0, y - 2014) * .03, Math.min(20, 2 + (y - 1993) * .8), fifaPlatform(y)))
   }
   for (let y = 1997; y <= 2045; y += 1) {
     const score = y < 2001 ? 8.6 : y < 2010 ? 9 - (y - 2001) * .08 : y < 2021 ? 8.2 - (y - 2010) * .03 : 6.6
-    list.push(g(`pes-${y}`, pes(y), 'Konami', 'konami', y, 9, 'esporte', 'futebol', score, y < 2010 ? 3 + (y - 1997) * .3 : 3, y < 2001 ? 'playstation' : y < 2010 ? 'ps2' : y < 2014 ? 'ps3' : y < 2021 ? 'ps4' : 'ps5'))
+    list.push(g(`pes-${y}`, pes(y), 'Konami', 'konami', y, 9, 'esporte', 'futebol', score, y < 2010 ? 3 + (y - 1997) * .3 : 3, pesPlatform(y)))
   }
-  for (const [year, title] of Object.entries(COD)) {
+  for (const [year, [title, month, copies]] of Object.entries(COD)) {
     const y = Number(year)
-    list.push(g(`cod-${y}`, title, 'Activision', 'activision', y, 10, 'tiro', 'militar', y < 2013 ? 9 - Math.max(0, y - 2009) * .1 : 8 - (y - 2013) * .04, y < 2007 ? 3 : Math.min(26, 8 + (y - 2007) * 2) - Math.max(0, y - 2013) * .8, y < 2006 ? 'pc' : y < 2014 ? 'xbox360' : y < 2021 ? 'ps4' : 'ps5', y === 2007))
+    list.push(g(`cod-${y}`, title, 'Activision', 'activision', y, month, 'tiro', 'militar', y < 2013 ? 9 - Math.max(0, y - 2009) * .1 : 8 - (y - 2013) * .04, copies, y < 2006 ? 'pc' : y < 2014 ? 'xbox360' : y < 2021 ? 'ps4' : 'ps5', y === 2007))
   }
   return list
 }
 
 export const ALL_HISTORIC_GAMES = [...HISTORIC_GAMES, ...annual()].sort((a, b) => a.year - b.year || a.month - b.month)
+
+// Editoras, fabricantes de fliperama e estúdios de gigantes que não estão na lista de rivais.
+// Vendendo pouco ou não, jogo delas nunca disputa o Indie do Ano (studio exatamente como nas linhas).
+export const MAJOR_STUDIOS = new Set([
+  'LucasArts', 'Lucasfilm Games', 'Origin Systems', 'MicroProse', 'Firaxis Games', 'Interplay', 'Black Isle Studios', 'Infocom', 'SSI',
+  'Atlus', 'Atlus / LJN', 'Beam Software / LJN', 'Archetype Interactive / 3DO', 'Acclaim', 'Accolade', 'Infogrames', 'Titus Interactive', 'Microsoft',
+  'Bally Midway', 'Midway', 'Williams Electronics', 'Gottlieb', 'Stern Electronics', 'Cinematronics', 'Nichibutsu', 'Universal', 'Amstar Electronics',
+  'Irem', 'Data East', 'Technos Japan', 'Tehkan', 'Tecmo', 'Team Ninja', 'Sunsoft', 'Vic Tokai', 'Human Entertainment', 'Arc System Works',
+  'Mattel Electronics', 'Coleco', 'Bandai', 'Imagic', 'Spike', 'Dimps', 'Marvelous Interactive', 'Pack-In-Video', 'Victor Interactive Software',
+  'Rocksteady Studios', 'Monolith Productions', 'Volition', 'Relic Entertainment', 'Reflections Interactive', 'Iguana Entertainment',
+  'ArenaNet', 'NCSoft', 'Webzen', 'Gravity', 'Smilegate',
+])
 
 // Manchetes datadas: aparecem no letreiro no ano em que aconteceram.
 export const MILESTONES = [

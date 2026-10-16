@@ -52,6 +52,7 @@ export function createGame(options = {}, random = Math.random) {
     projects: [],
     teams: [{ id: 'main', name: 'Equipe principal' }],
     acquired: [],
+    acquiredAt: {},
     goty: [],
     games: [],
     franchises: {},

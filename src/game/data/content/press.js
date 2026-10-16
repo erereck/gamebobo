@@ -135,7 +135,7 @@ export const PRESS_QUESTIONS = [
     ['confiante', 'Não deu. Foi incompreendido', 'Um crítico riu no ar. Alto.'],
     ['polemico', 'Culpa do estagiário', 'O estagiário virou celebridade e defendeu o jogo.', 'O estagiário pediu demissão ao vivo.', { lose: { mood: -8, fansPct: -0.02 } }],
   ]),
-  Q('flop-desculpa', { band: ['flop'] }, 'Os jogadores pedem desculpas. Vai pedir?', [
+  Q('flop-desculpa', { band: ['flop'] }, 'Os jogadores querem um pedido de desculpas. Vai pedir?', [
     ['humilde', 'Peço. Desculpa, gente', 'Desculpa aceita. Alguns até mandaram abraço.'],
     ['confiante', 'Desculpa por ser genial', 'Virou meme. Do tipo que dói.'],
     ['polemico', 'Eles que me devem desculpas', 'Os fãs mais duros riram e perdoaram.', 'As reclamações dobraram na mesma semana.'],

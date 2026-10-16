@@ -5,6 +5,7 @@ import { mulberry32 } from './rng.js'
 import { TITLE_NUMS, TITLE_PATTERNS, TITLE_WORDS } from '../data/content/titles.js'
 import { RIVAL_TITLE_PATTERNS } from '../data/content/rivals.js'
 import { GENRES, THEMES } from '../data/genres.js'
+import { ALL_HISTORIC_GAMES } from '../data/history.js'
 
 test('bancos de título cobrem todo gênero e tema', () => {
   assert.ok(TITLE_PATTERNS.length >= 30)
@@ -58,4 +59,36 @@ test('série continua contando: sequência, remake, remaster e coletânea', () =
   const series = [{ title: 'Kid Turbo', franchise: 'a' }, { title: 'Kid Turbo 2', franchise: 'a' }, { title: 'Kid Turbo III', franchise: 'a' }]
   assert.equal(collectionTitle(series, 'Bobo', first), 'Kid Turbo Trilogy')
   assert.match(collectionTitle([series[0], { title: 'Emberfall', franchise: 'b' }], 'Bobo', first), /Bobo/)
+})
+
+test('derivado de nome comprido ainda cabe no campo', () => {
+  const FIELD = 34
+  const long = 'Escape from Rattlesnake Ridge'
+  const random = mulberry32(3)
+  for (let i = 0; i < 20; i += 1) {
+    for (const title of [
+      remakeTitle(long, random), remasterTitle('Chronicles of the Capybara Islands', random),
+      collectionTitle([{ title: long, franchise: 'a' }, { title: `${long} 2`, franchise: 'a' }], 'Bobo', random),
+      collectionTitle([{ title: long, franchise: 'a' }, { title: 'Emberfall', franchise: 'b' }], 'Estudio Mega Super Ultra Bob', random),
+      sequelTitle('The Legend of the Blackwater Keep', 2, random),
+    ]) {
+      assert.ok(title.length <= FIELD, `${title} (${title.length})`)
+      assert.ok(!/\s(?:of|the|from)\s(?:Remake|HD|Collection|Classics|\d+)$/.test(title), `corte feio: ${title}`)
+    }
+  }
+  assert.equal(remakeTitle(long, () => 0.01).length <= FIELD, true)
+  assert.match(collectionTitle([{ title: long, franchise: 'a' }, { title: `${long} 2`, franchise: 'a' }], 'Bobo', () => 0.01), /^Escape from Rattlesnake/)
+})
+
+test('palavra comum que também é jogo de verdade (Turbo, Elite) volta para os títulos', () => {
+  const singles = new Set(ALL_HISTORIC_GAMES.map(game => game.title.toLowerCase()).filter(title => /^[a-z]{4,}$/.test(title)))
+  const random = mulberry32(11)
+  let turbo = 0
+  for (let i = 0; i < 2000; i += 1) {
+    const title = generateTitle('corrida', 'cidade', random, 1983)
+    if (/\bTurbo\b/.test(title)) turbo += 1
+    // O nome exato do jogo de verdade continua proibido.
+    assert.ok(!singles.has(title.split(':')[0].replace(/\s+(?:\d+|[IVX]+)$/, '').toLowerCase()), title)
+  }
+  assert.ok(turbo > 0, 'Turbo aparece nos títulos de corrida dos anos 80')
 })

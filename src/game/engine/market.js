@@ -1,5 +1,5 @@
 import { RIVALS, rivalTierAt } from '../data/content/rivals.js'
-import { ALL_HISTORIC_GAMES } from '../data/history.js'
+import { ALL_HISTORIC_GAMES, MAJOR_STUDIOS } from '../data/history.js'
 import { unlockedGenres, unlockedThemes } from '../data/genres.js'
 import { availablePlatforms } from '../data/platforms.js'
 import { WEEKS_PER_YEAR, demandAt } from '../data/economy.js'
@@ -26,7 +26,30 @@ export const activeRivals = year => RIVALS.filter(rival => rival.foundedYear <= 
 
 // Empresa rival dona de um jogo real (formato antigo: studio era a id; novo: rivalId separado).
 export const historicRival = entry => ('rivalId' in entry ? entry.rivalId : entry.studio) ?? null
-const isAnnual = entry => /^(fifa|pes|cod)-/.test(entry.id)
+export const isAnnual = entry => /^(fifa|pes|cod)-/.test(entry.id)
+// Sucesso de verdade: puxou a moda ou passou de 8 milhões na vida toda (o mesmo corte do almanaque).
+export const isRealHit = entry => Boolean(entry.trend) || entry.copies >= 8
+
+// Marcos de cada ano, como na linha do tempo do almanaque: quem puxou a moda e os três maiores sucessos.
+// Só eles viram linha no diário; o resto dos lançamentos reais fica no aviso.
+const MARKS_PER_YEAR = 3
+function yearMarks(list) {
+  const marks = new Set()
+  const counted = new Map()
+  const hits = list.filter(entry => isRealHit(entry) && (!isAnnual(entry) || entry.trend)).sort((a, b) => b.copies - a.copies)
+  for (const entry of hits) {
+    const count = counted.get(entry.year) ?? 0
+    if (!entry.trend && count >= MARKS_PER_YEAR) continue
+    marks.add(entry.id)
+    if (!entry.trend) counted.set(entry.year, count + 1)
+  }
+  return marks
+}
+const YEAR_MARKS = yearMarks(ALL_HISTORIC_GAMES)
+
+// Indie do Ano: rival pequena (porte 1) é indie. Fora da lista de rivais, só quem vendeu pouco
+// e não é editora grande (LucasArts, MicroProse... também não estão na lista e nunca foram indie).
+const historicIndie = (entry, rival, year) => (rival ? rivalTierAt(rival, year) <= 1 : entry.copies < 3 && !MAJOR_STUDIOS.has(entry.studio))
 
 // Quantos jogos reais cada empresa e cada ano têm. Quem tem jogo de verdade no período não inventa jogo.
 const REAL_BY_YEAR = {}
@@ -107,13 +130,16 @@ export function stepRivals(state, random = Math.random) {
     game.age += 1
   }
   // Mantém só o que ainda vende ou que pode concorrer aos prêmios do ano.
-  state.rivalGames = state.rivalGames.filter(game => game.age < 40 || game.year === state.year)
+  // Na virada (semana 0) o ano já mudou, mas a cerimônia do ano que acabou ainda vai rodar:
+  // o jogo de janeiro a março fica até a semana 1 para disputar o Jogo do Ano dele.
+  const awardYear = state.week === 0 ? state.year - 1 : state.year
+  state.rivalGames = state.rivalGames.filter(game => game.age < 40 || game.year >= awardYear)
   return releases
 }
 
 export const historicWeek = entry => (entry.year - 1980) * WEEKS_PER_YEAR + entry.month * 4
 // Muda quando a lista de jogos reais muda; saves antigos recalculam onde a história está.
-export const HISTORY_VERSION = 3
+export const HISTORY_VERSION = 4
 
 // Primeiro jogo histórico que ainda vai sair a partir de uma semana absoluta.
 export function historyCursorFor(tw) {
@@ -158,7 +184,8 @@ function releaseHistoric(state, tw) {
       historic: true,
       annual: isAnnual(entry),
       trend: entry.trend,
-      indie: !rival && entry.copies < 3,
+      landmark: YEAR_MARKS.has(entry.id),
+      indie: historicIndie(entry, rival, state.year),
     }
     state.rivalGames.push(game)
     out.push(game)

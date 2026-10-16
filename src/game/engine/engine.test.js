@@ -16,7 +16,9 @@ import { DECOR, TECHS, MARKETING, START_ERAS } from '../data/economy.js'
 import { PLATFORMS, availablePlatforms } from '../data/platforms.js'
 import { liveStats } from './progress.js'
 import { PRESS_BANDS, PRESS_HEADLINES, PRESS_MEDIUMS, PRESS_QUESTIONS, PRESS_TONES, pressMediumFor, pressQuestionById } from '../data/content/press.js'
-import { answerEffects, pickPressQuestions, wantsPress } from './press.js'
+import { answerEffects, applyPressEffects, pickPressQuestions, wantsPress } from './press.js'
+import { acquiredWeek, almanacCompanies, almanacSales, weekStamp } from './almanac.js'
+import { MAX_LOG } from './state.js'
 
 const newGame = (seed = 1, startYear = 1980, modeId = 'tradicional') => {
   const random = mulberry32(seed)
@@ -489,4 +491,52 @@ test('coletiva: o meio da entrevista acompanha a época', () => {
   const press = state.queue.find(entry => entry.kind === 'press')
   assert.equal(press?.medium, 'stream', 'em 2020 a entrevista é podcast')
   assert.ok(PRESS_MEDIUMS.find(medium => medium.id === 'stream').hosts.includes(press.host))
+})
+
+test('coletiva: a fichinha de hype mostra só o que coube no teto', () => {
+  const state = { buffs: { hype: 35 }, fans: 100, money: 0, staff: [], stats: {} }
+  assert.deepEqual(applyPressEffects(state, { nextHype: 8 }).find(chip => chip.key === 'hype'), { key: 'hype', value: 5 })
+  assert.equal(state.buffs.hype, 40)
+  assert.equal(applyPressEffects(state, { nextHype: 8 }).find(chip => chip.key === 'hype'), undefined, 'no teto não ganha nada')
+  assert.equal(state.buffs.hype, 40)
+  state.buffs.hype = -18
+  assert.deepEqual(applyPressEffects(state, { nextHype: -6 }).find(chip => chip.key === 'hype'), { key: 'hype', value: -2 })
+})
+
+test('compra de estúdio guarda a data, mesmo depois que o diário esquece', () => {
+  let { state, random } = newGame(91, 2015)
+  state.money = 1e12
+  state.week = 5
+  state = reducer(state, { type: 'ACQUIRE', rivalId: 'teamcherry' }, random)
+  assert.ok(state.acquired.includes('teamcherry'))
+  assert.equal(state.acquiredAt.teamcherry, weekStamp(2015, 5))
+  // Quatro anos de notícia empurram a linha da compra para fora do diário.
+  for (let i = 0; i < MAX_LOG + 5; i += 1) state.log.unshift({ icon: 'newspaper', text: `Notícia ${i}`, at: '2016·0' })
+  state.log.length = MAX_LOG
+  Object.assign(state, { year: 2019, week: 0 })
+  assert.equal(acquiredWeek(state, 'teamcherry'), weekStamp(2015, 5))
+  assert.ok(!almanacSales(state).some(entry => entry.id === 'real-hollow-knight'), 'Hollow Knight nunca saiu nesta história')
+  const card = almanacCompanies(state).acquired.find(company => company.id === 'teamcherry')
+  assert.equal(card.since, 2015)
+  assert.equal(card.games, 0)
+  // Save antigo: sem acquiredAt, a data vem da linha do diário enquanto ela existe e fica guardada.
+  const old = JSON.parse(JSON.stringify(state))
+  delete old.acquiredAt
+  old.log = [{ icon: 'building', text: 'Comprou a Team Cherry', at: '2015·5' }]
+  const loaded = afterLoad(old)
+  assert.equal(loaded.acquiredAt.teamcherry, weekStamp(2015, 5))
+  loaded.log = []
+  assert.equal(acquiredWeek(loaded, 'teamcherry'), weekStamp(2015, 5))
+})
+
+test('parada de save antigo não vira toda NOVO ao carregar', () => {
+  const { state } = newGame(92, 1990)
+  state.chart = [
+    { id: 'velho', title: 'Velho', studio: 'X', weekly: 10, color: '#000', mine: false, score: 7, rank: 1 },
+    { id: 'estreia', title: 'Estreia', studio: 'Y', weekly: 5, color: '#000', mine: false, score: 7, rank: 2, move: null, weeks: 1, topWeeks: 0 },
+  ]
+  const loaded = afterLoad(JSON.parse(JSON.stringify(state)))
+  assert.equal(loaded.chart[0].move, 0)
+  assert.equal(loaded.chart[0].weeks, 1)
+  assert.equal(loaded.chart[1].move, null, 'estreia de verdade continua NOVO')
 })

@@ -136,8 +136,11 @@ export function applyPressEffects(state, effects = {}, game = null) {
   const { nextHype, copiesPct, ...rest } = effects
   const chips = applyEffects(state, rest)
   if (nextHype) {
-    state.buffs.hype = clamp((state.buffs.hype ?? 0) + nextHype, -20, 40)
-    chips.push({ key: 'hype', value: nextHype })
+    // O chip mostra o que entrou de verdade: no teto (40) ou no piso (-20) a sobra não conta.
+    const before = state.buffs.hype ?? 0
+    state.buffs.hype = clamp(before + nextHype, -20, 40)
+    const gained = state.buffs.hype - before
+    if (gained) chips.push({ key: 'hype', value: gained })
   }
   if (copiesPct > 0 && game?.onMarket) {
     const extra = Math.round(Math.max(0, game.copies - game.sold) * copiesPct)
@@ -178,7 +181,10 @@ export function answerPress(state, item, index, random = Math.random, at = null)
   if (outcome.win === false) state.stats.spicyLosses = (state.stats.spicyLosses ?? 0) + 1
   if (outcome.win === true) fx(state, { type: 'cheer' })
   else if (outcome.win === false) fx(state, { type: 'sigh' })
-  else if (outcome.effects?.nextHype > 0) fx(state, { type: 'hype', amount: outcome.effects.nextHype })
+  else {
+    const hype = chips.find(chip => chip.key === 'hype')?.value ?? 0
+    if (hype > 0) fx(state, { type: 'hype', amount: hype })
+  }
   if (item.answers.length === item.questions.length) {
     item.headline = headlineFor(item.answers, random)
     state.stats.interviews = (state.stats.interviews ?? 0) + 1
