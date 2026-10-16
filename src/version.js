@@ -1,8 +1,8 @@
 export const VERSION_INFO = Object.freeze({
-  "version": "1.0.0",
-  "codename": "Escritório Vivo",
+  "version": "1.1.0",
+  "codename": "Almanaque",
   "saveSchema": 100,
-  "releasedAt": "2026-10-13",
+  "releasedAt": "2026-10-16",
   "promptIds": [
     "P-001",
     "P-002",
@@ -27,6 +27,7 @@ export const VERSION_INFO = Object.freeze({
     "P-021",
     "P-022",
     "P-023",
-    "P-024"
+    "P-024",
+    "P-025"
   ]
 })

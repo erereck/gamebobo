@@ -24,6 +24,17 @@ A série 0.x (chave `gamebobo-save`, schema até 6) não é migrada. A tela inic
 - `ideas`, `couples`, `trophies`, `achievements`, `stats`
 - `queue`, `toasts`, `log`, `settings`
 
+Campos novos da 1.1.0 (todos opcionais; saves da 1.0.0 carregam sem migração):
+
+- `historyVersion`: versão da lista de jogos reais usada pelo `historyCursor`.
+- `buffs.hype`: hype guardado pela coletiva para o próximo projeto.
+- `stats.interviews`, `stats.spicyWins`, `stats.spicyLosses`: coletivas e polêmicas.
+- `projects[].crunchWeeks`: semanas de crunch do projeto (a coletiva pergunta).
+- `staff[].look`: campos novos de roupa e acessório; quando faltam, o 3D deriva de forma fixa a partir dos campos antigos.
+- `rivalGames[].rivalId` pode ser `null` (estúdio fora da lista de rivais) e `indie` marca jogos reais pequenos.
+
+Fora do save: o Almanaque guarda no navegador (`gamebobo-almanac-seen`) a última semana em que você abriu o painel, só para acender o ponto da doca.
+
 `fx` e `toasts` são transitórios e são limpos ao carregar.
 
 O jogo salva logo depois de qualquer ação do jogador, a cada mês do calendário e ao sair da aba.
