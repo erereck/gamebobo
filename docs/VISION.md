@@ -1,27 +1,29 @@
 # Visão
 
-Gamebobo é um jogo rápido de carreira. O jogador controla uma pessoa que faz jogos; a empresa aparece se fizer sentido para aquela história.
+Gamebobo é um jogo rápido de carreira em que você comanda um estúdio de games e assiste ao estúdio acontecer.
 
 ## Pilares
 
-1. Um mês leva segundos, não minutos.
-2. Projetos pedem poucas decisões importantes.
-3. Números servem histórias; eventos tornam os números lembráveis.
-4. O mercado muda para impedir receita decorada.
-5. Fracasso continua a partida.
-6. Uma carreira pequena pode ser tão válida quanto uma corporação.
+1. **O escritório é a tela principal.** Tudo o que importa aparece nos bonecos: quem trabalha senta, quem cansa dorme na mesa, quem tem ideia ganha um ! amarelo, o crunch apaga o sol.
+2. **Você decide, não controla.** Ninguém anda pelo clique do jogador. As decisões são poucas, rápidas e com consequência visível.
+3. **Pouco texto.** Ícone, número, seta. Títulos com até sete palavras. Se precisa de parágrafo, a mecânica está mal desenhada.
+4. **Etapas em vez de formulários.** Um clique revela a próxima escolha; o que já foi escolhido vira etiqueta.
+5. **Recompensa frequente, raridade de verdade.** Algo bom acontece a cada poucos minutos: nível, conquista, combo novo, parada, prêmio. Nota 9 continua rara; 10 é lenda.
+6. **Fracasso continua a partida.** Falir manda de volta pro quarto, não para a tela de fim.
+7. **A história de verdade em volta.** Consoles, empresas e jogos reais na data certa. Você não é só mais um tycoon: você divide a prateleira com Super Mario Bros. e Doom.
+8. **Humor bobo.** Camelô, gato do escritório, eventos absurdos. Nunca maldoso.
 
-## Horizonte da carreira
+## O que o jogador quer ver
 
-O jogo começa no quarto, mas não promete que vai terminar ali. O jogador pode continuar solo, montar uma equipe pequena ou atravessar décadas até um estúdio grande. Crescer é uma escolha com custo humano e financeiro, não a vitória automática.
+- Os próprios jogos virando pôsteres na parede.
+- O escritório crescendo: quarto, garagem, salinha, escritório, sede.
+- A equipe ficando mais forte e com personalidade.
+- O carimbo da nota caindo depois de quatro cartas viradas.
+- O próprio jogo subindo nas paradas.
 
-O mundo também acumula autoria: plataformas chegam, concorrentes criam história com o jogador e gêneros novos podem nascer de uma sequência específica de lançamentos.
+## O que evitamos
 
-Aos 65 anos, liderança vira decisão. O fundador pode ficar, promover alguém da equipe ou trazer a próxima geração. O protagonista muda; o mundo, o catálogo e as dívidas continuam.
-
-## Não é prioridade agora
-
-- Microgerenciar agenda diária ou tarefa individual de dezenas de funcionários.
-- Combate, mapa ou movimentação de personagem.
-- Campanha fixa com condição única de vitória.
-- Trinta sliders para desenvolver um jogo.
+- Telas de planilha e trinta sliders.
+- Texto explicando o que um ícone já mostra.
+- Esperas sem escolha nem espetáculo.
+- Sistemas que só servem para punir.

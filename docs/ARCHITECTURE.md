@@ -1,71 +1,41 @@
 # Arquitetura
 
-## Fluxo de uma ação
+## Camadas
 
-1. Uma tela dispara uma ação, por exemplo `MONTH_ACTION`.
-2. `src/game/engine/reducer.js` aplica a regra.
-3. O engine avança o calendário e pode enfileirar acontecimentos.
-4. `App.jsx` salva o novo estado automaticamente.
-5. A interface renderiza o primeiro item de `state.queue` como modal.
+```
+src/game/data      conteúdo e números editáveis
+src/game/engine    regras puras (sem React, sem three.js)
+src/three          escritório 3D, só leitura do estado
+src/features       interface por assunto
+src/ui             peças visuais reutilizáveis
+src/app            store, relógio, áudio, música
+```
 
-## Diretórios
+## Fluxo de uma semana
 
-### `game/data`
+1. `app/App.jsx` roda um intervalo conforme a velocidade do deck e despacha `TICK`, a menos que haja janela aberta.
+2. `engine/tick.js` envelhece a equipe, faz a semana de trabalho, vende jogos, move os rivais, monta as paradas, cobra o mês, sorteia eventos, ideias, modas, Camelô e romance, e fecha o ano com os prêmios.
+3. Tudo que merece espetáculo vira um item em `state.fx` (trabalho, bug, venda, lançamento, comemoração).
+4. `app/store.js` entrega `fx` ao mundo 3D (`three/world.js#handleFx`) e aos sons.
+5. `features/office/viewModel.js` resume o estado para o 3D. O mundo só se reconstrói quando escritório, era, decoração ou pôsteres mudam.
 
-Conteúdo que deve ser fácil de aumentar sem mexer nas regras. Eventos são objetos serializáveis. Efeitos usam um vocabulário pequeno (`money`, `energy`, `quality`, `followers`, etc.).
+## Janelas e avisos
 
-### `game/engine`
+- `state.queue`: momentos que pausam o tempo (evento, ideia, foco de fase, pronto para lançar, revelação, prêmios, feira, falência). Itens de projeto levam `projectId`.
+- `state.projects`: um projeto por equipe. `engine/teams.js` liga pessoas, equipes e projetos; `engine/modes.js` concentra as regras de cada modo.
+- `state.toasts`: avisos que somem sozinhos (conquista, parada, freela, romance).
+- `state.ideas`: os ! sobre as cabeças. Clicar no boneco transforma a ideia em janela.
 
-Funções puras sempre que possível. Este diretório é o lugar correto para balanceamento, cálculo de nota, vendas, passagem do tempo e interpretação dos efeitos dos eventos.
+## 3D
 
-### `features`
+- `layouts.js`: seis plantas com mesas, posições de decoração e de pôsteres.
+- `furniture.js`: móveis procedurais com pontos de interação (sentar, café, jogar, olhar).
+- `nav.js`: grade de 0,5 com A*.
+- `character.js`: boneco em primitivas com poses misturadas (andar, sentar, digitar, beber, jogar, comemorar, dormir).
+- `agents.js`: cérebro de cada boneco, conversa estilo Sims, gato e Camelô.
+- `bubbles.js`: balões desenhados em canvas com os mesmos ícones da interface.
+- `particles.js`: orbes de produção, confete e ícones flutuantes.
 
-Componentes que conhecem o domínio. Exemplo: `NewProjectModal` conhece gêneros e escalas; `Button` não.
+## Aleatoriedade
 
-### `screens`
-
-Organizam features para formar uma tela. Não devem repetir cálculo existente no engine.
-
-### `components`
-
-`ui/` guarda controles genéricos. `layout/` guarda cabeçalho, navegação e estrutura persistente.
-
-## Como adicionar um evento
-
-1. Escolha o arquivo pelo dono do acontecimento: projeto, pós-lançamento, vida pessoal, mundo, estúdio, concorrente ou franquia.
-2. Use um `id` único e estável.
-3. Escreva de duas a três escolhas com custo legível.
-4. Use apenas efeitos suportados por `effects.js`.
-5. Para textos com `{name}`, `{studio}` ou `{franchise}`, confira a hidratação em `world.js`.
-6. Teste um caminho bom e um ruim.
-
-## Como adicionar uma tela
-
-Só crie outra tela se o jogador visitar esse lugar com uma intenção diferente. Primeiro tente encaixar a informação em Carreira, Projetos, Estúdio, Mercado, Indústria ou História.
-
-## Sistemas de longo prazo
-
-- `world.js` orquestra calendário, mercado, eras, plataformas, concorrentes e filas de acontecimentos.
-- `studio.js` concentra pessoas, contribuição, salários, escritório, moral e pesquisa.
-- `business.js` concentra contratos, editoras e crédito.
-- `awards.js` processa uma cerimônia por ano e mantém indicações e troféus.
-- `innovation.js` decide quando um gênero híbrido passa a existir na linha do tempo.
-- `licensing.js` concentra elegibilidade, preço dinâmico, propostas, contratos, leilões, cláusulas, crossovers e memória comercial das IPs.
-- `selectors.js` deriva filosofia, franquias e recordes sem duplicar dados no save.
-- `charts.js` mistura o arquivo de vendas com jogos do jogador e concorrentes; toda tela de ranking consulta esse motor.
-- `corporate.js` concentra relacionamento empresarial, propostas, briefs, valuation, parceria e mudança de controle.
-
-Escalas e plataformas são desbloqueadas por estado do mundo. A interface filtra opções indisponíveis, mas o reducer sempre valida novamente: nunca confie apenas na tela.
-
-## Catálogos históricos
-
-- `platformHistory.js`: hardware, fabricante, tipo, datas regionais e fim da janela comercial.
-- `industryHistory.js`: marcos editoriais e empresas usadas na linha do tempo alternativa.
-- `licenses.js`: dados comerciais e afinidades das propriedades.
-- `licenseClauses.js`: vocabulário de restrições reaproveitado por diferentes IPs.
-- `licenseExpansion.js`: catálogo amplo separado do núcleo para facilitar revisão.
-- `salesHistory.js`: 20 posições de base por década, números reportados/estimados e links de referência.
-- `startupStudios.js`: identidades da coorte fictícia criada no começo de cada carreira.
-- `corporatePartners.js`: empresas, estratégia, IPs que podem encomendar e perfil de autonomia em uma aquisição.
-
-O catálogo histórico é curado, não uma promessa de cobrir todo aparelho já lançado. Novas entradas devem manter IDs estáveis, registrar datas como `[ano, mêsZeroBased]` e funcionar sem imagens protegidas.
+O reducer recebe `random`. O jogo usa `Math.random`; testes e o robô de balanceamento usam `mulberry32` com semente fixa.

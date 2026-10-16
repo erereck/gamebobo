@@ -1,25 +1,37 @@
 :root {
-  --desk: #d7c9aa;
-  --desk-dark: #b7a47f;
-  --paper: #f3ecd9;
-  --paper-bright: #fffaf0;
-  --paper-deep: #e4d8ba;
-  --ink: #17253b;
-  --ink-soft: #526074;
-  --ink-faint: #817f75;
-  --crt: #14243b;
-  --crt-raised: #1d314d;
-  --phosphor: #b7df68;
-  --phosphor-deep: #739d3b;
-  --sticker: #d85240;
-  --danger: #a8392d;
-  --line: rgba(23, 37, 59, 0.17);
-  --line-strong: rgba(23, 37, 59, 0.34);
-  --line-dark: rgba(255, 255, 255, 0.12);
-  --shadow-small: 0 1px 0 rgba(255,255,255,.46), 0 2px 4px rgba(52,42,24,.16);
-  --shadow-medium: 0 1px 0 rgba(255,255,255,.5), 0 8px 24px rgba(52,42,24,.2);
-  --radius-small: 3px;
-  --radius-medium: 7px;
-  --radius-large: 11px;
-  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --ink: #1d1a24;
+  --ink-2: #4a4458;
+  --ink-3: #8a82a0;
+  --paper: #fff8ec;
+  --paper-2: #f4ead8;
+  --paper-3: #e9dcc5;
+  --tomato: #ff5d3a;
+  --tomato-2: #e8431f;
+  --sun: #ffd23f;
+  --sky: #3fb8ff;
+  --mint: #52d977;
+  --grape: #b57bff;
+  --pink: #ff6bd6;
+  --bad: #e63946;
+  --good: #2fbf62;
+
+  --stroke: 2.5px;
+  --line: var(--stroke) solid var(--ink);
+  --shadow: 0 4px 0 var(--ink);
+  --shadow-sm: 0 3px 0 var(--ink);
+  --shadow-lg: 0 7px 0 var(--ink);
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r: 16px;
+  --r-lg: 24px;
+
+  --font: 'Bricolage Grotesque Variable', 'Trebuchet MS', system-ui, sans-serif;
+  --mono: 'Martian Mono', ui-monospace, 'Courier New', monospace;
+  --ease-pop: cubic-bezier(.34, 1.56, .64, 1);
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+
+  --sky-a: #ff8fa3;
+  --sky-b: #ffd6a5;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }

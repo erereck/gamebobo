@@ -1,599 +1,413 @@
-import { PROJECT_EVENTS } from '../data/projectEvents.js'
-import { GENRES, PLATFORMS, SCALES, STATS, labelOf } from '../data/catalog.js'
-import { EQUIPMENT, TRAITS } from '../data/traits.js'
-import { CULTURES, OFFICES } from '../data/team.js'
-import { availableAccessories, supportsMotion } from '../data/hardwareFeatures.js'
-import { projectTypeForId, projectTypeValid, sourceGamesForPayload } from '../data/projectTypes.js'
-import { applyEffects } from './effects.js'
-import { calculateQuality, calculateRelease } from './scoring.js'
-import { createInitialState } from './state.js'
-import { addHistory, advanceDate, dateLabel, queueProjectEvent, tickWorld } from './world.js'
-import { clamp, clone, makeId, randomChoice, randomInt } from './utils.js'
-import { acceptContract, acceptPublisher, createPublisherOfferForProject, generateOpportunities, rejectPublisher, takeLoan, workContractMonth } from './business.js'
-import { changeOffice, fireTeamMember, hireCandidate, hiringSearchCost, refreshCandidates, researchTech, tickStudio } from './studio.js'
-import { processAwards } from './awards.js'
-import { discoverHybridGenre } from './innovation.js'
-import { TECHS, getEra } from '../data/eras.js'
-import { DEBT_CRISIS } from '../data/debtCrisis.js'
-import { platformAtDate } from '../data/platformHistory.js'
-import { acceptLicenseOffer, importLicensePack, licenseFromState, maybeQueueLicenseEvent, recordLicensedRelease, renewLicense, requestLicense, placeLicenseBid, tickLicensing } from './licensing.js'
-import { attachCommissionToProject, minimumScaleMet, pitchCompany, recordCorporateRelease, requestPartnership, resolveCorporateRelease, respondCorporateOffer, tickCorporate } from './corporate.js'
-import { launchPlanMechanics, marketingForYear } from '../data/marketingEras.js'
-import { createCreatorCoverage } from '../data/creatorCoverage.js'
-import { phaseForId, projectPhase, promiseFit, promiseForId, promiseScopeMonths } from '../data/projectPromises.js'
-import { acquireSubsidiary, advanceDelegatedProject, availableProductionUnits, calculateProjectPlan, projectCapacity, projectCount, projectPlatforms } from './production.js'
-import { assignTeamMember, createProductionTeam, productionPaceForUnit, productionUnitForId, staffForProductionUnit } from './teamManagement.js'
-import { attendShowcase, tickExpansion } from './expansionTick.js'
+import { CAMELO_ITEMS } from '../data/content/camelo.js'
+import { DECOR, MARKETING, OFFICES, PHASES, PHASE_FOCUS, START_MONEY, TECHS, moneyScale } from '../data/economy.js'
+import { EXPOS, projectTypeById } from '../data/modes.js'
+import { platformById } from '../data/platforms.js'
+import { traitById } from '../data/staff.js'
+import { applyEffects, resolveChoice } from './effects.js'
+import { eventById, fillText, ideaById } from './events.js'
+import { freelaNeed } from './freelas.js'
+import { polishMore, projectById, releaseDemo, releaseProject, startFreela, startGameProject } from './project.js'
+import { checkAchievements, updateLegacy } from './progress.js'
+import { createGame, fx, log, newBrief, scaled, toast, yearFloat } from './state.js'
+import { techHypeMultiplier } from './staff.js'
+import { tick } from './tick.js'
+import { MAIN_TEAM, acquireStudio, createTeam, freeTeams, hasDeskFor, localStaff, moveToTeam, projectOfStaff, projectOfTeam, teamMembers, teamOf } from './teams.js'
+import { allowsHiring, allowsPlatform, allowsSize, allowsTeams, allowsType, comboBlocked } from './modes.js'
+import { clamp, makeId } from './rng.js'
 
-function franchiseExpectation(state, franchiseId) {
-  const games = state.games.filter(game => game.franchiseId === franchiseId)
-  if (!games.length) return 0
-  const recent = games.slice(0, 3)
-  return Math.round(recent.reduce((sum, game) => sum + game.score, 0) / recent.length)
-}
+export const decorCost = (state, item) => scaled(state, item.cost)
+export const officeCost = (state, level) => scaled(state, OFFICES[level].cost)
+export const trainCost = (state, person) => scaled(state, 1400 + person.level * 450)
+export const techCost = (state, tech) => scaled(state, tech.cost)
+// Contratar fica mais caro conforme o estúdio cresce.
+export const hireFee = (state, candidate) => Math.round(candidate.salary * moneyScale(yearFloat(state)) * (1 + localStaff(state).length * .15))
 
-function findProject(state, projectId) {
-  if (!projectId || state.currentProject?.id === projectId) return state.currentProject
-  return (state.parallelProjects ?? []).find(project => project.id === projectId) ?? null
-}
-
-function startProject(state, payload) {
-  if (state.currentContract || !projectTypeValid(state, payload)) return state
-  state.parallelProjects ??= []
-  if (projectCount(state) >= projectCapacity(state)) return state
-
-  const unitId = state.currentProject ? payload.productionUnitId : 'founder'
-  const unit = availableProductionUnits(state).find(item => item.id === unitId)
-  if (!unit) return state
-  const scale = SCALES[payload.scale]
-  if (!scale) return state
-
-  const platforms = projectPlatforms(payload)
-  const platformRecords = platforms.map(id => PLATFORMS.find(item => item.id === id))
-  if (platformRecords.some(platform => !platform || !platformAtDate(platform, state.date))) return state
-  if (!unit.subsidiaryId && (scale.officeLevel ?? 0) > state.studio.officeLevel) return state
-  if ((scale.teamSize ?? 0) > unit.memberCount) return state
-  if (unit.subsidiaryId && payload.scale === 'blockbuster' && unit.skill < 82) return state
-
-  const promise = promiseForId(payload.promiseId)
-  if (state.date.year < promise.fromYear) return state
-  const type = projectTypeForId(payload.projectType)
-  const sources = sourceGamesForPayload(state, payload)
-  if (type.id === 'port' && sources.some(source => platforms.some(platformId => (source.platforms?.length ? source.platforms : [source.platform]).includes(platformId)))) return state
-
-  const accessory = payload.accessoryId ? availableAccessories(platforms, state.date.year).find(item => item.id === payload.accessoryId) : null
-  if (payload.accessoryId && !accessory) return state
-  const controlScheme = payload.controlScheme ?? 'standard'
-  if (controlScheme !== 'standard' && !supportsMotion(platforms)) return state
-
-  const scopeMonths = promiseScopeMonths(promise.id, payload.scale)
-  const plan = calculateProjectPlan(state, { ...payload, scopeMonths })
-  if (!plan) return state
-  const trait = TRAITS.find(item => item.id === state.player.traitId)
-  const culture = CULTURES.find(item => item.id === state.studio.cultureId)
-  const totalMonths = Math.max(2, plan.totalMonths + (trait?.modifiers.projectMonths ?? 0) + (culture?.modifiers.months ?? 0))
-  const estimatedCost = plan.estimatedCost
-  if (state.player.money < estimatedCost * .25) return state
-
-  const sourceFranchise = sources.find(game => game.franchiseId)
-  const franchise = payload.franchiseId ? state.games.find(game => game.franchiseId === payload.franchiseId) : sourceFranchise
-  const franchiseId = payload.franchiseId || sourceFranchise?.franchiseId || makeId('franchise')
-  const licenseIds = [...new Set(payload.licenseIds ?? [])].filter(Boolean)
-  if (licenseIds.length > 2) return state
-  const licenseContracts = licenseIds.map(id => state.licenses.active.find(item => item.licenseId === id))
-  if (licenseContracts.some(item => !item)) return state
-  if (licenseIds.length === 2 && licenseContracts.some(item => item.clauses.includes('noCrossover'))) return state
-
-  const commission = state.corporate.activeCommission
-  if (commission && (!unit.main || !licenseIds.includes(commission.licenseId) || payload.genre !== commission.genre || !minimumScaleMet(payload.scale, 'small'))) return state
-  const genres = [...new Set(payload.genres?.length ? payload.genres : [payload.genre])].slice(0, 2)
-  const themes = [...new Set(payload.themes?.length ? payload.themes : [payload.theme])].slice(0, 2)
-  const project = {
-    id: makeId('project'),
-    title: payload.title.trim(),
-    genre: genres[0],
-    genres,
-    theme: themes[0],
-    themes,
-    focus: payload.focus,
-    platform: platforms[0],
-    platforms,
-    delegatedPlatformIds: [...new Set(payload.delegatedPlatformIds ?? [])].filter(id => platforms.slice(1).includes(id)),
-    scale: payload.scale,
-    projectType: type.id,
-    sourceGameIds: sources.map(game => game.id),
-    sourceTitles: sources.map(game => game.title),
-    accessoryId: accessory?.id ?? null,
-    controlScheme,
-    productionUnitId: unit.id,
-    productionUnitName: unit.name,
-    franchiseId,
-    franchiseName: franchise?.franchiseName ?? sourceFranchise?.franchiseName ?? payload.title.trim(),
-    isSequel: type.id === 'sequel' && Boolean(franchise),
-    isSpinoff: type.id === 'spinoff',
-    sequelNumber: franchise ? state.games.filter(game => game.franchiseId === franchiseId && game.projectType === 'sequel').length + 2 : 1,
-    expectation: franchiseExpectation(state, franchiseId),
-    started: dateLabel(state.date),
-    progress: 0,
-    totalMonths,
-    estimatedCost,
-    costSpent: 0,
-    quality: plan.legacyQuality + type.qualityBonus,
-    legacyQuality: plan.legacyQuality,
-    legacyHype: plan.legacyHype,
-    innovation: promise.innovation + plan.controls.innovation,
-    reach: state.corporate.partnerships.reduce((sum, item) => sum + item.reach, 0) + promise.reach,
-    promiseId: promise.id,
-    promiseName: promise.label,
-    promiseAudience: promise.audience,
-    promiseFit: promiseFit(promise, genres[0], payload.focus),
-    scopeMonths,
-    bugs: 0,
-    playtest: null,
-    demo: null,
-    phaseHistory: ['prototype'],
-    pressure: 8,
-    hype: (franchise ? Math.round(franchiseExpectation(state, franchiseId) / 5) : 0) + plan.legacyHype,
-    announced: false,
-    announcementDate: null,
-    launchPlan: 'shadow',
-    launchSpend: 0,
-    launchPlansUsed: [],
-    publisher: null,
-    publisherDeclines: 0,
-    directSales: 0,
-    directMargin: 0,
-    eventIds: [],
-    story: null,
-    licenseIds,
-    licenseNames: licenseIds.map(id => licenseFromState(state, id)?.name).filter(Boolean),
-    licenseRoyalty: licenseContracts.reduce((sum, item) => sum + item.royalty, 0),
-    licenseEventIds: [],
-  }
-  if (commission) attachCommissionToProject(state, project)
-  if (!state.currentProject) state.currentProject = project
-  else state.parallelProjects.push(project)
-  state.player.career.projectsStarted += 1
-  addHistory(state, `Começou ${project.title}`, `${type.label} · ${labelOf(state.world.knownGenres, project.genre)} · ${platforms.map(id => PLATFORMS.find(item => item.id === id)?.label).join(' + ')}. ${unit.main ? 'Equipe principal.' : `Produção: ${unit.name}.`}`, { highlight: true, kind: 'project' })
-  return state
-}
-
-function promoteParallelProject(state) {
-  if (state.currentProject || !state.parallelProjects?.length) return
-  const promoted = state.parallelProjects.shift()
-  promoted.productionUnitId = 'founder'
-  promoted.productionUnitName = 'Equipe principal'
-  state.currentProject = promoted
-}
-
-function releaseProject(state, project, random) {
-  if (!project) return null
-  const result = calculateRelease(state, project, random)
-  const game = {
-    ...project,
-    ...result,
-    revenue: result.revenue + (project.directSales ?? 0),
-    id: makeId('game'),
-    released: dateLabel(state.date),
-    trust: (project.expectation && result.score < project.expectation - 10 ? 42 : 50) - Math.min(10, Math.floor((project.bugs ?? 0) / 2)),
-    launchBugs: project.bugs ?? 0,
-    supportEvents: [],
-  }
-  state.games.unshift(game)
-  if (state.currentProject?.id === project.id) state.currentProject = null
-  else state.parallelProjects = (state.parallelProjects ?? []).filter(item => item.id !== project.id)
-  state.player.money += result.revenue
-  state.player.followers += game.newFollowers
-  state.player.reputation = clamp(state.player.reputation + Math.round((game.score - state.player.reputation) / 10), 0, 100)
-  state.studio.reputation = clamp(state.studio.reputation + Math.round((game.score - state.studio.reputation) / 9), 0, 100)
-  state.player.audience.trust = clamp(state.player.audience.trust + Math.round((game.score - 65) / 9) - (project.expectation && game.score < project.expectation - 10 ? 4 : 0) - Math.min(5, Math.floor((project.bugs ?? 0) / 3)), 0, 100)
-  const releaseCulture = CULTURES.find(item => item.id === state.studio.cultureId)
-  const hardcoreShare = clamp((project.promiseAudience === 'hardcore' ? .68 : project.promiseAudience === 'casual' ? .25 : .46) + (releaseCulture?.modifiers.hardcoreTrust ?? 0) / 100, .18, .76)
-  state.player.audience.hardcore += Math.round(game.newFollowers * hardcoreShare)
-  state.player.audience.casual += Math.round(game.newFollowers * (1 - hardcoreShare))
-  ;(game.genres ?? [game.genre]).forEach((genre, index) => { state.player.audience.genres[genre] = (state.player.audience.genres[genre] ?? 0) + Math.round(game.newFollowers * (index ? .45 : 1)) })
-  const platformSalesTotal = Object.values(game.platformSales ?? {}).reduce((sum, value) => sum + value, 0) || 1
-  ;(game.platforms ?? [game.platform]).forEach(platformId => {
-    const share = game.platformSales?.[platformId] ? game.platformSales[platformId] / platformSalesTotal : 1 / Math.max(1, (game.platforms ?? [game.platform]).length)
-    state.player.audience.platforms[platformId] = (state.player.audience.platforms[platformId] ?? 0) + Math.round(game.newFollowers * share)
-  })
-  const supportTech = state.studio.unlockedTechs.reduce((sum, techId) => sum + (TECHS.find(item => item.id === techId)?.bonus.support ?? 0), 0)
-  state.activeReleases.push({ gameId: game.id, monthsLeft: (game.score >= 82 ? 8 : 5) + supportTech, age: 0, eventIds: [] })
-  staffForProductionUnit(state, project.productionUnitId ?? 'founder').forEach(person => { person.projects = Math.floor(person.projects) + 1 })
-  recordLicensedRelease(state, game)
-  recordCorporateRelease(state, game)
-  resolveCorporateRelease(state, game)
-  const canCreateGenre = !['port', 'remaster', 'collection'].includes(project.projectType)
-  const hybrid = canCreateGenre ? discoverHybridGenre(state, game, random) : null
-  if (hybrid) {
-    game.createdGenre = hybrid.id
-    state.queue.push({ id: makeId('genre'), kind: 'info', tag: 'UM GÊNERO NASCEU', title: hybrid.name, body: `A imprensa começou a usar esse nome ao falar de ${game.title}. ${hybrid.description}`, details: ['CRIADO POR VOCÊ', `${state.date.year}`, 'OUTROS ESTÚDIOS VÃO COPIAR'] })
-    addHistory(state, `Nasceu o gênero ${hybrid.name}`, `${game.title} virou a primeira referência.`, { highlight: true, kind: 'legacy' })
-  }
-  state.queue.unshift({ id: makeId('release'), kind: 'release', gameId: game.id })
-  if (project.launchPlan === 'creator' && state.date.year >= 2012) state.queue.splice(1, 0, createCreatorCoverage(game, random))
-  const releaseTitle = game.phenomenon ? `${game.title} virou um fenômeno` : game.breakout ? `${game.title} estourou` : `${game.title} saiu com nota ${game.score}`
-  const releaseBody = game.phenomenon ? `${game.sales.toLocaleString('pt-BR')} cópias no primeiro mês. A linha do tempo acabou de mudar.` : `${game.sales.toLocaleString('pt-BR')} cópias no primeiro mês em ${(game.platforms ?? [game.platform]).length} plataforma${(game.platforms ?? [game.platform]).length > 1 ? 's' : ''}.`
-  addHistory(state, releaseTitle, releaseBody, { highlight: true, kind: 'release' })
-  return game
-}
-
-function processYearEnd(state, random) {
-  if (state.date.month !== 0) return
-  const year = state.date.year - 1
-  const awards = processAwards(state, year, random)
-  if (!awards?.length) return
-  awards.filter(item => item.won).forEach(result => {
-    state.player.reputation += result.categoryId === 'goty' ? 9 : 4
-    state.studio.reputation += result.categoryId === 'goty' ? 8 : 3
-    state.studio.team.forEach(person => {
-      person.morale = clamp(person.morale + 5, 0, 100)
-      person.awards = (person.awards ?? 0) + 1
-    })
-  })
-  state.queue.push({ id: makeId('awards'), kind: 'awards', year, results: awards })
-}
-
-function monthAction(state, payload, random) {
-  if (state.queue.length) return state
-  const project = state.currentProject
-  const culture = CULTURES.find(item => item.id === state.studio.cultureId)
-  let workedOnProject = false
-
-  if (payload.action === 'develop' && project) {
-    const trait = TRAITS.find(item => item.id === state.player.traitId)
-    const promise = promiseForId(project.promiseId)
-    const phase = projectPhase(project)
-    const monthlyCost = Math.round(project.estimatedCost / project.totalMonths)
-    const teamUnit = productionUnitForId(state, project.productionUnitId ?? 'founder')
-    const teamPace = productionPaceForUnit(state, project.productionUnitId ?? 'founder') || 1
-    const extraProgress = (trait?.modifiers.progressChance && random() < trait.modifiers.progressChance ? 0.35 : 0) + (culture?.modifiers.progress ?? 0)
-    const healthPace = 0.75 + state.player.health / 400
-    project.progress += Math.max(.2, teamPace + extraProgress) * healthPace
-    project.costSpent += monthlyCost
-    if (phase === 'prototype') {
-      project.quality += randomInt(2, 4, random) + Math.min(1, project.promiseFit ?? 0)
-      project.bugs += randomInt(0, Math.max(1, Math.ceil(promise.bugRisk / 2)), random)
-    } else if (phase === 'production') {
-      project.quality += randomInt(1, 4, random)
-      project.bugs += randomInt(0, Math.max(1, promise.bugRisk), random)
-    } else {
-      project.quality += randomInt(1, 2, random)
-      const fixCapacity = 2 + Math.floor((state.player.stats.programming + (teamUnit?.memberCount ?? 1) * 4) / 28)
-      project.bugs = Math.max(0, project.bugs - randomInt(1, fixCapacity, random))
-    }
-    project.innovation += project.focus === 'innovation' ? randomInt(1, 3, random) : random() < 0.18 ? 1 : 0
-    project.pressure += randomInt(6, 11, random) + (project.publisher?.pressure ?? 0) * 0.08
-    state.player.money -= monthlyCost
-    state.player.energy -= randomInt(10, 16, random)
-    state.player.stress += randomInt(5, 9, random) + (trait?.modifiers.stressPerDevelop ?? 0) + (culture?.modifiers.stress ?? 0)
-    state.studio.research += 1 + Math.floor((teamUnit?.memberCount ?? 1) / 3)
-    state.player.career.monthsWorked += 1
-    workedOnProject = true
-    const nextPhase = projectPhase(project)
-    if (nextPhase !== phase && !project.phaseHistory?.includes(nextPhase)) project.phaseHistory = [...(project.phaseHistory ?? []), nextPhase]
-    const phaseCopy = phase === 'prototype' ? 'A ideia já dá para jogar.' : phase === 'production' ? `${project.bugs} pendência${project.bugs === 1 ? '' : 's'} na build.` : `${project.bugs} pendência${project.bugs === 1 ? '' : 's'} antes do lançamento.`
-    addHistory(state, `${phaseForId(phase).label}: ${project.title}`, `${Math.min(100, Math.round(project.progress / project.totalMonths * 100))}% concluído. ${phaseCopy}`, { kind: 'project' })
-  } else if (payload.action === 'promote' && project && project.announced) {
-    const cost = 1200 + SCALES[project.scale].cost * 0.06
-    const gain = randomInt(5, 11, random) + Math.round(state.player.stats.marketing / 18)
-    state.player.money -= cost
-    project.costSpent += cost
-    state.player.energy -= 5
-    project.hype += gain
-    project.pressure += 3
-    addHistory(state, `Campanha de ${project.title}`, `Hype subiu ${gain} pontos.`, { kind: 'marketing' })
-  } else if (payload.action === 'contract' && state.currentContract) {
-    const completed = workContractMonth(state)
-    addHistory(state, completed ? `Contrato entregue: ${completed.title}` : `Trabalho para ${state.currentContract.client}`, completed ? `${completed.pay.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} recebidos.` : 'Mais um mês faturável.', { highlight: Boolean(completed), kind: 'contract' })
-  } else if (payload.action === 'work') {
-    const income = randomInt(2800, 3900, random) * (1 + Math.floor(state.player.reputation / 25) * 0.2)
-    state.player.money += income
-    state.player.energy -= project ? 19 : 14
-    state.player.stress += project ? 9 : 5
-    if (project) project.pressure += 7
-    addHistory(state, 'Freelance pago', `${Math.round(income).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} entrou no caixa.`, { kind: 'work' })
-  } else if (payload.action === 'study') {
-    const stat = payload.stat ?? randomChoice(Object.keys(state.player.stats), random)
-    const gain = randomInt(3, 6, random)
-    state.player.money -= 900
-    state.player.energy -= 6
-    state.player.stats[stat] = clamp(state.player.stats[stat] + gain, 0, 99)
-    state.studio.research += 3
-    addHistory(state, 'Um mês de curso', `${gain} pontos a mais em ${labelOf(STATS, stat).toLowerCase()}.`, { kind: 'study' })
-  } else if (payload.action === 'research') {
-    const gain = randomInt(7, 12, random) + state.studio.team.length
-    state.studio.research += gain
-    state.player.money -= 1800
-    state.player.energy -= 8
-    addHistory(state, 'Pesquisa interna', `${gain} pontos de pesquisa registrados.`, { kind: 'research' })
-  } else if (payload.action === 'rest') {
-    const energy = randomInt(30, 44, random)
-    state.player.energy += energy
-    state.player.stress -= randomInt(18, 28, random)
-    state.player.relationship += 2
-    state.player.health += 3
-    if (project) project.pressure = Math.max(0, project.pressure - 16)
-    addHistory(state, 'Um mês mais quieto', `Energia recuperada: ${energy}.`, { kind: 'personal' })
-  } else {
-    return state
-  }
-
-  if (state.player.stress > 78) state.player.health -= randomInt(2, 6, random)
-  state.player.energy = clamp(state.player.energy, 0, 100)
-  state.player.stress = clamp(state.player.stress, 0, 100)
-  state.player.health = clamp(state.player.health, 0, 100)
-  advanceDate(state)
-  tickStudio(state, workedOnProject, random)
-
-  const delegatedFinished = []
-  ;(state.parallelProjects ?? []).forEach(parallel => {
-    if (advanceDelegatedProject(state, parallel, random)) delegatedFinished.push(parallel)
-  })
-
-  const currentFinished = state.currentProject && state.currentProject.progress >= state.currentProject.totalMonths
-  if (currentFinished) releaseProject(state, state.currentProject, random)
-  delegatedFinished.forEach(project => {
-    if ((state.parallelProjects ?? []).some(item => item.id === project.id)) releaseProject(state, project, random)
-  })
-  promoteParallelProject(state)
-
-  generateOpportunities(state, random)
-  processYearEnd(state, random)
-  tickWorld(state, random)
-  tickLicensing(state, random)
-  tickCorporate(state, random)
-  tickExpansion(state)
-
-  const eventLimit = state.currentProject ? ({ micro: 1, small: 2, medium: 3, large: 4, blockbuster: 4 }[state.currentProject.scale] ?? 2) : 0
-  if (!currentFinished && state.currentProject && !state.queue.some(item => item.kind === 'decision') && state.currentProject.eventIds.length < eventLimit && random() < 0.38) {
-    const candidates = PROJECT_EVENTS.filter(event => state.date.year >= (event.fromYear ?? 1980) && state.date.year <= (event.toYear ?? 9999) && !state.currentProject.eventIds.includes(event.id))
-    if (candidates.length) queueProjectEvent(state, randomChoice(candidates, random))
-  }
-  if (!currentFinished) maybeQueueLicenseEvent(state, random)
-  if (state.player.money < -100000 && !state.player.flags.deepDebtWarning) {
-    state.player.flags.deepDebtWarning = true
-    state.queue.push({ id: makeId('debt'), kind: 'decision', source: 'business', eventId: DEBT_CRISIS.id, tag: DEBT_CRISIS.tag, title: DEBT_CRISIS.title, body: DEBT_CRISIS.body, choices: DEBT_CRISIS.choices, context: {} })
-  }
-  return state
-}
-
-function resolveDecision(state, choiceId, random) {
-  const decision = state.queue[0]
-  if (!decision || decision.kind !== 'decision') return state
-  const choice = decision.choices.find(item => item.id === choiceId)
-  if (!choice) return state
-  applyEffects(state, choice.effects, { ...decision.context, eventId: decision.eventId }, random)
-  addHistory(state, decision.title, `${choice.label}. ${choice.outcome}`, { highlight: true, kind: decision.source })
-  state.player.career.crisesSurvived += 1
+function popQueue(state) {
   state.queue.shift()
+}
+
+function choose(state, index, random) {
+  const item = state.queue[0]
+  if (!item || item.result) return
+  let choice = null
+  let ctx = {}
+  if (item.kind === 'event') {
+    choice = eventById(item.eventId)?.choices?.[index]
+    ctx = { projectId: item.ctx?.projectId }
+  }
+  if (item.kind === 'idea') {
+    choice = ideaById(item.ideaId)?.choices?.[index]
+    ctx = { projectId: projectOfStaff(state, item.ctx?.staffId)?.id }
+  }
+  if (!choice) return
+  const outcome = resolveChoice(choice, random)
+  const chips = applyEffects(state, outcome.effects, ctx)
+  item.result = { index, text: fillText(outcome.text, state, item.ctx), chips, win: outcome.win }
+  if (item.kind === 'idea' && index === 0) state.stats.ideasAccepted += 1
+  if (outcome.win === true) fx(state, { type: 'cheer' })
+  if (outcome.win === false) fx(state, { type: 'sigh' })
+}
+
+// Confere se a escolha da ficha respeita o modo de carreira e as regras do tipo de projeto.
+export function validChoice(state, choice) {
+  const type = projectTypeById(choice.type)
+  if (!allowsType(state, type.id)) return false
+  const platforms = choice.platforms?.length ? choice.platforms : [choice.platform]
+  if (!platforms.length || platforms.some(id => !allowsPlatform(state, platformById(id)))) return false
+  if (choice.size && !allowsSize(state, choice.size)) return false
+  const sources = (choice.sources ?? []).map(id => state.games.find(game => game.id === id))
+  if (sources.some(game => !game)) return false
+  if (type.source === 'game' || type.source === 'franchise') if (sources.length !== 1) return false
+  if (type.source === 'many' && (sources.length < 2 || sources.length > 4)) return false
+  if (type.id === 'port' && platforms.includes(sources[0]?.platform)) return false
+  const lock = state.mode?.franchise
+  if (state.mode?.id === 'franquia' && lock && sources.some(game => game.franchise !== lock.id)) return false
+  if (type.id === 'original' && comboBlocked(state, choice.genre, choice.theme)) return false
+  const team = choice.teamId ?? MAIN_TEAM
+  if (projectOfTeam(state, team) || !teamMembers(state, team).length) return false
+  return true
+}
+
+export function reducer(current, action, random = Math.random) {
+  if (action.type === 'LOAD') return action.state
+  if (action.type === 'NEW_GAME') return createGame(action.options, random)
+  if (!current) return current
+  const state = structuredClone(current)
+  state.fx = []
+
+  switch (action.type) {
+    case 'TICK':
+      return tick(state, random)
+
+    case 'DISMISS_TOAST':
+      state.toasts = state.toasts.filter(item => item.id !== action.id)
+      return state
+
+    case 'CLOSE':
+      popQueue(state)
+      return state
+
+    case 'CHOOSE':
+      choose(state, action.index, random)
+      return state
+
+    case 'SET_FOCUS': {
+      const item = state.queue[0]
+      const project = projectById(state, item?.projectId)
+      if (item?.kind !== 'phase' || !project) return current
+      const list = PHASE_FOCUS[PHASES[item.phase].id]
+      if (!list.some(focus => focus.id === action.focus)) return current
+      project.focus[item.phase] = action.focus
+      popQueue(state)
+      return state
+    }
+
+    case 'RELEASE': {
+      const item = state.queue[0]
+      if (item?.kind !== 'ready' || !projectById(state, item.projectId)) return current
+      popQueue(state)
+      releaseProject(state, item.projectId, random)
+      if (state.mode?.parent) newBrief(state, random)
+      return state
+    }
+
+    case 'POLISH_MORE': {
+      const item = state.queue[0]
+      if (item?.kind !== 'ready' || !projectById(state, item.projectId)) return current
+      popQueue(state)
+      polishMore(state, item.projectId)
+      return state
+    }
+
+    case 'START_GAME': {
+      if (!validChoice(state, action.choice)) return current
+      startGameProject(state, action.choice)
+      return state
+    }
+
+    case 'START_FREELA': {
+      const item = state.freelas.find(freela => freela.id === action.id)
+      const team = action.teamId ?? freeTeams(state)[0]?.id
+      if (!item || !team || projectOfTeam(state, team)) return current
+      startFreela(state, item, freelaNeed(item, yearFloat(state)), team)
+      return state
+    }
+
+    case 'CANCEL_PROJECT': {
+      const project = projectById(state, action.projectId)
+      if (!project) return current
+      log(state, 'x', `Cancelou ${project.title}`)
+      state.projects = state.projects.filter(item => item !== project)
+      state.queue = state.queue.filter(item => item.projectId !== project.id)
+      for (const person of teamMembers(state, project.teamId, false)) person.mood = clamp(person.mood - 10, 0, 100)
+      return state
+    }
+
+    case 'SET_PACE': {
+      const project = projectById(state, action.projectId)
+      if (!project) return current
+      project.pace = action.pace
+      fx(state, { type: 'pace', pace: action.pace })
+      return state
+    }
+
+    case 'DEMO': {
+      if (!releaseDemo(state, action.projectId)) return current
+      return state
+    }
+
+    case 'MARKET': {
+      const project = projectById(state, action.projectId)
+      const channel = MARKETING.find(item => item.id === action.id)
+      if (!project || project.kind !== 'game' || !channel) return current
+      const cost = scaled(state, channel.cost)
+      if (state.money < cost) return current
+      state.money -= cost
+      let add = channel.hype ?? 0
+      let win = null
+      if (channel.gamble) {
+        win = random() < channel.gamble.chance
+        add = win ? channel.gamble.win : channel.gamble.lose
+      }
+      const meme = state.staff.some(person => traitById(person.trait)?.hype)
+      const gained = Math.round(add * (1 - project.hype / 130) * techHypeMultiplier(state.techs) * (meme ? 1.2 : 1))
+      project.hype = clamp(project.hype + gained, 0, 100)
+      const chips = [{ key: 'money', value: -cost }, { key: 'hype', value: gained }]
+      if (channel.fansPct) chips.push(...applyEffects(state, { fansPct: channel.fansPct }))
+      toast(state, { kind: win === false ? 'bad' : 'good', icon: channel.icon, title: win === false ? 'Flopou' : win ? 'Viralizou!' : channel.label, chips })
+      fx(state, { type: 'hype', amount: gained })
+      return state
+    }
+
+    case 'EXPO_PICK': {
+      const item = state.queue[0]
+      if (item?.kind !== 'expo') return current
+      const expo = EXPOS.find(entry => entry.id === item.expoId)
+      popQueue(state)
+      if (!action.targetId || !expo) return state
+      const cost = scaled(state, expo.cost)
+      if (state.money < cost) return state
+      state.money -= cost
+      const project = projectById(state, action.targetId)
+      const game = state.games.find(entry => entry.id === action.targetId)
+      if (project) {
+        const gained = Math.round(expo.hype * (1 - project.hype / 130))
+        project.hype = clamp(project.hype + gained, 0, 100)
+        toast(state, { kind: 'good', icon: 'users', title: `${project.title} no palco`, sub: expo.name, chips: [{ key: 'money', value: -cost }, { key: 'hype', value: gained }] })
+        fx(state, { type: 'hype', amount: gained })
+      } else if (game?.onMarket) {
+        const extra = Math.round((game.copies - game.sold) * (expo.sales - 1) * 2)
+        game.copies += extra
+        toast(state, { kind: 'good', icon: 'users', title: `${game.title} no palco`, sub: expo.name, chips: [{ key: 'money', value: -cost }, { key: 'copies', value: extra }] })
+      }
+      applyEffects(state, { fansPct: .02 })
+      log(state, 'users', `Levou um jogo para a ${expo.name}`)
+      return state
+    }
+
+    case 'OPEN_IDEA': {
+      const idea = state.ideas.find(item => item.staffId === action.staffId)
+      if (!idea) return current
+      state.ideas = state.ideas.filter(item => item !== idea)
+      state.seenEvents[`idea:${idea.ideaId}`] = 1
+      state.queue.unshift({ kind: 'idea', id: makeId('q'), ideaId: idea.ideaId, ctx: { staffId: idea.staffId } })
+      return state
+    }
+
+    case 'HIRE': {
+      const candidate = state.candidates.find(item => item.id === action.id)
+      if (!candidate || !allowsHiring(state) || !hasDeskFor(state)) return current
+      const fee = hireFee(state, candidate)
+      if (state.money < fee) return current
+      state.money -= fee
+      candidate.hiredAt = state.year
+      candidate.team = action.teamId && !state.teams.find(team => team.id === action.teamId)?.remote ? action.teamId : MAIN_TEAM
+      state.staff.push(candidate)
+      state.candidates = state.candidates.filter(item => item.id !== action.id)
+      log(state, 'users', `Contratou ${candidate.name}`)
+      fx(state, { type: 'hire', staffId: candidate.id })
+      checkAchievements(state)
+      return state
+    }
+
+    case 'FIRE': {
+      const person = state.staff.find(item => item.id === action.id)
+      if (!person || person.founder) return current
+      state.staff = state.staff.filter(item => item.id !== action.id)
+      state.ideas = state.ideas.filter(item => item.staffId !== action.id)
+      for (const other of state.staff) other.mood = clamp(other.mood - 6, 0, 100)
+      log(state, 'door', `${person.name} saiu`)
+      fx(state, { type: 'fire', staffId: person.id })
+      return state
+    }
+
+    case 'CREATE_TEAM': {
+      if (!allowsTeams(state)) return current
+      createTeam(state)
+      return state
+    }
+
+    case 'MOVE_STAFF': {
+      if (!moveToTeam(state, action.staffId, action.teamId)) return current
+      return state
+    }
+
+    case 'ACQUIRE': {
+      if (!acquireStudio(state, action.rivalId, random)) return current
+      fx(state, { type: 'cheer', big: true })
+      checkAchievements(state)
+      return state
+    }
+
+    case 'TRAIN': {
+      const person = state.staff.find(item => item.id === action.id)
+      if (!person || person.status !== 'ok') return current
+      const cost = trainCost(state, person)
+      if (state.money < cost) return current
+      state.money -= cost
+      person.status = 'treino'
+      person.away = 3
+      person.trainPillar = action.pillar
+      fx(state, { type: 'leave', staffId: person.id })
+      return state
+    }
+
+    case 'VACATION': {
+      const person = state.staff.find(item => item.id === action.id)
+      if (!person || person.status !== 'ok') return current
+      person.status = 'ferias'
+      person.away = 2
+      fx(state, { type: 'leave', staffId: person.id })
+      return state
+    }
+
+    case 'UPGRADE_OFFICE': {
+      const next = state.office + 1
+      if (!OFFICES[next]) return current
+      const cost = officeCost(state, next)
+      if (state.money < cost) return current
+      state.money -= cost
+      state.office = next
+      const slots = OFFICES[next].slots
+      if (state.decor.length > slots) state.decor.length = slots
+      log(state, 'building', `Mudou para ${OFFICES[next].label}`)
+      toast(state, { kind: 'great', icon: 'building', title: `Bem-vindo à ${OFFICES[next].label}!` })
+      fx(state, { type: 'move' })
+      checkAchievements(state)
+      return state
+    }
+
+    case 'BUY_DECOR': {
+      const item = DECOR.find(decor => decor.id === action.id)
+      if (!item || state.decor.includes(item.id) || state.decor.length >= OFFICES[state.office].slots) return current
+      const cost = decorCost(state, item)
+      if (state.money < cost) return current
+      state.money -= cost
+      state.decor.push(item.id)
+      fx(state, { type: 'decor', id: item.id })
+      checkAchievements(state)
+      return state
+    }
+
+    case 'SELL_DECOR': {
+      if (!state.decor.includes(action.id)) return current
+      state.decor = state.decor.filter(id => id !== action.id)
+      fx(state, { type: 'decor', id: action.id })
+      return state
+    }
+
+    case 'RESEARCH': {
+      const tech = TECHS.find(item => item.id === action.id)
+      if (!tech || state.techs.includes(tech.id) || tech.year > state.year) return current
+      const cost = techCost(state, tech)
+      if (state.money < cost || state.rp < tech.rp) return current
+      state.money -= cost
+      state.rp -= tech.rp
+      state.techs.push(tech.id)
+      state.stats.researchDone += 1
+      toast(state, { kind: 'good', icon: tech.icon, title: tech.label, sub: 'Pesquisa concluída' })
+      log(state, 'flask', `Pesquisou ${tech.label}`)
+      fx(state, { type: 'cheer' })
+      checkAchievements(state)
+      return state
+    }
+
+    case 'BUY_CAMELO': {
+      const visitor = state.visitor
+      const item = CAMELO_ITEMS.find(entry => entry.id === action.id)
+      if (!visitor || !item || visitor.sold.includes(item.id) || !visitor.items.includes(item.id)) return current
+      const cost = scaled(state, item.price)
+      if (state.money < cost) return current
+      state.money -= cost
+      visitor.sold.push(item.id)
+      state.stats.cameloDeals += 1
+      const outcome = item.gamble ? resolveChoice({ gamble: item.gamble, winText: item.winText, loseText: item.loseText }, random) : { effects: item.effects, text: item.text, win: null }
+      const chips = applyEffects(state, outcome.effects)
+      visitor.last = { id: item.id, text: outcome.text, win: outcome.win, chips }
+      checkAchievements(state)
+      return state
+    }
+
+    case 'SHOO_VISITOR':
+      state.visitor = null
+      fx(state, { type: 'visitorLeave' })
+      return state
+
+    case 'BANKRUPT': {
+      popQueue(state)
+      state.stats.bankruptcies += 1
+      if (action.choice === 'loan' && !state.usedLoan) {
+        const amount = scaled(state, 20000 + state.office * 15000)
+        state.money += amount
+        state.loan = { monthly: Math.round(amount * 1.35 / 24), months: 24 }
+        state.usedLoan = state.year
+        state.debtMonths = 0
+        toast(state, { kind: 'info', icon: 'cash', title: 'Empréstimo na conta', sub: '24 parcelas' })
+      } else {
+        state.staff = state.staff.filter(person => person.founder)
+        for (const person of state.staff) person.team = MAIN_TEAM
+        state.teams = [{ id: MAIN_TEAM, name: 'Equipe principal' }]
+        state.office = 0
+        state.decor = state.decor.slice(0, OFFICES[0].slots)
+        state.projects = []
+        state.queue = state.queue.filter(item => !item.projectId)
+        state.ideas = []
+        state.money = Math.round(START_MONEY * .6 * moneyScale(yearFloat(state)))
+        state.fans = Math.round(state.fans * .6)
+        state.debtMonths = 0
+        state.loan = null
+        log(state, 'home', 'Voltou pro quarto')
+        toast(state, { kind: 'info', icon: 'home', title: 'De volta ao quarto', sub: 'Recomeço com história' })
+        fx(state, { type: 'move' })
+      }
+      if (state.usedLoan && state.year - state.usedLoan > 10) state.usedLoan = null
+      return state
+    }
+
+    case 'SET_SETTING':
+      state.settings = { ...state.settings, [action.key]: action.value }
+      return state
+
+    case 'DEBUG_MONEY':
+      state.money += scaled(state, action.amount ?? 50000)
+      return state
+
+    default:
+      return current
+  }
+}
+
+export function afterLoad(state) {
+  state.fx = []
+  state.toasts = []
+  state.projects ??= []
+  state.teams ??= [{ id: MAIN_TEAM, name: 'Equipe principal' }]
+  state.acquired ??= []
+  state.goty ??= []
+  state.mode ??= { id: 'tradicional', franchise: null, parent: null, brief: null }
+  for (const person of state.staff) person.team ??= MAIN_TEAM
+  updateLegacy(state)
   return state
 }
 
-function upgradeEquipment(state) {
-  const next = EQUIPMENT[state.player.equipmentLevel + 1]
-  if (!next || state.date.year < next.unlockYear || state.player.money < next.cost) return
-  state.player.money -= next.cost
-  state.player.equipmentLevel = next.level
-  addHistory(state, `Comprou ${next.name}`, next.description, { highlight: true, kind: 'studio' })
-}
-
-function focusProject(state, projectId) {
-  if (!state.currentProject || state.currentProject.id === projectId) return
-  const index = (state.parallelProjects ?? []).findIndex(project => project.id === projectId)
-  if (index < 0) return
-  const selected = state.parallelProjects[index]
-  const delegatedUnitId = selected.productionUnitId
-  const delegatedUnitName = selected.productionUnitName
-  state.parallelProjects[index] = { ...state.currentProject, productionUnitId: delegatedUnitId, productionUnitName: delegatedUnitName }
-  state.currentProject = { ...selected, productionUnitId: 'founder', productionUnitName: 'Equipe principal' }
-  addHistory(state, `Foco mudou para ${selected.title}`, `${state.parallelProjects[index].title} continua com ${delegatedUnitName}.`, { kind: 'project' })
-}
-
-function announceProject(state) {
-  const project = state.currentProject
-  if (!project || project.announced) return
-  project.announced = true
-  project.announcementDate = dateLabel(state.date)
-  project.hype += 8 + Math.round(state.player.followers / 2000) + Math.round(state.player.stats.marketing / 14)
-  project.pressure += 9
-  const marketing = marketingForYear(state.date.year)
-  addHistory(state, `${project.title} foi apresentado a ${marketing.publicWord}`, `${project.hype} pontos de hype. Agora existe uma cobrança pública.`, { highlight: true, kind: 'marketing' })
-}
-
-function releaseDemo(state, projectId, random) {
-  const project = findProject(state, projectId)
-  if (!project || project.demo || project.progress / project.totalMonths < .25 || state.queue.length) return
-  const cost = Math.max(500, Math.round(project.estimatedCost * .035))
-  if (state.player.money < cost) return
-  const estimate = calculateQuality(state, project, () => .5)
-  const wobble = randomInt(-5, 5, random)
-  const reception = clamp(estimate + wobble - Math.min(8, project.bugs ?? 0), 25, 96)
-  const hypeChange = reception >= 82 ? 14 : reception >= 70 ? 8 : reception >= 58 ? 3 : -5
-  state.player.money -= cost
-  project.costSpent += cost
-  project.hype = Math.max(0, project.hype + hypeChange)
-  project.reach += reception >= 70 ? .08 : .02
-  project.demo = { date: dateLabel(state.date), reception, hypeChange, cost }
-  state.player.followers += Math.max(10, Math.round(reception * 2.5))
-  if (reception < 55) state.player.audience.trust = clamp(state.player.audience.trust - 2, 0, 100)
-  state.queue.push({ id: makeId('demo'), kind: 'info', tag: 'DEMO PÚBLICA', title: reception >= 82 ? `${project.title} saiu da demo maior.` : reception >= 70 ? `${project.title} convenceu na demo.` : reception >= 58 ? `${project.title} ainda precisa de trabalho.` : `A demo de ${project.title} preocupou.`, body: `Recepção estimada em ${reception}/100. Hype ${hypeChange >= 0 ? '+' : ''}${hypeChange}.`, details: [`CUSTO ${cost.toLocaleString('pt-BR')}`, 'FEEDBACK ANTES DO LANÇAMENTO', project.bugs ? `${project.bugs} PENDÊNCIAS` : 'BUILD ESTÁVEL'] })
-  addHistory(state, `Demo de ${project.title}`, `Recepção ${reception}/100; hype ${hypeChange >= 0 ? '+' : ''}${hypeChange}.`, { highlight: true, kind: 'marketing' })
-}
-
-function setLaunchPlan(state, plan) {
-  const project = state.currentProject
-  if (!project) return
-  const marketing = marketingForYear(state.date.year)
-  const costs = Object.fromEntries(Object.entries(launchPlanMechanics).filter(([id]) => marketing.plans[id]).map(([id, mechanic]) => [id, mechanic.cost]))
-  if (!(plan in costs) || project.launchPlan === plan) return
-  const extraCost = Math.max(0, costs[plan] - (project.launchSpend ?? 0))
-  if (state.player.money < extraCost) return
-  state.player.money -= extraCost
-  project.costSpent += extraCost
-  project.launchSpend = Math.max(project.launchSpend ?? 0, costs[plan])
-  project.launchPlansUsed ??= []
-  project.launchPlan = plan
-  if (!project.launchPlansUsed.includes(plan)) {
-    if (plan === 'campaign') project.hype += 14
-    if (plan === 'creator') {
-      project.hype += 8
-      project.reach += .18
-      project.pressure += 5
-      addHistory(state, `Criador reservado para ${project.title}`, 'A transmissão está paga. A opinião continua fora do seu controle.', { highlight: true, kind: 'marketing' })
-    }
-    if (plan === 'early') {
-      const presales = Math.max(400, Math.round((state.player.followers + project.hype * 35) * SCALES[project.scale].price * 0.08))
-      project.quality -= 4
-      project.reach += 0.08
-      project.directSales += presales
-      state.player.money += presales
-      addHistory(state, `Acesso antecipado de ${project.title}`, `${presales.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} entraram antes do lançamento.`, { highlight: true, kind: 'business' })
-    }
-    project.launchPlansUsed.push(plan)
-  }
-}
-
-function runPlaytest(state, random) {
-  const project = state.currentProject
-  if (!project || project.playtest || projectPhase(project) === 'prototype' || state.queue.length) return
-  const cost = Math.max(450, Math.round(SCALES[project.scale].cost * .055))
-  if (state.player.money < cost) return
-  const remainingMonths = Math.max(0, project.totalMonths - project.progress)
-  const center = clamp(calculateQuality(state, project, () => .5) + Math.round(remainingMonths * 1.35), 24, 97)
-  const uncertainty = projectPhase(project) === 'polish' ? 5 : 9
-  const drift = randomInt(-2, 2, random)
-  const min = clamp(center - uncertainty + drift, 20, 94)
-  const max = clamp(center + uncertainty + drift, min + 2, 99)
-  const issue = (project.bugs ?? 0) >= 6
-    ? 'A build engasga quando muita coisa acontece ao mesmo tempo.'
-    : (project.promiseFit ?? 0) === 0
-      ? 'A promessa ainda parece colada por cima do resto do jogo.'
-      : project.pressure > 60
-        ? 'O conteúdo está crescendo mais rápido que o acabamento.'
-        : 'O começo funciona; o miolo ainda perde ritmo.'
-  const strength = (project.promiseFit ?? 0) >= 2
-    ? `“${project.promiseName}” já aparece sem precisar explicar.`
-    : project.focus === 'story'
-      ? 'As pessoas lembraram dos personagens depois da sessão.'
-      : 'O primeiro minuto deixou claro como jogar.'
-  state.player.money -= cost
-  state.player.energy = clamp(state.player.energy - 4, 0, 100)
-  state.player.stress = clamp(state.player.stress + 2, 0, 100)
-  project.costSpent += cost
-  project.quality += 1
-  project.playtest = { min, max, issue, strength, date: dateLabel(state.date), cost }
-  addHistory(state, `Playtest de ${project.title}`, `A equipe estima uma nota entre ${min} e ${max}.`, { highlight: true, kind: 'project' })
-}
-
-export function reduceGame(currentState, action, random = Math.random) {
-  if (action.type === 'RESET_CAREER') return createInitialState(action.options ?? { startYear: action.startYear }, random)
-  if (!currentState) return currentState
-  const state = clone(currentState)
-  if (action.type === 'START_PROJECT') startProject(state, action.payload)
-  if (action.type === 'MONTH_ACTION') monthAction(state, action.payload, random)
-  if (action.type === 'RESOLVE_DECISION') resolveDecision(state, action.choiceId, random)
-  if (action.type === 'ACK_QUEUE') state.queue.shift()
-  if (action.type === 'UPGRADE_EQUIPMENT') upgradeEquipment(state)
-  if (action.type === 'FOCUS_PROJECT') focusProject(state, action.projectId)
-  if (action.type === 'ANNOUNCE_PROJECT') announceProject(state)
-  if (action.type === 'RELEASE_DEMO') releaseDemo(state, action.projectId, random)
-  if (action.type === 'SET_LAUNCH_PLAN') setLaunchPlan(state, action.plan)
-  if (action.type === 'RUN_PLAYTEST') runPlaytest(state, random)
-  if (action.type === 'ATTEND_GAME_EVENT') attendShowcase(state, action.eventId, action.targetId ?? state.currentProject?.id ?? state.games[0]?.id)
-  if (action.type === 'ATTEND_SHOWCASE') {
-    const result = attendShowcase(state, action.eventId, action.targetId)
-    if (result && state.queue[0]?.kind === 'showcase' && state.queue[0].eventId === action.eventId) state.queue.shift()
-  }
-  if (action.type === 'SKIP_SHOWCASE' && state.queue[0]?.kind === 'showcase') state.queue.shift()
-  if (action.type === 'RENAME_PROJECT' && state.currentProject) {
-    const title = String(action.title ?? '').trim().slice(0, 56)
-    if (title && title !== state.currentProject.title) {
-      const previous = state.currentProject.title
-      state.currentProject.title = title
-      if (!state.currentProject.isSequel && !state.currentProject.isSpinoff) state.currentProject.franchiseName = title
-      addHistory(state, `${previous} virou ${title}`, 'O nome mudou na capa do projeto. O resto do trabalho continua igual.', { highlight: true, kind: 'project' })
-    }
-  }
-  if (action.type === 'REFRESH_CANDIDATES' || action.type === 'HEADHUNT_CANDIDATES') {
-    const priority = action.type === 'HEADHUNT_CANDIDATES'
-    const cost = hiringSearchCost(state, priority)
-    const office = OFFICES[state.studio.officeLevel]
-    if (state.studio.team.length < office.capacity - 1 && state.player.money >= cost) {
-      state.player.money -= cost
-      refreshCandidates(state, random, priority)
-      addHistory(state, priority ? 'Caça-talentos contratada' : 'Busca por currículos', `${cost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} gastos para abrir uma nova lista.`, { kind: 'studio' })
-    }
-  }
-  if (action.type === 'HIRE_CANDIDATE') {
-    const person = hireCandidate(state, action.candidateId)
-    if (person) addHistory(state, `${person.name} entrou no estúdio`, `Salário mensal: ${person.salary.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}. Entrou na Equipe principal.`, { highlight: true, kind: 'studio' })
-  }
-  if (action.type === 'CREATE_PRODUCTION_TEAM') {
-    const team = createProductionTeam(state)
-    if (team) addHistory(state, `${team.name} foi criada`, 'A equipe começa vazia. Mova funcionários para ela na lista da equipe.', { kind: 'studio' })
-  }
-  if (action.type === 'ASSIGN_TEAM_MEMBER') {
-    assignTeamMember(state, action.personId, action.productionTeamId)
-  }
-  if (action.type === 'FIRE_MEMBER') {
-    const person = fireTeamMember(state, action.personId)
-    if (person) addHistory(state, `${person.name} saiu do estúdio`, 'O acerto custou um salário.', { highlight: true, kind: 'studio' })
-  }
-  if (action.type === 'MOVE_OFFICE') {
-    const office = changeOffice(state)
-    if (office) addHistory(state, `Mudança para ${office.name}`, `Capacidade para ${office.capacity} pessoas.`, { highlight: true, kind: 'studio' })
-  }
-  if (action.type === 'ACQUIRE_SUBSIDIARY') {
-    const studio = acquireSubsidiary(state, action.studioId)
-    if (studio) addHistory(state, `${studio.name} entrou para o grupo`, `${studio.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} pela aquisição. ${studio.capacity} frente${studio.capacity === 1 ? '' : 's'} de produção ficaram disponíveis e podem receber reforços da sua equipe.`, { highlight: true, kind: 'studio' })
-  }
-  if (action.type === 'CHANGE_CULTURE' && !state.studio.cultureLockMonths && CULTURES.some(item => item.id === action.cultureId)) {
-    state.studio.cultureId = action.cultureId
-    state.studio.cultureLockMonths = 3
-    addHistory(state, `Novo acordo de trabalho: ${CULTURES.find(item => item.id === action.cultureId).name}`, 'A equipe vai testar esse ritmo pelos próximos meses.', { highlight: true, kind: 'studio' })
-  }
-  if (action.type === 'RESEARCH_TECH') {
-    const tech = researchTech(state, action.techId)
-    if (tech) addHistory(state, `Pesquisa concluída: ${tech.name}`, tech.description, { highlight: true, kind: 'research' })
-  }
-  if (action.type === 'ACCEPT_CONTRACT') {
-    const contract = acceptContract(state, action.contractId)
-    if (contract) addHistory(state, `Contrato com ${contract.client}`, contract.title, { highlight: true, kind: 'contract' })
-  }
-  if (action.type === 'REQUEST_PUBLISHER') {
-    const offer = createPublisherOfferForProject(state, random)
-    if (offer) state.opportunities.publisherOffers = [offer]
-  }
-  if (action.type === 'ACCEPT_PUBLISHER') {
-    const offer = acceptPublisher(state, action.offerId)
-    if (offer) addHistory(state, `${offer.name} vai publicar o jogo`, `Adiantamento de ${offer.advance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })}.`, { highlight: true, kind: 'business' })
-  }
-  if (action.type === 'REJECT_PUBLISHER') {
-    const offer = rejectPublisher(state, action.offerId)
-    if (offer) addHistory(state, `${offer.name} ouviu “não”`, `O estúdio recusou um adiantamento de ${offer.advance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} e manteve o projeto independente.`, { highlight: true, kind: 'business' })
-  }
-  if (action.type === 'TAKE_LOAN') {
-    const loan = takeLoan(state, action.loanId)
-    if (loan) addHistory(state, `Crédito contratado: ${loan.name}`, `${loan.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })} entrou no caixa.`, { highlight: true, kind: 'business' })
-  }
-  if (action.type === 'REQUEST_LICENSE') requestLicense(state, action.licenseId, random)
-  if (action.type === 'ACCEPT_LICENSE_OFFER') acceptLicenseOffer(state, action.offerId)
-  if (action.type === 'RENEW_LICENSE') renewLicense(state, action.contractId, random)
-  if (action.type === 'PLACE_LICENSE_BID') placeLicenseBid(state, action.auctionId, action.amount)
-  if (action.type === 'IMPORT_LICENSE_PACK') importLicensePack(state, action.pack)
-  if (action.type === 'PITCH_COMPANY') pitchCompany(state, action.companyId, random)
-  if (action.type === 'REQUEST_PARTNERSHIP') requestPartnership(state, action.companyId, random)
-  if (action.type === 'RESPOND_CORPORATE_OFFER') respondCorporateOffer(state, action.offerId, action.response, random)
-  if (action.type === 'TOGGLE_SOUND') state.settings.sound = !state.settings.sound
-  if (action.type === 'TOGGLE_MUSIC_PLAYBACK') state.settings.musicPlaying = state.settings.musicPlaying === false
-  if (action.type === 'TOGGLE_MUSIC_MUTE') state.settings.musicMuted = !state.settings.musicMuted
-  if (action.type === 'SET_MUSIC_VOLUME') state.settings.musicVolume = clamp(Number(action.volume) || 0, 0, 1)
-  if (action.type === 'SET_CURRENCY' && ['BRL', 'USD', 'EUR'].includes(action.currency)) state.settings.currency = action.currency
-  if (action.type === 'SET_TIMELINE_NOTICES') {
-    state.settings.timelineNotices = Boolean(action.enabled)
-    if (!state.settings.timelineNotices) state.queue = state.queue.filter(item => !item.timelineNotice)
-  }
-  state.meta.version = currentState.meta.version
-  return state
-}
+export { teamOf }

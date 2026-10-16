@@ -1,76 +1,129 @@
-import { VERSION_INFO as versionInfo } from '../../version.js'
-import { GENRES, PLATFORMS } from '../data/catalog.js'
-import { TRAITS } from '../data/traits.js'
-import { createCompetitors, createMarket } from './market.js'
-import { clamp, makeId, randomChoice } from './utils.js'
-import { getEra } from '../data/eras.js'
-import { CULTURES, OFFICES } from '../data/team.js'
-import { generateOpportunities } from './business.js'
-import { createLicensingState } from './licensing.js'
-import { HISTORICAL_MILESTONES } from '../data/industryHistory.js'
-import { createCorporateState } from './corporate.js'
-import { applyGameModeStart, minimumStartYearForMode } from './gameModes.js'
+import { FOUNDER_PROFILES } from '../data/staff.js'
+import { START_MONEY, TECHS, WEEKS_PER_YEAR, eraSkillFactor, moneyScale } from '../data/economy.js'
+import { RIVALS } from '../data/content/rivals.js'
+import { createFounder, randomLook } from './staff.js'
+import { createCandidate, createCandidates } from './staff.js'
+import { PUBLISHERS, modeById } from '../data/modes.js'
+import { genreById, unlockedGenres, unlockedThemes } from '../data/genres.js'
+import { modeStartMoney } from './modes.js'
+import { historyCursorFor, rollTrend } from './market.js'
+import { generateFreelas } from './freelas.js'
+import { clamp, int, pick } from './rng.js'
 
-const blankSegments = items => Object.fromEntries(items.map(item => [item.id, 0]))
+export const SAVE_SCHEMA = 100
 
-export function createInitialState(optionsOrRandom = Math.random, maybeRandom = Math.random) {
-  const options = typeof optionsOrRandom === 'function' ? {} : optionsOrRandom
-  const random = typeof optionsOrRandom === 'function' ? optionsOrRandom : maybeRandom
-  const minimumStartYear = minimumStartYearForMode(options.modeId)
-  const startYear = clamp(Math.max(Number(options.startYear) || 2003, minimumStartYear), 1980, 2020)
-  const trait = TRAITS.find(item => item.id === options.traitId) ?? randomChoice(TRAITS, random)
-  const playerName = String(options.playerName || 'Erick').trim().slice(0, 28) || 'Erick'
-  const studioName = String(options.studioName || 'EriLab').trim().slice(0, 32) || 'EriLab'
-  const playerAge = clamp(Number(options.age) || 21, 16, 60)
-  const currency = ['BRL', 'USD', 'EUR'].includes(options.currency) ? options.currency : 'BRL'
-  const stats = { programming: 52, art: 24, design: 61, marketing: 18, charisma: 40 }
-  if (trait.modifiers.programming) stats.programming += trait.modifiers.programming
-  if (trait.modifiers.charisma) stats.charisma += trait.modifiers.charisma
-  if (trait.modifiers.marketing) stats.marketing += trait.modifiers.marketing
+export const absWeek = state => (state.year - 1980) * WEEKS_PER_YEAR + state.week
+export const yearFloat = state => state.year + state.week / WEEKS_PER_YEAR
+export const scaled = (state, value) => Math.round(value * moneyScale(yearFloat(state)))
+
+export function createGame(options = {}, random = Math.random) {
+  const year = clamp(Number(options.startYear) || 1980, 1980, 2030)
+  const mode = modeById(options.modeId)
+  const profile = FOUNDER_PROFILES.find(item => item.id === options.profileId) ?? FOUNDER_PROFILES[0]
+  const founderName = String(options.founderName || 'Você').trim().slice(0, 22) || 'Você'
+  const studioName = String(options.studioName || 'Estúdio Bobo').trim().slice(0, 28) || 'Estúdio Bobo'
+  const look = { ...randomLook(random), ...(options.look ?? {}) }
+  const founder = createFounder({ name: founderName, profile, look })
+  const factor = eraSkillFactor(year)
+  for (const key of Object.keys(founder.skills)) founder.skills[key] = Math.round(founder.skills[key] * factor)
+  // Quem começa tarde herda as ferramentas que a indústria já tinha.
+  const techs = TECHS.filter(tech => tech.year <= year - 1).map(tech => tech.id)
 
   const state = {
-    schema: versionInfo.saveSchema,
-    meta: { id: makeId('career'), createdAt: new Date().toISOString(), lastSavedAt: null, version: versionInfo.version, startYear },
-    careerMode: null,
-    date: { month: 0, year: startYear },
-    player: {
-      name: playerName, age: playerAge, money: 12800, energy: 100, stress: 8, followers: 12, reputation: 0, relationship: 55, health: 100,
-      stats, traitId: trait.id, equipmentLevel: 0,
-      audience: { hardcore: 3, casual: 9, nostalgic: 0, trust: 50, genres: blankSegments(GENRES), platforms: blankSegments(PLATFORMS) },
-      flags: {}, career: { projectsStarted: 0, monthsWorked: 0, crisesSurvived: 0, genresCreated: 0 }, generation: 1,
-    },
-    currentProject: null,
-    parallelProjects: [],
-    currentContract: null,
+    schema: SAVE_SCHEMA,
+    id: `career-${Date.now().toString(36)}`,
+    createdAt: new Date().toISOString(),
+    studio: { name: studioName, founded: year, profile: profile.id },
+    year,
+    week: 0,
+    startYear: year,
+    money: Math.round(START_MONEY * moneyScale(year) * modeStartMoney(mode.id)),
+    mode: { id: mode.id, franchise: null, parent: null, brief: null },
+    slot: options.slot ?? 1,
+    fans: 0,
+    rp: 0,
+    legacy: 0,
+    office: 0,
+    decor: [],
+    techs,
+    kits: ['pc'],
+    staff: [founder],
+    candidates: createCandidates(year, 0, random),
+    projects: [],
+    teams: [{ id: 'main', name: 'Equipe principal' }],
+    acquired: [],
+    goty: [],
     games: [],
-    activeReleases: [],
-    market: createMarket(startYear, random, 0),
-    competitors: createCompetitors(random, startYear),
-    licenses: createLicensingState(startYear),
-    corporate: createCorporateState(startYear),
-    world: {
-      eraId: getEra(startYear).id, eraStarted: startYear,
-      knownGenres: GENRES.map(item => ({ id: item.id, label: item.label, createdBy: null, createdYear: null, base: true })),
-      industryNews: [], seenEvents: [],
-      seenHistoricalMilestones: HISTORICAL_MILESTONES.filter(item => item.year < startYear).map(item => item.id),
-      technologyLevel: Math.max(1, getEra(startYear).techCap - 1), attendedEvents: [], seenGameEventCards: [], seenIndustryShocks: [], activeIndustryEffects: [],
+    franchises: {},
+    combos: {},
+    market: { trend: rollTrend(year, random), nextTrend: null, trendUntil: 0 },
+    rivals: RIVALS.map(rival => ({ id: rival.id, next: int(2, 30, random) })),
+    rivalGames: [],
+    chart: [],
+    freelas: [],
+    ideas: [],
+    couples: [],
+    visitor: null,
+    buffs: { score: 0, sales: 1 },
+    queue: [],
+    toasts: [],
+    fx: [],
+    log: [],
+    trophies: [],
+    achievements: [],
+    seenEvents: {},
+    stats: {
+      gamesReleased: 0, totalCopies: 0, totalRevenue: 0, bestScore: 0, bestCopies: 0, awardsWon: 0, hallOfFame: 0,
+      perfectGames: 0, chartNumberOnes: 0, sequelsReleased: 0, freelasDone: 0, bankruptcies: 0, crunchWeeks: 0,
+      researchDone: 0, flops: 0, ideasAccepted: 0, eventsSeen: 0, cameloDeals: 0,
     },
-    studio: {
-      name: studioName, founded: startYear, officeLevel: OFFICES[0].level, cultureId: CULTURES[0].id, cultureLockMonths: 0,
-      team: [], productionTeams: [], candidates: [], research: 0, unlockedTechs: [], monthlyBurn: 0, debt: [], equity: 0, parentCompany: null, autonomy: 100,
-      morale: 68, reputation: 0, subsidiaries: [], leaders: [{ name: playerName, generation: 1, from: startYear, to: null, legacy: 'Fundador' }],
-    },
-    opportunities: { contracts: [], publisherOffers: [], publisherArchive: [] },
-    awards: { trophies: [], nominations: [], processedYears: [], yearlyWinners: [] },
-    history: [{ id: makeId('history'), date: `JAN ${startYear}`, title: 'Primeiro dia', body: `Um equipamento compatível com ${startYear}, algum dinheiro guardado e nenhum jogo publicado.`, highlight: true, kind: 'career' }],
-    queue: [], seenPersonalEvents: [],
-    settings: { sound: true, musicPlaying: true, musicMuted: false, musicVolume: .18, currency, timelineNotices: true },
+    debtMonths: 0,
+    loan: null,
+    lastEventWeek: -10,
+    lastCamelo: 0,
+    settings: { sound: true, music: true, musicVolume: .22, speed: 1 },
   }
-  applyGameModeStart(state, options, random)
-  if (state.careerMode.id === 'portable' && state.date.year === 1989 && state.date.month < 3) {
-    state.date.month = 3
-    state.history[0].date = 'ABR 1989'
-  }
-  generateOpportunities(state, random)
+  state.market.trendUntil = absWeek(state) + int(20, 34, random)
+  state.lastEventWeek = absWeek(state) + 3
+  state.historyCursor = historyCursorFor(absWeek(state) - 1)
+  state.lastCamelo = absWeek(state) + 10
+  state.freelas = generateFreelas(state, random)
+  // Portátil em janeiro de 1980: espera o Game & Watch chegar às lojas.
+  if (mode.id === 'portatil' && year === 1980) state.week = 12
+  if (mode.id === 'adquirido') startAcquired(state, random)
   return state
+}
+
+export const MAX_LOG = 40
+export function log(state, icon, text) {
+  state.log.unshift({ icon, text, at: `${state.year}·${state.week}` })
+  if (state.log.length > MAX_LOG) state.log.length = MAX_LOG
+}
+
+export function toast(state, toastItem) {
+  state.toasts.push({ id: `t${absWeek(state)}-${state.toasts.length}-${Math.random().toString(36).slice(2, 6)}`, ...toastItem })
+  if (state.toasts.length > 6) state.toasts.splice(0, state.toasts.length - 6)
+}
+
+export const fx = (state, item) => state.fx.push(item)
+
+// Estúdio Adquirido: começa numa garagem com três pessoas e uma dona exigente.
+function startAcquired(state, random) {
+  const owners = PUBLISHERS.filter(publisher => publisher.from <= state.year && publisher.to >= state.year && !publisher.indie)
+  const parent = pick(owners, random)
+  state.mode.parent = { id: parent.id, name: parent.name }
+  state.office = 2
+  for (const focus of ['fun', 'art', 'idea']) {
+    const person = createCandidate(state.year, 120, random, focus)
+    state.staff.push(person)
+  }
+  newBrief(state, random)
+}
+
+// Encomenda da dona: um gênero e um tema que pagam bônus se você entregar.
+export function newBrief(state, random = Math.random) {
+  if (!state.mode?.parent) return
+  const genre = pick(unlockedGenres(state.year, state.techs), random)
+  const theme = pick(unlockedThemes(state.year), random)
+  state.mode.brief = { genre: genre.id, theme: theme.id, bonus: 6000 + state.office * 6000 }
 }

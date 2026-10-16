@@ -1,26 +1,23 @@
-# Conteúdo histórico, marcas e IPs
+# Conteúdo histórico, marcas e nomes reais
+
+O Gamebobo usa nomes reais de consoles, fabricantes, estúdios, jogos e veículos de imprensa como referência histórica. A ideia é que sua carreira aconteça dentro da indústria de verdade: o Super Mario Bros. sai em setembro de 1985, o Doom em dezembro de 1993 e o Minecraft em novembro de 2011, e o seu estúdio disputa as paradas com eles.
 
 ## O que existe nesta build
 
-O catálogo histórico usa nomes de plataformas, empresas, jogos e propriedades conhecidas para uma simulação local de indústria. Não há logos, ilustrações, músicas, personagens desenhados ou material extraído dos jogos citados.
+- Plataformas reais com mês e ano do primeiro lançamento (`src/game/data/platforms.js`).
+- 65 empresas reais como rivais, com fundação, fechamento e porte por época (`src/game/data/content/rivals.js`).
+- 129 jogos históricos e séries anuais (FIFA, Winning Eleven/PES, Call of Duty) em `src/game/data/history.js`. Notas e vendas são aproximações editoriais, não dados oficiais.
+- Manchetes e eventos ligados a momentos reais (`MILESTONES` e `realEvents.js`).
+- Jogos inventados dos rivais são ficção de linha do tempo alternativa e não representam lançamentos reais dessas empresas.
 
-Os campos `owner` são rótulos editoriais simplificados para a mecânica. Direitos podem variar por território, mídia, período, personagem e contrato. Eles não devem ser tratados como parecer jurídico nem como um mapa definitivo de titulares.
+Não há logos, ilustrações, músicas, personagens desenhados ou qualquer material extraído dos jogos citados. Capas, ícones, móveis e bonecos são gerados pelo próprio jogo.
 
-## Antes de publicar
+## Postura do projeto
 
-O tamanho do projeto, sua gratuidade ou seu caráter indie não geram automaticamente permissão para adaptar obras ou usar marcas. Uma edição pública deve seguir uma destas estratégias:
+O Gamebobo é um projeto pequeno, gratuito e não comercial, feito por fã. Os nomes aparecem apenas como texto de referência. Se algum titular pedir a retirada de um nome, basta trocar a entrada nos arquivos de dados; o motor não depende de nenhum nome específico.
 
-1. obter as autorizações aplicáveis;
-2. trocar o catálogo embutido por IPs originais ou paródias juridicamente revisadas;
-3. distribuir somente a engine e permitir bancos externos instalados pelo próprio usuário, sem hospedar o conteúdo de terceiros.
+## Regra editorial
 
-Mesmo a terceira opção merece revisão específica antes de lançamento. A arquitetura separa dados e regras para tornar a troca de catálogo barata; ela não transforma um uso juridicamente sensível em uso autorizado.
-
-Referências gerais brasileiras: [Lei de Direitos Autorais nº 9.610/1998](https://planalto.gov.br/ccivil_03/leis/l9610.htm) e [Lei da Propriedade Industrial nº 9.279/1996](https://www.planalto.gov.br/ccivil_03/leis/l9279.htm). Para uma publicação real, procure análise aplicada ao conteúdo, territórios e forma de distribuição do projeto.
-
-## Regra editorial do projeto
-
-- Nomes reais aparecem como texto de referência histórica.
-- Nenhum ativo visual ou sonoro de terceiros entra no repositório.
-- Correções de titularidade e datas ficam nos arquivos de dados, não no engine.
-- Uma build pública deve declarar claramente qual pacote de conteúdo acompanha o executável.
+- Piadas com empresas reais devem ser carinhosas e verificáveis (o enterro dos cartuchos de E.T. aconteceu, a torre da Ubisoft é meme de fã).
+- Nada de acusação, difamação ou piada sobre pessoas reais.
+- Datas e números ficam nos arquivos de dados, nunca no motor.

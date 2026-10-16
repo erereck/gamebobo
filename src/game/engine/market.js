@@ -1,69 +1,141 @@
-import { GENRES, MARKET_ANGLES, PLATFORMS } from '../data/catalog.js'
-import { COMPETITOR_BLUEPRINTS, GAME_NAME_ENDS, GAME_NAME_STARTS } from '../data/competitors.js'
-import { platformAtDate } from '../data/platformHistory.js'
-import { makeId, randomChoice, randomInt } from './utils.js'
-import { STARTUP_STUDIOS } from '../data/startupStudios.js'
-import { audienceCeiling, qualityDemand } from './sales-model.js'
+import { RIVALS, rivalTierAt } from '../data/content/rivals.js'
+import { ALL_HISTORIC_GAMES } from '../data/history.js'
+import { unlockedGenres, unlockedThemes } from '../data/genres.js'
+import { availablePlatforms } from '../data/platforms.js'
+import { WEEKS_PER_YEAR, demandAt } from '../data/economy.js'
+import { qualityCurve, tailWeeks, weeklyShare } from './sales.js'
+import { generateTitle } from './titles.js'
+import { clamp, gauss, int, pick } from './rng.js'
 
-export const availablePlatforms = (year, month = 11) => PLATFORMS.filter(platform => platformAtDate(platform, { year, month }))
-
-export function createMarket(year = 2003, random = Math.random, month = 0) {
-  const platformValues = availablePlatforms(year, month).map(platform => ({ id: platform.id, raw: randomInt(18, 56, random) }))
-  const total = platformValues.reduce((sum, item) => sum + item.raw, 0)
-  const platforms = Object.fromEntries(platformValues.map(item => [item.id, Math.round((item.raw / total) * 100)]))
-  const firstPlatform = platformValues[0]?.id
-  if (firstPlatform) platforms[firstPlatform] += 100 - Object.values(platforms).reduce((sum, value) => sum + value, 0)
+export function rollTrend(year, random = Math.random, techs = ['online']) {
   return {
-    genre: randomChoice(GENRES, random).id,
-    angle: randomChoice(MARKET_ANGLES, random).id,
-    heat: randomInt(68, 96, random),
-    monthsLeft: randomInt(6, 12, random),
-    platforms,
-    cycle: 1,
+    genre: pick(unlockedGenres(year, techs), random).id,
+    theme: pick(unlockedThemes(year), random).id,
   }
 }
 
-export function createCompetitors(random = Math.random, year = 2003) {
-  const established = [...COMPETITOR_BLUEPRINTS]
-    .filter(item => item.founded <= year)
-    .sort(() => random() - 0.5)
-    .slice(0, 3)
-    .map(item => ({
-      ...item,
-      id: makeId('studio'),
-      games: [],
-      reputation: randomInt(24, 68, random),
-      relationScore: item.relation === 'rival' ? -32 : item.relation === 'friendly' ? 28 : 0,
-      meetings: 0,
-    }))
-  const cohort = [...STARTUP_STUDIOS].sort(() => random() - .5).slice(0, 4).map(item => ({
-    ...item, id: makeId('startup'), founded: year, fictional: true, cohort: true, games: [],
-    reputation: randomInt(2, 10, random), relation: 'neutral', relationScore: 0, meetings: 0,
-    momentum: randomInt(8, 24, random), status: 'garagem',
-  }))
-  return [...established, ...cohort]
+const TIER = {
+  1: { q: 60, spread: 12, reach: .6, fans: 1.1, gap: [20, 32] },
+  2: { q: 66, spread: 10, reach: 1.2, fans: 1.3, gap: [15, 26] },
+  3: { q: 71, spread: 9, reach: 2.2, fans: 1.6, gap: [11, 20] },
+  4: { q: 75, spread: 8, reach: 3.5, fans: 2, gap: [8, 15] },
 }
 
-export function generateCompetitorLaunch(competitor, date, knownGenres = GENRES, random = Math.random) {
-  const title = `${randomChoice(GAME_NAME_STARTS, random)} ${randomChoice(GAME_NAME_ENDS, random)}`
-  const releaseYear = Number(String(date).split(' ').at(-1))
-  const studioAge = Math.max(0, releaseYear - (competitor.founded ?? releaseYear))
-  const breakoutChance = (.018 + Math.min(.09, (competitor.momentum ?? 0) / 1100)) * (releaseYear < 1985 ? .42 : releaseYear < 1995 ? .72 : 1)
-  const breakout = Boolean(competitor.cohort && random() < breakoutChance)
-  const score = breakout ? randomInt(88, 98, random) : randomInt(58, competitor.cohort ? 92 : 96, random)
-  const studioReach = competitor.cohort ? .24 + Math.min(.76, studioAge / 8) : .72 + Math.min(.28, studioAge / 20)
-  const distribution = randomInt(18, 72, random) / 100
-  const baseSales = qualityDemand(score, releaseYear) * studioReach * distribution
-  const sales = Math.min(audienceCeiling(releaseYear), Math.round(baseSales * (breakout ? randomInt(220, 560, random) / 100 : 1)))
+export const rivalById = id => RIVALS.find(item => item.id === id)
+export const activeRivals = year => RIVALS.filter(rival => rival.foundedYear <= year && (!rival.closedYear || rival.closedYear > year))
+
+function rivalGame(rival, state, tw, random) {
+  const tier = TIER[rivalTierAt(rival, state.year)] ?? TIER[2]
+  const year = state.year
+  const genres = unlockedGenres(year, ['online'])
+  const preferred = genres.filter(genre => rival.genres?.includes(genre.id))
+  const genre = (preferred.length && random() < .7 ? pick(preferred, random) : pick(genres, random)).id
+  const theme = pick(unlockedThemes(year), random).id
+  const quality = clamp(tier.q + gauss(random) * tier.spread, 25, 99)
+  const trendBoost = (state.market.trend.genre === genre ? 1.25 : 1)
+  const copies = Math.round(demandAt(year) * qualityCurve(quality) * tier.reach * tier.fans * trendBoost * Math.exp(gauss(random) * .25))
+  const platform = pick(availablePlatforms(state.year + state.week / WEEKS_PER_YEAR), random)
   return {
-    id: makeId('rival-game'),
-    title,
-    genre: random() < 0.62 ? competitor.specialty : randomChoice(knownGenres, random).id,
-    score,
-    sales,
-    released: date,
-    initialSales: sales,
+    id: `rg-${tw}-${rival.id}`,
+    title: generateTitle(genre, theme, random),
+    studio: rival.name,
+    rivalId: rival.id,
+    color: rival.color,
+    genre,
+    theme,
+    platform: platform?.id ?? 'pc',
+    quality,
+    score: Math.round(clamp(quality / 10 + gauss(random) * .4, 1, 10) * 10) / 10,
+    copies,
+    sold: 0,
+    weekly: 0,
     age: 0,
-    breakout,
+    tau: tailWeeks(quality),
+    year,
+    pillar: pick(['fun', 'art', 'sound', 'idea'], random),
   }
+}
+
+// Avança os rivais uma semana: lançamentos novos e vendas dos que estão na prateleira.
+export function stepRivals(state, random = Math.random) {
+  const tw = (state.year - 1980) * WEEKS_PER_YEAR + state.week
+  const releases = []
+  // Com mais empresas no mercado, cada uma lança um pouco menos de jogo inventado.
+  const crowd = Math.max(1, activeRivals(state.year).length / 12) * 1.3
+  releases.push(...releaseHistoric(state, tw))
+  for (const slot of state.rivals) {
+    const rival = rivalById(slot.id)
+    if (!rival || rival.foundedYear > state.year || (rival.closedYear && rival.closedYear <= state.year) || state.acquired?.includes(rival.id)) continue
+    slot.next -= 1
+    if (slot.next <= 0) {
+      const tier = TIER[rivalTierAt(rival, state.year)] ?? TIER[2]
+      slot.next = Math.round(int(tier.gap[0], tier.gap[1], random) * crowd)
+      const game = rivalGame(rival, state, tw, random)
+      state.rivalGames.push(game)
+      releases.push(game)
+    }
+  }
+  for (const game of state.rivalGames) {
+    game.weekly = Math.round(game.copies * weeklyShare(game.age, game.tau))
+    game.sold += game.weekly
+    game.age += 1
+  }
+  // Mantém só o que ainda vende ou que pode concorrer aos prêmios do ano.
+  state.rivalGames = state.rivalGames.filter(game => game.age < 40 || game.year === state.year)
+  return releases
+}
+
+export const historicWeek = entry => (entry.year - 1980) * WEEKS_PER_YEAR + entry.month * 4
+
+// Primeiro jogo histórico que ainda vai sair a partir de uma semana absoluta.
+export function historyCursorFor(tw) {
+  const index = ALL_HISTORIC_GAMES.findIndex(entry => historicWeek(entry) > tw)
+  return index < 0 ? ALL_HISTORIC_GAMES.length : index
+}
+
+function releaseHistoric(state, tw) {
+  const out = []
+  state.historyCursor ??= historyCursorFor(tw)
+  while (state.historyCursor < ALL_HISTORIC_GAMES.length && historicWeek(ALL_HISTORIC_GAMES[state.historyCursor]) <= tw) {
+    const entry = ALL_HISTORIC_GAMES[state.historyCursor]
+    state.historyCursor += 1
+    // Estúdio que você comprou não lança mais o próprio clássico: a história muda.
+    if (state.acquired?.includes(entry.studio)) continue
+    const rival = rivalById(entry.studio)
+    const quality = entry.score * 10
+    const game = {
+      id: `hist-${entry.id}`,
+      title: entry.title,
+      studio: rival?.name ?? entry.studio,
+      rivalId: entry.studio,
+      color: rival?.color ?? '#555',
+      genre: entry.genre,
+      theme: entry.theme,
+      platform: entry.platform,
+      quality,
+      score: entry.score,
+      copies: Math.round(entry.copies * 1e6 * .6),
+      sold: 0,
+      weekly: 0,
+      age: 0,
+      tau: tailWeeks(quality) + 2,
+      year: state.year,
+      pillar: entry.genre === 'ritmo' ? 'sound' : ['aventura', 'rpg', 'terror'].includes(entry.genre) ? 'art' : entry.genre === 'puzzle' || entry.genre === 'sandbox' ? 'idea' : 'fun',
+      historic: true,
+      annual: /^(fifa|pes|cod)-/.test(entry.id),
+      trend: entry.trend,
+    }
+    state.rivalGames.push(game)
+    out.push(game)
+  }
+  return out
+}
+
+export function computeChart(state) {
+  const entries = [
+    ...state.rivalGames.filter(game => game.weekly > 0).map(game => ({ id: game.id, title: game.title, studio: game.studio, weekly: game.weekly, color: game.color, mine: false, score: game.score })),
+    ...state.games.filter(game => game.onMarket && game.weekly > 0).map(game => ({ id: game.id, title: game.title, studio: state.studio.name, weekly: game.weekly, color: '#ff5d3a', mine: true, score: game.score })),
+  ]
+  entries.sort((a, b) => b.weekly - a.weekly)
+  return entries.slice(0, 10).map((entry, index) => ({ ...entry, rank: index + 1 }))
 }

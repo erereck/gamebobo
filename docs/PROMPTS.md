@@ -1,5 +1,17 @@
 # Registro de prompts
 
+## P-024 — 2026-10-14 — Indústria de Verdade
+
+Pedido: voltar aos nomes originais de consoles, empresas e jogos em vez das paródias, porque o projeto é pequeno e não comercial e isso deixa o jogo mais interessante que mais um tycoon genérico, e colocar ainda mais empresas e jogos reais.
+
+Resultado: versão 1.0.0. Plataformas, 65 empresas, 129 jogos históricos, séries anuais, imprensa, manchetes e eventos reais.
+
+## P-023 — 2026-10-13 — Escritório Vivo
+
+Pedido: major update com visualizador 3D (bonequinhos minimalistas andando, conversando como no The Sims 4 e sentando na mesa quando focados, sem controle direto), reformular os sistemas pensando como jogador, cortar texto, usar etapas de escolha, balancear recompensas e evitar menus genéricos, inspirado no modo Rumo ao Estrelato do futbobo.
+
+Resultado: versão 1.0.0. Jogo reescrito com escritório three.js, motor semanal novo, criação em etapas, revelação de críticas, mercado com rivais e prêmios e balanceamento medido por robô. Os sistemas das versões 0.12 a 0.14 (P-019 a P-022) foram refeitos na arquitetura nova.
+
 ## P-022 — 2026-08-24 — Outra Vida
 
 Pedido: Transformar a criação de save em uma escolha de modo de jogo que mude profundamente cada carreira. Manter o Tradicional igual ao jogo atual, criar um Realista com menos dinheiro, notas 90+ e prêmios mais difíceis, um Portátil restrito a consoles de bolso, uma Franquia Singular presa para sempre à primeira série e um Estúdio Adquirido que já começa sob uma empresa com equipe e encomendas; inventar outros modos capazes de tornar cada gameplay única.

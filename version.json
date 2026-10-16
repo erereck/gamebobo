@@ -1,8 +1,8 @@
 {
-  "version": "0.14.0",
-  "codename": "Outra Vida",
-  "saveSchema": 7,
-  "releasedAt": "2026-08-24",
+  "version": "1.0.0",
+  "codename": "Escritório Vivo",
+  "saveSchema": 100,
+  "releasedAt": "2026-10-13",
   "promptIds": [
     "P-001",
     "P-002",
@@ -25,6 +25,8 @@
     "P-019",
     "P-020",
     "P-021",
-    "P-022"
+    "P-022",
+    "P-023",
+    "P-024"
   ]
 }
