@@ -555,6 +555,15 @@ export class StaffAgent {
   // A um braço do colega, no caminho de verdade até ele: em linha reta o ponto pode cair
   // dentro de uma mesa (pods frente a frente); pelo caminho, chega-se pelo corredor.
   fivePoint(mate) {
+    const gap = Math.hypot(this.x - mate.x, this.z - mate.z)
+    if (gap < FIVE_REACH) {
+      const angle = gap > .001 ? Math.atan2(this.x - mate.x, this.z - mate.z) : this.root.rotation.y + Math.PI
+      const bx = mate.x + Math.sin(angle) * FIVE_REACH
+      const bz = mate.z + Math.cos(angle) * FIVE_REACH
+      const nav = this.world.nav
+      const clear = nav.walkable(...nav.toCell(bx, bz)) && !this.world.desks.some(desk => Math.hypot(desk.spot.x - bx, desk.spot.z - bz) < .35)
+      return clear ? [bx, bz] : [this.x, this.z]
+    }
     const path = [[this.x, this.z], ...this.world.nav.findPath(this.x, this.z, mate.x, mate.z)]
     const far = ([x, z]) => Math.hypot(x - mate.x, z - mate.z) >= FIVE_REACH
     for (let i = path.length - 1; i > 0; i -= 1) {

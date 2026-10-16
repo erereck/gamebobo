@@ -280,3 +280,16 @@ test('pôsteres e quadros de parede não invadem janela, porta ou estante', () =
   F.windowFrame(2).group.traverse(child => { windowTop = Math.max(windowTop, child.renderOrder) })
   assert.ok(neon.renderOrder > windowTop)
 })
+
+test('toca aqui: quem já está colado no colega recua até um braço de distância', () => {
+  const world = fakeWorld(10, 8)
+  const mate = staff(world, 'm', 0, 0)
+  const walker = staff(world, 'w', .3, 0)
+  const [tx, tz] = walker.fivePoint(mate)
+  assert.ok(Math.abs(Math.hypot(tx - mate.x, tz - mate.z) - .62) < .01, 'recua até .62')
+  assert.ok(tx > .3, 'recua para o lado em que já estava')
+  // com uma mesa no caminho do recuo, fica onde está em vez de entrar nela
+  world.desks.push({ spot: { x: .62, z: 0, face: 0 } })
+  const [sx, sz] = walker.fivePoint(mate)
+  assert.deepEqual([sx, sz], [walker.x, walker.z])
+})

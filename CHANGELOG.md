@@ -23,6 +23,15 @@ Save compatível com a 1.0.0: carreiras antigas abrem e ganham o resto sozinhas.
 - **Telas vivas**: código, arte, som ou documento conforme quem trabalha, com o sistema da época; quem descansa na mesa joga; mesa vazia mostra descanso de tela; o fliperama roda um joguinho.
 - **Janelas com clima**: hora do dia, estações do hemisfério sul, chuva e uma paisagem para cada escritório. A noite do crunch continua.
 - Correções: cartão inicial sem rolagem lateral; o boneco não se teletransporta mais quando você digita o nome do estúdio.
+- **Revisão em vários olhos** antes de fechar a versão (46 achados, 43 confirmados e corrigidos, cada correção conferida de novo):
+  - Indie do Ano volta a contar Hades, Hollow Knight, Stardew e Balatro, e editora grande fora da lista de rivais não vira indie.
+  - Jogos de janeiro a março voltam a disputar o Jogo do Ano (2022 é do Elden Ring).
+  - Estúdio à venda custa no máximo 4× o preço base.
+  - O Almanaque e o letreiro esquecem os clássicos de quem você comprou.
+  - O diário deixa de ser inundado por lançamentos: só os marcos do ano entram.
+  - Catálogo sem duplicata e com temas, plataformas e nomes de FIFA, PES e Call of Duty acertados.
+  - No escritório, nenhum lugar fica preso, ninguém reaparece dentro da cadeira, pôster novo não remonta as mesas e trocar de save devolve a memória de vídeo.
+  - Letreiro, paradas, Almanaque e coletiva sem cortes no celular, e o som da polêmica só toca depois do suspense.
 
 ## 1.0.0 — Escritório Vivo — 2026-10-13
 

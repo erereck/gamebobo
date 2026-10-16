@@ -4,6 +4,8 @@ import { EXPOS, projectTypeById } from '../data/modes.js'
 import { platformById } from '../data/platforms.js'
 import { traitById } from '../data/staff.js'
 import { acquiredWeek } from './almanac.js'
+import { ALL_HISTORIC_GAMES } from '../data/history.js'
+import { historicIndie, rivalById } from './market.js'
 import { applyEffects, resolveChoice } from './effects.js'
 import { eventById, fillText, ideaById } from './events.js'
 import { freelaNeed } from './freelas.js'
@@ -425,6 +427,12 @@ export function afterLoad(state) {
   for (const entry of state.chart ?? []) {
     if (entry.move === undefined) entry.move = 0
     entry.weeks ??= 1
+  }
+  // Jogos reais já na prateleira de um save antigo recalculam quem é indie pela regra atual.
+  const historic = new Map(ALL_HISTORIC_GAMES.map(entry => [`hist-${entry.id}`, entry]))
+  for (const game of state.rivalGames ?? []) {
+    const entry = game.historic && historic.get(game.id)
+    if (entry) game.indie = historicIndie(entry, game.rivalId ? rivalById(game.rivalId) : null, game.year)
   }
   state.goty ??= []
   state.mode ??= { id: 'tradicional', franchise: null, parent: null, brief: null }

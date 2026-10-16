@@ -2,7 +2,7 @@ import { RIVALS, rivalTierAt } from '../data/content/rivals.js'
 import { ALL_HISTORIC_GAMES, MAJOR_STUDIOS } from '../data/history.js'
 import { unlockedGenres, unlockedThemes } from '../data/genres.js'
 import { availablePlatforms } from '../data/platforms.js'
-import { WEEKS_PER_YEAR, demandAt } from '../data/economy.js'
+import { WEEKS_PER_MONTH, WEEKS_PER_YEAR, demandAt } from '../data/economy.js'
 import { qualityCurve, tailWeeks, weeklyShare } from './sales.js'
 import { generateTitle } from './titles.js'
 import { clamp, gauss, int, pick } from './rng.js'
@@ -49,7 +49,7 @@ const YEAR_MARKS = yearMarks(ALL_HISTORIC_GAMES)
 
 // Indie do Ano: rival pequena (porte 1) é indie. Fora da lista de rivais, só quem vendeu pouco
 // e não é editora grande (LucasArts, MicroProse... também não estão na lista e nunca foram indie).
-const historicIndie = (entry, rival, year) => (rival ? rivalTierAt(rival, year) <= 1 : entry.copies < 3 && !MAJOR_STUDIOS.has(entry.studio))
+export const historicIndie = (entry, rival, year) => (rival ? rivalTierAt(rival, year) <= 1 : entry.copies < 3 && !MAJOR_STUDIOS.has(entry.studio))
 
 // Quantos jogos reais cada empresa e cada ano têm. Quem tem jogo de verdade no período não inventa jogo.
 const REAL_BY_YEAR = {}
@@ -150,7 +150,8 @@ export function historyCursorFor(tw) {
 function releaseHistoric(state, tw) {
   const out = []
   if (state.historyVersion !== HISTORY_VERSION) {
-    state.historyCursor = historyCursorFor(tw - 1)
+    // Um mês para trás: se um jogo mudou de mês na lista nova, ele ainda sai. O que já saiu é barrado pela id.
+    state.historyCursor = historyCursorFor(tw - 1 - WEEKS_PER_MONTH)
     state.historyVersion = HISTORY_VERSION
   }
   while (state.historyCursor < ALL_HISTORIC_GAMES.length && historicWeek(ALL_HISTORIC_GAMES[state.historyCursor]) <= tw) {

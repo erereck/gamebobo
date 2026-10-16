@@ -178,7 +178,7 @@ function maybeRomance(state, random) {
 const RELEASE_TOASTS = 3
 function announceReleases(state, releases) {
   const news = releases.filter(game => game.historic && (!game.annual || game.trend))
-  const loud = new Set([...news].sort((a, b) => b.copies - a.copies).slice(0, RELEASE_TOASTS))
+  const loud = new Set([...news].sort((a, b) => Number(!!b.trend) - Number(!!a.trend) || b.copies - a.copies).slice(0, RELEASE_TOASTS))
   for (const game of news) {
     if (loud.has(game)) toast(state, { kind: 'info', icon: genreById(game.genre)?.icon ?? 'cartridge', title: game.title, sub: `${game.studio} lançou` })
     if (game.landmark) log(state, 'newspaper', `${game.studio} lançou ${game.title}`)

@@ -27,6 +27,7 @@ A série 0.x (chave `gamebobo-save`, schema até 6) não é migrada. A tela inic
 Campos novos da 1.1.0 (todos opcionais; saves da 1.0.0 carregam sem migração):
 
 - `historyVersion`: versão da lista de jogos reais usada pelo `historyCursor`.
+- `acquiredAt`: semana absoluta (`ano × 48 + semana`) em que cada estúdio foi comprado. Saves antigos copiam do diário ao carregar.
 - `buffs.hype`: hype guardado pela coletiva para o próximo projeto.
 - `stats.interviews`, `stats.spicyWins`, `stats.spicyLosses`: coletivas e polêmicas.
 - `projects[].crunchWeeks`: semanas de crunch do projeto (a coletiva pergunta).

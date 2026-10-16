@@ -152,3 +152,23 @@ test('catálogo real: créditos e temas conferidos', () => {
   assert.equal(byId('witcher-3').theme, 'fantasia')
   assert.notEqual(byId('wii-sports').theme, 'futebol')
 })
+
+test('save antigo recalcula quem é indie entre os jogos reais já na prateleira', async () => {
+  const { afterLoad } = await import('./reducer.js')
+  const state = createGame({ startYear: 2020 }, mulberry32(5))
+  state.rivalGames.push({ id: 'hist-hades', title: 'Hades', historic: true, rivalId: 'supergiant', year: 2020, indie: false, weekly: 0, age: 3 })
+  afterLoad(state)
+  assert.equal(state.rivalGames.find(game => game.id === 'hist-hades').indie, true)
+})
+
+test('lista nova não pula jogo que mudou de mês quando o save carrega no meio do caminho', () => {
+  const random = mulberry32(9)
+  const state = createGame({ startYear: 2019 }, random)
+  state.week = 37
+  state.historyVersion = HISTORY_VERSION - 1
+  state.rivalGames = state.rivalGames.filter(game => game.id !== 'hist-cod-2019')
+  stepRivals(state, random)
+  assert.equal(state.rivalGames.filter(game => game.id === 'hist-cod-2019').length, 1)
+  stepRivals(state, random)
+  assert.equal(state.rivalGames.filter(game => game.id === 'hist-cod-2019').length, 1, 'não lança duas vezes')
+})
