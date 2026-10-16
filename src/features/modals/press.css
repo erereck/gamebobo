@@ -1,0 +1,124 @@
+/* ---------- coletiva de imprensa ---------- */
+.press-backdrop { background: radial-gradient(circle at 50% 30%, rgba(63,184,255,.28), rgba(15,10,25,.78)); }
+.press-card {
+  position: relative; width: min(460px, 100%); display: grid; gap: 12px; padding: 16px 16px 12px;
+  background: var(--paper); border: var(--line); border-radius: var(--r-lg); box-shadow: 0 8px 0 var(--ink);
+  animation: press-in .45s var(--ease-pop);
+}
+@keyframes press-in { from { transform: translateY(40px) rotate(3deg) scale(.86); opacity: 0; } }
+
+/* aparelho: a tela do veículo com o microfone apontado */
+.press-set { position: relative; margin-right: 26px; }
+.press-screen {
+  position: relative; display: grid; gap: 10px; min-height: 156px; padding: 12px 14px 14px; overflow: hidden;
+  background: #fff; border: var(--line); border-radius: var(--r); box-shadow: var(--shadow-sm);
+}
+.press-mic { position: absolute; right: -34px; bottom: -30px; transform: rotate(-26deg); transform-origin: 50% 90%; filter: drop-shadow(3px 4px 0 var(--ink)); animation: press-mic 2.4s ease-in-out infinite; pointer-events: none; }
+@keyframes press-mic { 50% { transform: rotate(-20deg) translateY(-3px); } }
+.press-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+.press-q { position: relative; z-index: 1; margin: 0; padding-right: 18px; font-weight: 800; font-size: 21px; line-height: 1.08; letter-spacing: -.015em; text-wrap: balance; animation: press-q-in .4s var(--ease-pop); }
+@keyframes press-q-in { from { transform: translateY(10px); opacity: 0; } }
+.press-third { position: relative; z-index: 1; justify-self: start; display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px 3px 7px; background: var(--medium); border: 2px solid var(--ink); border-radius: 6px; font-family: var(--mono); font-size: 9px; font-weight: 700; text-transform: uppercase; transform: rotate(-1.5deg); }
+
+.press-pips { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+.press-pips i { width: 9px; height: 9px; border-radius: 50%; background: var(--paper-3); border: 2px solid var(--ink); transition: background .2s, transform .3s var(--ease-pop); }
+.press-pips i.on { background: var(--sun); transform: scale(1.25); }
+.press-pips i.done { background: var(--medium); }
+.press-pips b { font-family: var(--mono); font-size: 10px; margin-left: 2px; }
+
+/* revista: papel com retícula e cabeçalho vermelho */
+.medium-revista .press-screen { background: radial-gradient(rgba(29,26,36,.09) 1px, transparent 1.6px) 0 0 / 7px 7px, #fffdf6; }
+.press-mast { display: inline-flex; align-items: baseline; gap: 8px; padding: 3px 10px; margin: -12px 0 0 -14px; background: var(--tomato); color: #fff; border-right: var(--line); border-bottom: var(--line); border-radius: 0 0 12px 0; }
+.press-mast b { font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: .02em; text-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.press-mast small { font-family: var(--mono); font-size: 9px; }
+.press-q-tag { display: inline-block; margin-right: 6px; color: var(--tomato); }
+
+/* TV: tubo escuro, linhas de varredura e luz de ao vivo */
+.medium-tv .press-screen { color: #fff; background: radial-gradient(ellipse at 50% 40%, #3a5b9a, #1b2240 75%); border-radius: 26px / 22px; box-shadow: var(--shadow-sm), inset 0 0 0 5px #2b2734; padding: 14px 18px 16px; }
+.medium-tv .press-screen::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 2px, transparent 2px 4px); }
+.medium-tv .press-q { text-shadow: 0 2px 0 var(--ink); }
+.medium-tv .press-pips i { background: #4a4458; }
+.medium-tv .press-pips i.on { background: var(--sun); }
+.medium-tv .press-pips i.done { background: var(--medium); }
+.press-live { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; background: var(--bad); color: #fff; border: 2px solid var(--ink); border-radius: 999px; font-family: var(--mono); font-size: 9px; font-weight: 700; }
+.press-live i { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: press-blink 1s steps(2, start) infinite; }
+@keyframes press-blink { to { visibility: hidden; } }
+.press-live small { display: inline-flex; align-items: center; gap: 3px; margin-left: 4px; padding-left: 6px; border-left: 1.5px solid rgba(255,255,255,.6); font-size: 9px; }
+
+/* portal: janela de navegador */
+.medium-portal .press-screen { padding-top: 0; }
+.press-url { flex: 1; display: flex; align-items: center; gap: 4px; margin: 0 -14px; padding: 6px 10px; background: var(--paper-2); border-bottom: 2px solid var(--ink); }
+.press-url i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--tomato); }
+.press-url i:nth-child(2) { background: var(--sun); }
+.press-url i:nth-child(3) { background: var(--mint); }
+.press-url small { flex: 1; min-width: 0; margin-left: 6px; padding: 2px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: #fff; border: 1.5px solid var(--ink); border-radius: 999px; font-family: var(--mono); font-size: 9px; color: var(--ink-2); }
+.medium-portal .press-head { margin-bottom: 2px; }
+.medium-portal .press-pips { position: absolute; right: 12px; top: 40px; }
+.medium-portal .press-q { padding-top: 14px; }
+
+/* podcast e live: estúdio escuro com onda de áudio */
+.medium-stream .press-screen { color: #fff; background: linear-gradient(160deg, #2e2546, #17121f); }
+.medium-stream .press-screen::before { content: ''; position: absolute; right: 18px; bottom: 14px; width: 54px; height: 22px; opacity: .55; background: linear-gradient(var(--medium), var(--medium)) 0 100% / 6px 40% no-repeat, linear-gradient(var(--medium), var(--medium)) 12px 100% / 6px 90% no-repeat, linear-gradient(var(--medium), var(--medium)) 24px 100% / 6px 60% no-repeat, linear-gradient(var(--medium), var(--medium)) 36px 100% / 6px 100% no-repeat, linear-gradient(var(--medium), var(--medium)) 48px 100% / 6px 50% no-repeat; animation: press-wave .9s ease-in-out infinite alternate; transform-origin: bottom; }
+@keyframes press-wave { to { transform: scaleY(.55); } }
+.medium-stream .press-pips i { background: #4a4458; }
+.medium-stream .press-pips i.on { background: var(--sun); }
+.medium-stream .press-pips i.done { background: var(--medium); }
+
+/* respostas */
+.press-answers { display: grid; gap: 8px; margin-top: 8px; }
+.press-answer {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; min-height: 54px; padding: 8px 10px 8px 10px;
+  background: #fff; border: var(--line); border-radius: var(--r); box-shadow: var(--shadow-sm); text-align: left;
+  transition: transform .12s var(--ease-pop), box-shadow .1s, background .15s;
+  animation: press-q-in .35s var(--ease-pop) both;
+}
+.press-answer:nth-child(2) { animation-delay: .05s; }
+.press-answer:nth-child(3) { animation-delay: .1s; }
+.press-answer:hover { transform: translateX(4px); background: #fffbf0; }
+.press-answer:active { transform: translateY(3px); box-shadow: none; }
+.press-answer-label { font-weight: 800; font-size: 16px; line-height: 1.1; }
+.press-tone { display: inline-flex; align-items: center; justify-content: center; gap: 3px; min-width: 76px; padding: 3px 7px; background: var(--tone); border: 2px solid var(--ink); border-radius: 999px; font-family: var(--mono); font-size: 8.5px; font-weight: 700; text-transform: uppercase; transform: rotate(-3deg); white-space: nowrap; }
+.press-tone.tone-polemico { color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.3); }
+.press-tone.lost { filter: saturate(.25); text-decoration: line-through; }
+.press-odds { background: #fff3c4; }
+
+/* reação */
+.press-reaction, .press-suspense { display: grid; justify-items: center; gap: 9px; margin-top: 8px; text-align: center; animation: press-q-in .35s var(--ease-pop); }
+.press-suspense { min-height: 150px; align-content: center; gap: 12px; }
+.press-reaction-top { display: flex; align-items: center; gap: 12px; min-height: 40px; margin-bottom: 2px; }
+.press-said { font-family: var(--mono); font-size: 10px; color: var(--ink-3); text-transform: uppercase; }
+.press-react-text { position: relative; margin: 0; padding: 10px 14px; background: #fff; border: var(--line); border-radius: 16px 16px 16px 4px; box-shadow: var(--shadow-sm); font-weight: 800; font-size: 17px; line-height: 1.15; text-wrap: balance; }
+.press-reaction.good .press-react-text { background: #e9fbe9; }
+.press-reaction.bad .press-react-text { background: #ffece8; }
+.press-stamp { padding: 0 10px; border: 3px solid currentColor; border-radius: 9px; font-weight: 800; font-size: 17px; line-height: 1.5; transform: rotate(-5deg); animation: press-stamp .4s var(--ease-pop); }
+.press-reaction.good .press-stamp { color: var(--good); }
+.press-reaction.bad .press-stamp { color: var(--bad); }
+@keyframes press-stamp { from { transform: scale(2.4) rotate(-14deg); opacity: 0; } }
+.press-next { width: 100%; }
+.press-dots { display: inline-flex; gap: 6px; padding: 12px 18px; background: #fff; border: var(--line); border-radius: 16px 16px 16px 4px; box-shadow: var(--shadow-sm); }
+.press-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--ink); animation: press-dot .7s ease-in-out infinite; }
+.press-dots i:nth-child(2) { animation-delay: .12s; }
+.press-dots i:nth-child(3) { animation-delay: .24s; }
+@keyframes press-dot { 50% { transform: translateY(-6px); opacity: .4; } }
+.press-skip { justify-self: center; font-size: 12px; padding: 4px 8px; }
+
+/* manchete do dia seguinte */
+.press-summary { display: grid; gap: 12px; justify-items: center; }
+.press-paper { width: 100%; display: grid; gap: 8px; padding: 12px 14px 14px; background: linear-gradient(#f7eedd, #efe2c8); border: var(--line); border-radius: 6px; box-shadow: 5px 6px 0 var(--ink); transform: rotate(-1.5deg); animation: press-paper .55s var(--ease-pop); }
+@keyframes press-paper { from { transform: rotate(-14deg) scale(.6) translateY(-40px); opacity: 0; } }
+.press-kicker { display: flex; align-items: center; gap: 5px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); font-family: var(--mono); font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--ink-2); }
+.press-paper-body { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+.press-paper-body .cover { border: 2px solid var(--ink); border-radius: 4px; filter: grayscale(.35) contrast(1.05); transform: rotate(2deg); }
+.press-headline { margin: 0 0 6px; font-weight: 800; font-size: 24px; line-height: 1; letter-spacing: -.02em; text-wrap: balance; }
+.press-game { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; font-weight: 700; }
+.press-game b { padding: 1px 6px; border: 1.5px solid var(--ink); border-radius: 999px; color: #fff; -webkit-text-stroke: .5px var(--ink); }
+.press-tones { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+
+@media (max-width: 420px) {
+  .press-card { padding: 14px 12px 10px; }
+  .press-q { font-size: 19px; }
+  .press-answer { grid-template-columns: auto 1fr; }
+  .press-answer .chips-preview { grid-column: 1 / -1; justify-content: flex-start; margin-top: -2px; }
+  .press-tone { min-width: 0; }
+  .press-headline { font-size: 21px; }
+}

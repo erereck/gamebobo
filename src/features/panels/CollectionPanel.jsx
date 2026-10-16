@@ -8,6 +8,7 @@ import { GENRES, THEMES, genreById, themeById, unlockedGenres, unlockedThemes } 
 import { platformById } from '../../game/data/platforms.js'
 import { ACHIEVEMENTS } from '../../game/data/content/achievements.js'
 import { OUTLETS } from '../../game/data/content/critics.js'
+import { PosterButton } from './PosterButton.jsx'
 
 const TABS = [
   { id: 'games', label: 'Jogos', icon: 'cartridge' },
@@ -16,10 +17,13 @@ const TABS = [
   { id: 'log', label: 'História', icon: 'book' },
 ]
 
-function GameDetail({ game, onBack }) {
+function GameDetail({ game, state, onBack }) {
   return (
     <div className="game-detail">
-      <button type="button" className="btn btn-small btn-ghost" onClick={onBack}><Icon name="back" size={14} />Voltar</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <button type="button" className="btn btn-small btn-ghost" onClick={onBack}><Icon name="back" size={14} />Voltar</button>
+        <PosterButton state={state} game={game} className="btn btn-small btn-sun">Cartaz</PosterButton>
+      </div>
       <div className="gd-top">
         <Cover game={game} width={110} />
         <div>
@@ -63,7 +67,7 @@ export function CollectionPanel() {
         ))}
       </div>
 
-      {tab === 'games' && (game ? <GameDetail game={game} onBack={() => setDetail(null)} /> : (
+      {tab === 'games' && (game ? <GameDetail game={game} state={state} onBack={() => setDetail(null)} /> : (
         <div className="shelf-grid">
           {[...state.games].reverse().map(item => (
             <button key={item.id} type="button" className="shelf-item" onClick={() => { sfx.click(); setDetail(item.id) }}>
