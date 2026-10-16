@@ -112,6 +112,8 @@ export function stepRivals(state, random = Math.random) {
 }
 
 export const historicWeek = entry => (entry.year - 1980) * WEEKS_PER_YEAR + entry.month * 4
+// Muda quando a lista de jogos reais muda; saves antigos recalculam onde a história está.
+export const HISTORY_VERSION = 2
 
 // Primeiro jogo histórico que ainda vai sair a partir de uma semana absoluta.
 export function historyCursorFor(tw) {
@@ -121,13 +123,17 @@ export function historyCursorFor(tw) {
 
 function releaseHistoric(state, tw) {
   const out = []
-  state.historyCursor ??= historyCursorFor(tw)
+  if (state.historyVersion !== HISTORY_VERSION) {
+    state.historyCursor = historyCursorFor(tw - 1)
+    state.historyVersion = HISTORY_VERSION
+  }
   while (state.historyCursor < ALL_HISTORIC_GAMES.length && historicWeek(ALL_HISTORIC_GAMES[state.historyCursor]) <= tw) {
     const entry = ALL_HISTORIC_GAMES[state.historyCursor]
     state.historyCursor += 1
     // Estúdio que você comprou não lança mais o próprio clássico: a história muda.
     const rivalId = historicRival(entry)
     if (rivalId && state.acquired?.includes(rivalId)) continue
+    if (state.rivalGames.some(game => game.id === `hist-${entry.id}`)) continue
     const rival = rivalId ? rivalById(rivalId) : null
     const quality = entry.score * 10
     const studio = 'rivalId' in entry ? entry.studio : (rival?.name ?? entry.studio)
