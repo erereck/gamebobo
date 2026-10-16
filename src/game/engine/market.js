@@ -61,7 +61,7 @@ function rivalGame(rival, state, tw, random) {
   const platform = pick(availablePlatforms(state.year + state.week / WEEKS_PER_YEAR), random)
   return {
     id: `rg-${tw}-${rival.id}`,
-    title: generateTitle(genre, theme, random),
+    title: generateTitle(genre, theme, random, year),
     studio: rival.name,
     rivalId: rival.id,
     color: rival.color,
