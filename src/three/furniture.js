@@ -162,7 +162,10 @@ export function aquarium() {
 export function neonSign(text) {
   const group = new THREE.Group()
   const plane = new THREE.Mesh(planeGeo(2, .5), new THREE.MeshBasicMaterial({ map: neonTexture(text), transparent: true, depthWrite: false }))
-  plane.position.set(0, 1.75, .04)
+  // 2 m de largura: em salas com janela grande ele passa na frente delas. Fica à frente da
+  // moldura (até z .07) e, transparente, desenha depois das camadas da janela (vista, noite, chuva).
+  plane.position.set(0, 1.75, .08)
+  plane.renderOrder = 4
   group.add(plane)
   return { group, w: 2, d: .05, wall: true, block: [], spots: [] }
 }

@@ -14,6 +14,14 @@ import { mat } from './character.js'
 const rotate = (x, z, rot) => [x * Math.cos(rot) + z * Math.sin(rot), -x * Math.sin(rot) + z * Math.cos(rot)]
 const snapRot = rot => Math.round(rot / (Math.PI / 2)) * (Math.PI / 2)
 
+// O que obriga a remontar (e recozinhar) o escritório: planta, época, decoração e o nome no neon.
+// Os pôsteres ficam de fora: têm camada própria (syncPosters) e trocam a cada lançamento.
+export const officeKey = view => `${view.office}|${view.era.id}|${view.decor.join(',')}|${view.decor.includes('neon') ? view.studioName : ''}`
+
+// Quem estava sentado à mesa volta direto para a cadeira se a mesa continua no mesmo lugar.
+const DESK_STATES = new Set(['work', 'sit', 'sleep'])
+const samePlace = (a, b) => Math.abs(a.x - b.x) < .01 && Math.abs(a.z - b.z) < .01
+
 // Programa na tela de quem trabalha, pelo pilar mais forte; a segunda tela mostra outra coisa.
 const ROLE_KIND = { fun: 'code', art: 'art', sound: 'sound', idea: 'idea' }
 const SIDE_KIND = { code: 'game', art: 'idea', sound: 'art', idea: 'code', game: 'idle', idle: 'idle' }
@@ -134,6 +142,11 @@ export class OfficeWorld {
 
     this.static = new THREE.Group()
     this.scene.add(this.static)
+    this.posterLayer = new THREE.Group()
+    this.scene.add(this.posterLayer)
+    this.posterSlots = []
+    this.posterKey = null
+    this.posterMats = []
     this.agentLayer = new THREE.Group()
     this.scene.add(this.agentLayer)
     this.particles = new Particles(this.scene)
@@ -272,7 +285,6 @@ export class OfficeWorld {
 
   // ---------- montagem do escritório ----------
   build(view) {
-    clearPosterCache()
     this.static.clear()
     // libera o que só este escritório usava (geometrias e materiais do kit ficam em cache)
     for (const item of this.owned) item.dispose()
@@ -395,13 +407,9 @@ export class OfficeWorld {
       if (built.fish) this.extras.fish.push(...built.fish)
       if (built.screen) this.extras.arcade.push(built.screen)
     }
-    const posterSlots = wallPositions.slice(wallCursor).filter(slot => layout.posters.includes(slot))
-    view.posters.slice(0, posterSlots.length).forEach((game, i) => {
-      const slot = posterSlots[i]
-      const built = F.poster(game)
-      this.add(built, slot.x, slot.z, slot.rot)
-      this.owned.push(built.material)
-    })
+    // pôsteres: só guarda as vagas que sobraram; syncPosters pendura os quadros na camada própria
+    this.posterSlots = wallPositions.slice(wallCursor).filter(slot => layout.posters.includes(slot))
+    this.posterKey = null
 
     for (const spot of this.spots) nav.unblockPoint(spot.x, spot.z)
     nav.unblockPoint(this.door.x, this.door.z)
@@ -479,6 +487,40 @@ export class OfficeWorld {
     list.forEach((trophy, i) => { trophy.visible = i < count })
   }
 
+  // Capas dos melhores jogos numa camada fora do cozimento: um lançamento que entra no top 6
+  // troca só os quadros (alguns ms), sem remontar as mesas nem tirar ninguém do lugar.
+  syncPosters(games = []) {
+    const shown = games.slice(0, this.posterSlots.length)
+    const key = shown.map(game => game.id).join(',')
+    if (key === this.posterKey) return
+    this.posterKey = key
+    this.clearPosters()
+    shown.forEach((game, i) => {
+      const slot = this.posterSlots[i]
+      const built = F.poster(game)
+      built.group.position.set(slot.x, 0, slot.z)
+      built.group.rotation.y = slot.rot ?? 0
+      built.group.traverse(child => {
+        if (child.isMesh) child.receiveShadow = true
+      })
+      this.posterLayer.add(built.group)
+      this.posterMats.push(built.material)
+    })
+  }
+
+  clearPosters() {
+    for (const material of this.posterMats) material.dispose()
+    this.posterMats = []
+    this.posterLayer.clear()
+    clearPosterCache()
+  }
+
+  // O próprio ponto se estiver livre; senão, o livre mais perto (quem ficou dentro de um móvel novo).
+  standable(x, z) {
+    const [c, r] = this.nav.toCell(x, z)
+    return this.nav.walkable(c, r) ? [x, z] : this.nav.toWorld(...this.nav.nearestWalkable(x, z))
+  }
+
   hasSpot(action) {
     return this.spots.some(spot => spot.action === action && !spot.usedBy)
   }
@@ -493,14 +535,18 @@ export class OfficeWorld {
 
   // Inicia conversa com alguém livre por perto.
   startChat(agent) {
-    const free = this.agents.filter(other => other !== agent && other.root.visible && ['idle', 'activity', 'sit'].includes(other.state) && other.info.status === 'ok')
+    // quem está deitado (acabou de acordar na cama) não entra na conversa
+    const free = this.agents.filter(other => other !== agent && other.root.visible && ['idle', 'activity', 'sit'].includes(other.state) && other.info.status === 'ok' && other.seat?.kind !== 'lie')
     if (!free.length) return false
     free.sort((a, b) => Math.hypot(a.x - agent.x, a.z - agent.z) - Math.hypot(b.x - agent.x, b.z - agent.z))
     const partner = free[0]
     partner.releaseSpot()
     partner.state = 'waitChat'
+    partner.activity = null
     partner.path = []
     partner.boneco.setPose(null)
+    // sentado (mesa, sofá) conversa sentado; agachado com o gato ou em outra base levanta
+    if (!partner.seat) partner.boneco.setBase('stand')
     partner.timer = 8
     partner.partner = agent
     const angle = Math.atan2(agent.x - partner.x, agent.z - partner.z)
@@ -546,12 +592,13 @@ export class OfficeWorld {
 
   // ---------- sincronização com o estado do jogo ----------
   sync(view) {
-    const key = `${view.office}|${view.era.id}|${view.decor.join(',')}|${view.posters.map(p => p.id).join(',')}|${view.decor.includes('neon') ? view.studioName : ''}`
+    const key = officeKey(view)
     const rebuilt = key !== this.staticKey
     if (rebuilt) {
       this.staticKey = key
       this.build(view)
     }
+    this.syncPosters(view.posters)
     this.view = view
     this.syncWeather(view)
     this.ideaSet = new Set(view.ideas)
@@ -570,8 +617,10 @@ export class OfficeWorld {
     view.staff.forEach((person, index) => {
       let agent = this.agents.find(item => item.id === person.id)
       if (agent && JSON.stringify(agent.info.look) !== JSON.stringify(person.look)) {
-        const { x, z, rot } = agent
-        agent.releaseSpot()
+        // o boneco antigo sai de cena: solta assento, mesa e reserva; o novo aparece em pé fora do móvel
+        const [x, z] = this.standable(...agent.footing())
+        const rot = agent.rot
+        agent.vacate()
         agent.root.removeFromParent()
         this.agents = this.agents.filter(item => item !== agent)
         agent = new StaffAgent(this, person)
@@ -594,23 +643,7 @@ export class OfficeWorld {
       agent.info = person
       agent.deskIndex = index
     })
-    if (rebuilt && this.initialized) {
-      // Quem ainda cabe onde estava continua lá; só quem ficou dentro de um móvel novo é empurrado.
-      for (const agent of this.agents) {
-        agent.releaseSpot()
-        const [c, r] = this.nav.toCell(agent.x, agent.z)
-        const [nc, nr] = this.nav.walkable(c, r) ? [c, r] : this.nav.nearestWalkable(agent.x, agent.z)
-        const [x, z] = this.nav.walkable(c, r) ? [agent.x, agent.z] : this.nav.toWorld(nc, nr)
-        agent.place(x, z, agent.rot)
-        agent.path = []
-        if (agent.state !== 'gone') agent.setIdle(.3 + Math.random())
-      }
-      this.conversations = []
-      if (this.cat) {
-        const [cx, cz] = this.nav.randomWalkable()
-        this.cat.root.position.set(cx, 0, cz)
-      }
-    }
+    if (rebuilt && this.initialized) this.resettle()
     this.initialized = true
 
     // gato
@@ -633,6 +666,28 @@ export class OfficeWorld {
       const person = view.staff[desk.index]
       if (desk.pizza) desk.pizza.visible = Boolean(person?.working && person.pace === 'crunch')
       this.syncRole(desk, person?.top ?? null, view.era)
+    }
+  }
+
+  // Escritório remontado: mesas e lugares são objetos novos. Quem ainda cabe onde estava continua
+  // lá; só quem ficou dentro de um móvel novo é empurrado. Sentado ou deitado, vale o ponto de
+  // levantar (ninguém fica em pé dentro da cadeira), e quem trabalhava à mesa senta de novo na hora.
+  resettle() {
+    for (const agent of this.agents) {
+      const oldDesk = agent.seat ? agent.desk : null
+      const mode = agent.state
+      const [x, z] = this.standable(...agent.footing())
+      agent.place(x, z, agent.rot)
+      agent.path = []
+      if (agent.state === 'gone') continue
+      const desk = this.desks[agent.deskIndex]
+      if (oldDesk && desk && DESK_STATES.has(mode) && samePlace(oldDesk.spot, desk.spot)) agent.sitAtDesk(desk, mode, true)
+      else agent.setIdle(.3 + Math.random())
+    }
+    this.conversations = []
+    if (this.cat) {
+      const [cx, cz] = this.nav.randomWalkable()
+      this.cat.root.position.set(cx, 0, cz)
     }
   }
 
@@ -830,10 +885,17 @@ export class OfficeWorld {
     tickScreens(time)
   }
 
+  // Libera o que é só deste escritório e devolve o contexto WebGL na hora. Os caches de materiais
+  // e geometrias do kit seguram o renderer vivo; sem forceContextLoss, cada troca de save
+  // deixaria um contexto (e a memória de GPU dele) para trás.
   dispose() {
     this.running = false
     this.resizeObserver.disconnect()
+    this.clearPosters()
+    for (const item of this.owned) item.dispose()
+    this.owned = []
     this.renderer.dispose()
+    this.renderer.forceContextLoss()
     this.renderer.domElement.remove()
   }
 }

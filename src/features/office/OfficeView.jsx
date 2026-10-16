@@ -21,6 +21,8 @@ export function OfficeView({ onPick, view: forcedView }) {
     return () => {
       instance.dispose()
       world.current = null
+      // a alça de depuração não pode segurar o mundo desmontado (nem a GPU dele)
+      if (window.__office === instance) window.__office = null
     }
   }, [])
 

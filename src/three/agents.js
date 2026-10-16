@@ -25,6 +25,23 @@ function seatHeight(spot, action) {
   return null
 }
 
+// Ponto atrás da cadeira (de costas para a mesa), de onde se senta e para onde se levanta.
+const behind = (spot, gap = .3) => [spot.x - Math.sin(spot.face) * gap, spot.z - Math.cos(spot.face) * gap]
+
+// "Toca aqui": distância de um braço entre os dois. reachOn acha, no trecho de a (longe)
+// até b (perto), o ponto a exatamente essa distância do colega.
+const FIVE_REACH = .62
+function reachOn([ax, az], [bx, bz], mate) {
+  let lo = 0
+  let hi = 1
+  for (let i = 0; i < 16; i += 1) {
+    const t = (lo + hi) / 2
+    if (Math.hypot(ax + (bx - ax) * t - mate.x, az + (bz - az) * t - mate.z) >= FIVE_REACH) lo = t
+    else hi = t
+  }
+  return [ax + (bx - ax) * lo, az + (bz - az) * lo]
+}
+
 // Brinquedo de mão de cada época: Game & Watch, tijolinho, portátil largo, celular.
 const HANDHELD_BY_ERA = { fliper: 'watch', cartucho: 'brick', cd: 'brick', lanhouse: 'wide', app: 'phone', stream: 'phone', algoritmo: 'phone', futuro: 'phone' }
 const LATE_ERAS = new Set(['cd', 'lanhouse', 'app', 'stream', 'algoritmo', 'futuro'])
@@ -59,6 +76,7 @@ export class StaffAgent {
     this.deskIndex = -1
     this.desk = null
     this.spot = null
+    this.claim = null
     this.partner = null
     this.appear = 1
     this.voice = .8 + Math.random() * .6
@@ -85,15 +103,24 @@ export class StaffAgent {
     this.glide = null
     this.seat = null
     this.lift = this.liftGoal = 0
-    this.freeSpots()
+    this.vacate()
     this.boneco.setBase('stand')
     this.boneco.snapBase()
     this.boneco.setProp(null)
     this.boneco.gaze = null
   }
 
+  // Onde a pessoa fica de pé: sentada, deitada ou levantando, vale o ponto de levantar, nunca o assento.
+  footing() {
+    if (this.seat) return [this.seat.x, this.seat.z]
+    if (this.glide) return [this.glide.x1, this.glide.z1]
+    return [this.x, this.z]
+  }
+
   walkTo(x, z, then) {
     const b = this.boneco
+    // caminhada nova cancela a anterior, e com ela o lugar que estava reservado no caminho
+    this.dropClaim()
     this.path = []
     this.onArrive = null
     this.state = 'walk'
@@ -115,8 +142,9 @@ export class StaffAgent {
     else go()
   }
 
-  // Quem ainda está sentado ou deitado segura o lugar até levantar.
+  // Quem ainda está sentado ou deitado segura o lugar até levantar; reserva a caminho sempre cai.
   releaseSpot() {
+    this.dropClaim()
     if (!this.seat) this.freeSpots()
   }
 
@@ -125,6 +153,20 @@ export class StaffAgent {
     this.spot = null
     if (this.desk && this.desk.usedBy === this.id) this.desk.usedBy = null
     this.desk = null
+  }
+
+  // Lugar reservado por quem ainda vai até ele (useSpot). Fica fora de freeSpots de propósito:
+  // quem levanta da mesa para ir ao café solta a cadeira, mas não o café.
+  dropClaim() {
+    const claim = this.claim
+    this.claim = null
+    if (claim && claim !== this.spot && claim.usedBy === this.id) claim.usedBy = null
+  }
+
+  // Larga tudo o que segura: assento, mesa e reserva a caminho (teleporte, troca de visual).
+  vacate() {
+    this.dropClaim()
+    this.freeSpots()
   }
 
   setIdle(time = rand(.6, 2.2)) {
@@ -141,6 +183,19 @@ export class StaffAgent {
   // Desliza até o assento (ou para dentro da cama) enquanto vira e senta.
   startGlide(x, z, dur, done) {
     this.glide = { x0: this.x, z0: this.z, x1: x, z1: z, t: 0, dur, done }
+  }
+
+  // Termina na hora o deslize e a postura (escritório remontado com a pessoa já sentada).
+  snapGlide() {
+    const g = this.glide
+    this.glide = null
+    if (g) this.root.position.set(g.x1, 0, g.z1)
+    this.lift = this.liftGoal
+    this.root.position.y = this.boneco.lift = this.lift
+    this.rot = this.targetRot
+    this.root.rotation.y = this.rot
+    this.boneco.snapBase()
+    g?.done?.()
   }
 
   settle({ x, z, face, kind, seatY = 0, lieY = 0, standX, standZ, swivel = 0, dur = .4 }) {
@@ -174,16 +229,20 @@ export class StaffAgent {
     const desk = this.myDesk()
     if (!desk) return this.wander()
     if (this.desk === desk && this.seat) return this.atDesk(mode)
-    const spot = desk.spot
-    const ax = spot.x - Math.sin(spot.face) * .3
-    const az = spot.z - Math.cos(spot.face) * .3
-    this.walkTo(ax, az, () => {
-      this.desk = desk
-      desk.usedBy = this.id
-      this.settle({ x: spot.x, z: spot.z, face: spot.face, kind: 'sit', seatY: seatHeight(spot, 'desk'), standX: ax, standZ: az, swivel: .45, dur: .38 })
-      this.atDesk(mode)
-    })
+    const [ax, az] = behind(desk.spot)
+    this.walkTo(ax, az, () => this.sitAtDesk(desk, mode))
     desk.usedBy = this.id
+  }
+
+  // Senta na própria mesa: chegando a pé, ou na hora (instant) quando o escritório é remontado.
+  sitAtDesk(desk, mode, instant = false) {
+    const spot = desk.spot
+    const [ax, az] = behind(spot)
+    this.desk = desk
+    desk.usedBy = this.id
+    this.settle({ x: spot.x, z: spot.z, face: spot.face, kind: 'sit', seatY: seatHeight(spot, 'desk'), standX: ax, standZ: az, swivel: .45, dur: .38 })
+    if (instant) this.snapGlide()
+    this.atDesk(mode)
   }
 
   atDesk(mode) {
@@ -231,8 +290,8 @@ export class StaffAgent {
     const spots = this.world.spots.filter(spot => spot.action === action && !spot.usedBy && (action !== 'bed' || spot.lie))
     if (!spots.length) return false
     const spot = pickOne(spots)
-    spot.usedBy = this.id
     this.walkTo(spot.x, spot.z, () => {
+      this.claim = null
       this.spot = spot
       spot.usedBy = this.id
       this.targetRot = spot.face
@@ -241,6 +300,9 @@ export class StaffAgent {
       this.timer = { sofa: rand(7, 13), bed: rand(12, 22), arcade: rand(6, 11), foosball: rand(5, 9), meeting: rand(6, 12), coffee: rand(4, 7) }[action] ?? rand(3.5, 6)
       this.beginActivity(action, spot)
     })
+    // reserva depois do walkTo (que cancela a anterior); some se a caminhada for interrompida
+    this.claim = spot
+    spot.usedBy = this.id
     return true
   }
 
@@ -292,7 +354,9 @@ export class StaffAgent {
       } else b.setPose('look')
     } else if (action === 'meeting') {
       const seatY = seatHeight(spot, 'meeting')
-      if (seatY != null) this.settle({ x: spot.seatX ?? spot.x, z: spot.seatZ ?? spot.z, face: spot.face, kind: 'sit', seatY, standX: spot.x, standZ: spot.z, dur: .4 })
+      // a cadeira fica no próprio ponto: levanta para trás dela, não dentro dela
+      const [sx, sz] = spot.seatX == null ? behind(spot) : [spot.x, spot.z]
+      if (seatY != null) this.settle({ x: spot.seatX ?? spot.x, z: spot.seatZ ?? spot.z, face: spot.face, kind: 'sit', seatY, standX: sx, standZ: sz, dur: .4 })
       this.lookPoint.set(spot.x + Math.sin(spot.face) * .9, 0, spot.z + Math.cos(spot.face) * .9)
       b.gaze = this.lookPoint
       b.setPose('listen')
@@ -419,6 +483,7 @@ export class StaffAgent {
       if (this.state === 'rest') return
       this.path = []
       this.onArrive = null
+      this.dropClaim()
       if (this.glide && !this.seat) this.glide.done = () => this.freeSpots()
       this.state = 'sad'
       this.timer = 3.2
@@ -430,6 +495,7 @@ export class StaffAgent {
     const party = kind === 'party'
     this.path = []
     this.onArrive = null
+    this.dropClaim()
     if (this.glide && !this.seat) this.glide.done = () => this.freeSpots()
     this.state = 'celebrate'
     this.timer = party ? 4.4 : 2.2
@@ -471,9 +537,7 @@ export class StaffAgent {
     mate.face(this.x, this.z)
     mate.boneco.gaze = this.root.position
     mate.boneco.setPose('wave', .6)
-    const a = Math.atan2(this.x - mate.x, this.z - mate.z)
-    const tx = mate.x + Math.sin(a) * .62
-    const tz = mate.z + Math.cos(a) * .62
+    const [tx, tz] = this.fivePoint(mate)
     this.walkTo(tx, tz, () => {
       this.state = 'celebrate'
       this.timer = Math.max(this.timer, 2)
@@ -486,6 +550,17 @@ export class StaffAgent {
         agent.timer = Math.max(agent.timer, 2.2)
       }
     })
+  }
+
+  // A um braço do colega, no caminho de verdade até ele: em linha reta o ponto pode cair
+  // dentro de uma mesa (pods frente a frente); pelo caminho, chega-se pelo corredor.
+  fivePoint(mate) {
+    const path = [[this.x, this.z], ...this.world.nav.findPath(this.x, this.z, mate.x, mate.z)]
+    const far = ([x, z]) => Math.hypot(x - mate.x, z - mate.z) >= FIVE_REACH
+    for (let i = path.length - 1; i > 0; i -= 1) {
+      if (far(path[i - 1])) return reachOn(path[i - 1], path[i], mate)
+    }
+    return [this.x, this.z]
   }
 
   dropBuddy() {
