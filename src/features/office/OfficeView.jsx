@@ -21,6 +21,8 @@ export function OfficeView({ onPick, view: forcedView }) {
     return () => {
       instance.dispose()
       world.current = null
+      // a alça de depuração não pode segurar o mundo desmontado (nem a GPU dele)
+      if (window.__office === instance) window.__office = null
     }
   }, [])
 
@@ -34,7 +36,7 @@ export function OfficeView({ onPick, view: forcedView }) {
       const state = store.getState()
       if (!state || !world.current) return
       const view = officeView(state)
-      const key = JSON.stringify([view.office, view.era.id, view.decor, view.staff.map(p => [p.id, p.status, Math.round(p.energy / 10), p.top, p.working, p.pace]), view.crunch, view.ideas, view.visitor, view.posters.map(p => p.id), view.trophies, view.topics, view.sound])
+      const key = JSON.stringify([view.office, view.era.id, view.year, view.month, view.decor, view.staff.map(p => [p.id, p.status, Math.round(p.energy / 10), p.top, p.working, p.pace]), view.crunch, view.ideas, view.visitor, view.posters.map(p => p.id), view.trophies, view.topics, view.sound])
       if (key === lastKey) return
       lastKey = key
       world.current.sync(view)

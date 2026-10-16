@@ -3,11 +3,15 @@ import { DECOR, MARKETING, OFFICES, PHASES, PHASE_FOCUS, START_MONEY, TECHS, mon
 import { EXPOS, projectTypeById } from '../data/modes.js'
 import { platformById } from '../data/platforms.js'
 import { traitById } from '../data/staff.js'
+import { acquiredWeek } from './almanac.js'
+import { ALL_HISTORIC_GAMES } from '../data/history.js'
+import { historicIndie, rivalById } from './market.js'
 import { applyEffects, resolveChoice } from './effects.js'
 import { eventById, fillText, ideaById } from './events.js'
 import { freelaNeed } from './freelas.js'
 import { polishMore, projectById, releaseDemo, releaseProject, startFreela, startGameProject } from './project.js'
 import { checkAchievements, updateLegacy } from './progress.js'
+import { answerPress, leavePress } from './press.js'
 import { createGame, fx, log, newBrief, scaled, toast, yearFloat } from './state.js'
 import { techHypeMultiplier } from './staff.js'
 import { tick } from './tick.js'
@@ -84,12 +88,21 @@ export function reducer(current, action, random = Math.random) {
       return state
 
     case 'CLOSE':
+      leavePress(state, state.queue[0])
       popQueue(state)
       return state
 
     case 'CHOOSE':
       choose(state, action.index, random)
       return state
+
+    // Coletiva de imprensa: uma resposta por pergunta. CLOSE encerra (ou pula com "sem comentários").
+    case 'PRESS_ANSWER': {
+      const item = state.queue[0]
+      if (item?.kind !== 'press' || !answerPress(state, item, action.index, random, action.at)) return current
+      checkAchievements(state)
+      return state
+    }
 
     case 'SET_FOCUS': {
       const item = state.queue[0]
@@ -403,8 +416,27 @@ export function afterLoad(state) {
   state.projects ??= []
   state.teams ??= [{ id: MAIN_TEAM, name: 'Equipe principal' }]
   state.acquired ??= []
+  // Save antigo: a data da compra só estava no diário. Guarda agora, enquanto a linha ainda existe.
+  state.acquiredAt ??= {}
+  for (const id of state.acquired) {
+    const week = acquiredWeek(state, id)
+    if (week != null) state.acquiredAt[id] = week
+  }
+  // Parada de save antigo não tinha "sobe/desce": sem isso, todo mundo apareceria como NOVO.
+  // Só preenche o campo que falta; move: null (estreia de verdade) continua NOVO.
+  for (const entry of state.chart ?? []) {
+    if (entry.move === undefined) entry.move = 0
+    entry.weeks ??= 1
+  }
+  // Jogos reais já na prateleira de um save antigo recalculam quem é indie pela regra atual.
+  const historic = new Map(ALL_HISTORIC_GAMES.map(entry => [`hist-${entry.id}`, entry]))
+  for (const game of state.rivalGames ?? []) {
+    const entry = game.historic && historic.get(game.id)
+    if (entry) game.indie = historicIndie(entry, game.rivalId ? rivalById(game.rivalId) : null, game.year)
+  }
   state.goty ??= []
   state.mode ??= { id: 'tradicional', franchise: null, parent: null, brief: null }
+  state.buffs = { score: 0, sales: 1, hype: 0, ...state.buffs }
   for (const person of state.staff) person.team ??= MAIN_TEAM
   updateLegacy(state)
   return state

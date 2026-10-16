@@ -37,6 +37,6 @@ Um diorama de brinquedo flutuando no céu da era. A interface são objetos de jo
 ## 3D
 
 - Câmera ortográfica isométrica, giro limitado entre 11° e 79°, zoom de 0,75× a 2,8×.
-- Bonecos chibi em primitivas: cabeça grande, olhos que piscam, bochechas, nove cortes de cabelo, óculos, fone e boné.
+- Bonecos chibi em primitivas: cabeça grande, olhos que piscam, sobrancelhas e boca que reagem, bochechas, mãos e joelhos; treze cortes de cabelo, cinco blusas, calça/bermuda/saia, óculos, fone, boné, gorro e faixa.
 - Balões são pictogramas desenhados com os mesmos ícones da interface.
 - Crunch = noite: sol baixo, monitores e luminárias acesos, caixas de pizza nas mesas.

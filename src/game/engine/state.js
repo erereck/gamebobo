@@ -6,7 +6,7 @@ import { createCandidate, createCandidates } from './staff.js'
 import { PUBLISHERS, modeById } from '../data/modes.js'
 import { genreById, unlockedGenres, unlockedThemes } from '../data/genres.js'
 import { modeStartMoney } from './modes.js'
-import { historyCursorFor, rollTrend } from './market.js'
+import { HISTORY_VERSION, historyCursorFor, rollTrend } from './market.js'
 import { generateFreelas } from './freelas.js'
 import { clamp, int, pick } from './rng.js'
 
@@ -52,6 +52,7 @@ export function createGame(options = {}, random = Math.random) {
     projects: [],
     teams: [{ id: 'main', name: 'Equipe principal' }],
     acquired: [],
+    acquiredAt: {},
     goty: [],
     games: [],
     franchises: {},
@@ -75,7 +76,7 @@ export function createGame(options = {}, random = Math.random) {
     stats: {
       gamesReleased: 0, totalCopies: 0, totalRevenue: 0, bestScore: 0, bestCopies: 0, awardsWon: 0, hallOfFame: 0,
       perfectGames: 0, chartNumberOnes: 0, sequelsReleased: 0, freelasDone: 0, bankruptcies: 0, crunchWeeks: 0,
-      researchDone: 0, flops: 0, ideasAccepted: 0, eventsSeen: 0, cameloDeals: 0,
+      researchDone: 0, flops: 0, ideasAccepted: 0, eventsSeen: 0, cameloDeals: 0, interviews: 0, spicyWins: 0, spicyLosses: 0,
     },
     debtMonths: 0,
     loan: null,
@@ -86,6 +87,7 @@ export function createGame(options = {}, random = Math.random) {
   state.market.trendUntil = absWeek(state) + int(20, 34, random)
   state.lastEventWeek = absWeek(state) + 3
   state.historyCursor = historyCursorFor(absWeek(state) - 1)
+  state.historyVersion = HISTORY_VERSION
   state.lastCamelo = absWeek(state) + 10
   state.freelas = generateFreelas(state, random)
   // Portátil em janeiro de 1980: espera o Game & Watch chegar às lojas.

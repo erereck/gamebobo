@@ -15,6 +15,7 @@ import { applyEffects } from './effects.js'
 import { modeCost, modeOf, modeQuality, modeSpeed, modeXp } from './modes.js'
 import { MAIN_TEAM, teamMembers, teamOf } from './teams.js'
 import { clamp, makeId, pick, sample } from './rng.js'
+import { createPress } from './press.js'
 
 export const accessoryById = id => ACCESSORIES.find(item => item.id === id) ?? null
 export const publisherById = id => PUBLISHERS.find(item => item.id === id) ?? null
@@ -122,7 +123,8 @@ export function startGameProject(state, choice) {
     pts: { fun: 0, art: 0, sound: 0, idea: 0 },
     bugs: 0,
     fixed: 0,
-    hype: clamp((hook?.mods?.hype ?? 0) + (publisher?.hype ?? 0) + inherited + Math.min(20, Math.log10(1 + state.fans) * 3), 0, 100),
+    // buffs.hype: o que a última coletiva de imprensa prometeu para o próximo jogo.
+    hype: clamp((hook?.mods?.hype ?? 0) + (publisher?.hype ?? 0) + inherited + Math.min(20, Math.log10(1 + state.fans) * 3) + (state.buffs?.hype ?? 0), 0, 100),
     pace: 'normal',
     franchise,
     sequelOf: type.id === 'sequel' ? lead?.id ?? null : null,
@@ -134,6 +136,7 @@ export function startGameProject(state, choice) {
     speed: 1,
     phaseAsked: type.quick ? { 1: true, 2: true } : { 1: false, 2: false },
   }
+  if (state.buffs?.hype) state.buffs.hype = 0
   state.projects.push(project)
   if (modeOf(state) === 'franquia' && !state.mode.franchise) state.mode.franchise = { id: franchise, name: choice.title }
   log(state, 'cartridge', `Começou ${choice.title}`)
@@ -227,6 +230,7 @@ function workProject(state, project) {
     const reference = sizeById(project.size).team * eraBar(project.startYear) * 10
     const ratio = workers.length ? teamOut / reference : 0
     project.speed = workers.length ? clamp(1 + (ratio - 1) * .5, .7, 1.45) * modeSpeed(state) : 0
+    if (project.pace === 'crunch' && workers.length) project.crunchWeeks = (project.crunchWeeks ?? 0) + 1
     project.week = Math.min(project.totalWeeks, project.week + project.speed)
     project.hype = Math.max(0, project.hype - .6)
     const nextPhase = phaseAt(project)
@@ -325,7 +329,7 @@ export function releaseProject(state, projectId, random = Math.random) {
     techSales: techSalesMultiplier(state.techs),
     noBreakout: type.quick,
   }, random)
-  state.buffs = { score: 0, sales: 1 }
+  state.buffs = { ...state.buffs, score: 0, sales: 1 }
   const total = totalPoints(project.pts)
   const share = Object.fromEntries(PILLAR_IDS.map(key => [key, total ? project.pts[key] / total : .25]))
   const game = {
@@ -434,6 +438,12 @@ export function releaseProject(state, projectId, random = Math.random) {
     fanChips,
     levelUps,
   })
+  // Coletiva de imprensa logo depois da revelação das notas.
+  const press = createPress(state, { project, game, breakdown, letdown: letdown > .5, isNewCombo }, random)
+  if (press) {
+    const at = state.queue.findIndex(item => item.kind === 'review' && item.gameId === game.id)
+    state.queue.splice(at + 1, 0, press)
+  }
   updateLegacy(state)
   checkAchievements(state)
   return game

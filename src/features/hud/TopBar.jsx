@@ -10,6 +10,7 @@ import { TICKER } from '../../game/data/content/ticker.js'
 import { isBlocked } from '../../game/engine/tick.js'
 import { activeRivals } from '../../game/engine/market.js'
 import { MILESTONES } from '../../game/data/history.js'
+import { upcomingNews } from './upcoming.js'
 
 function Delta({ value }) {
   const [shown, setShown] = useState(null)
@@ -31,6 +32,7 @@ function Ticker({ state }) {
   const real = [
     ...MILESTONES.filter(item => item.year === state.year),
     ...state.rivalGames.filter(game => game.historic && !game.annual && game.age < 16).map(game => ({ text: `${game.studio} lança ${game.title}` })),
+    ...upcomingNews(state),
   ]
   const pool = [...real, ...real, ...TICKER.filter(item => (item.minYear ?? 0) <= state.year && (item.maxYear ?? 9999) >= state.year)]
   useEffect(() => {
@@ -44,7 +46,7 @@ function Ticker({ state }) {
   return (
     <div className="ticker" aria-live="off">
       <span className="ticker-src">{source}</span>
-      <span key={item.text} className="ticker-text">{text}</span>
+      <span key={item.text} className="ticker-text" title={text}>{text}</span>
     </div>
   )
 }
