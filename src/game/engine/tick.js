@@ -18,7 +18,7 @@ import { weeklyShare } from './sales.js'
 import { absWeek, fx, log, scaled, toast, yearFloat } from './state.js'
 import { clamp, int, makeId, pick, sample } from './rng.js'
 
-export const BLOCKING = new Set(['event', 'idea', 'phase', 'ready', 'review', 'awards', 'bankrupt', 'welcome', 'expo'])
+export const BLOCKING = new Set(['event', 'idea', 'phase', 'ready', 'review', 'press', 'awards', 'bankrupt', 'welcome', 'expo'])
 export const isBlocked = state => state.queue.some(item => BLOCKING.has(item.kind))
 
 function updateStaff(state) {

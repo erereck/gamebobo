@@ -8,6 +8,7 @@ import { eventById, fillText, ideaById } from './events.js'
 import { freelaNeed } from './freelas.js'
 import { polishMore, projectById, releaseDemo, releaseProject, startFreela, startGameProject } from './project.js'
 import { checkAchievements, updateLegacy } from './progress.js'
+import { answerPress, leavePress } from './press.js'
 import { createGame, fx, log, newBrief, scaled, toast, yearFloat } from './state.js'
 import { techHypeMultiplier } from './staff.js'
 import { tick } from './tick.js'
@@ -84,12 +85,21 @@ export function reducer(current, action, random = Math.random) {
       return state
 
     case 'CLOSE':
+      leavePress(state, state.queue[0])
       popQueue(state)
       return state
 
     case 'CHOOSE':
       choose(state, action.index, random)
       return state
+
+    // Coletiva de imprensa: uma resposta por pergunta. CLOSE encerra (ou pula com "sem comentários").
+    case 'PRESS_ANSWER': {
+      const item = state.queue[0]
+      if (item?.kind !== 'press' || !answerPress(state, item, action.index, random, action.at)) return current
+      checkAchievements(state)
+      return state
+    }
 
     case 'SET_FOCUS': {
       const item = state.queue[0]
@@ -405,6 +415,7 @@ export function afterLoad(state) {
   state.acquired ??= []
   state.goty ??= []
   state.mode ??= { id: 'tradicional', franchise: null, parent: null, brief: null }
+  state.buffs = { score: 0, sales: 1, hype: 0, ...state.buffs }
   for (const person of state.staff) person.team ??= MAIN_TEAM
   updateLegacy(state)
   return state

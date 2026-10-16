@@ -4,6 +4,7 @@ import { modeById } from '../../game/data/modes.js'
 import { sfx } from '../../app/audio.js'
 import { Icon } from '../../ui/Icon.jsx'
 import { VERSION_INFO } from '../../version.js'
+import { PosterButton } from './PosterButton.jsx'
 
 function Switch({ on, onChange, label, icon }) {
   return (
@@ -29,6 +30,7 @@ export function SettingsPanel({ onClose }) {
       </label>
       <p className="tip"><Icon name="info" size={14} />Arraste o escritório para girar. Role para dar zoom. Clique num boneco para ver o crachá.</p>
       <div className="mode-badge"><Icon name={modeById(state.mode?.id).icon} size={16} />{modeById(state.mode?.id).label}<small>espaço {state.slot ?? 1}</small></div>
+      <PosterButton state={state} className="btn btn-sun">Cartaz da carreira</PosterButton>
       <button type="button" className="btn" onClick={() => { writeSave(store.getState()); sfx.chime() }}><Icon name="check" size={16} />Salvar agora</button>
       <button type="button" className="btn" onClick={() => { writeSave(store.getState()); onClose(); dispatch({ type: 'LOAD', state: null }) }}><Icon name="cards" size={16} />Trocar de save</button>
       {!confirm ? (
