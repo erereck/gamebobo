@@ -17,6 +17,7 @@ import { PLATFORMS, availablePlatforms } from '../data/platforms.js'
 import { liveStats } from './progress.js'
 import { PRESS_BANDS, PRESS_HEADLINES, PRESS_MEDIUMS, PRESS_QUESTIONS, PRESS_TONES, pressMediumFor, pressQuestionById } from '../data/content/press.js'
 import { answerEffects, pickPressQuestions, wantsPress } from './press.js'
+import { upcomingNews } from '../../features/hud/upcoming.js'
 
 const newGame = (seed = 1, startYear = 1980, modeId = 'tradicional') => {
   const random = mulberry32(seed)
@@ -264,6 +265,23 @@ test('comprar um estúdio cria equipe remota e cancela os clássicos dele', () =
   assert.ok(state.teams.some(team => team.remote && team.rivalId === 'id'))
   state = runUntil(state, random, s => s.year >= 1994, 3000)
   assert.ok(!state.rivalGames.some(game => game.title === 'Doom'), 'Doom não sai mais pela id')
+  // O letreiro também não conta os dias pra um clássico que não vai sair.
+  const ticker = acquired => upcomingNews({ year: 1993, week: 40, acquired, chart: [] }).map(item => item.text).join(' | ')
+  assert.match(ticker([]), /Doom/)
+  assert.doesNotMatch(ticker(['id']), /Doom/, 'letreiro não anuncia o Doom da id comprada')
+})
+
+test('letreiro: a contagem abre a frase e o nº 1 das paradas sempre tem vaga', () => {
+  const chart = [{ title: 'Topo', studio: 'Rival', mine: false }]
+  for (let year = 1985; year <= 2030; year += 1) {
+    for (const week of [0, 20, 40]) {
+      const news = upcomingNews({ year, week, acquired: [], chart })
+      assert.ok(news.length <= 5)
+      assert.equal(news.at(-1).text, 'Nº 1 das paradas: Topo (Rival)', `${year} s${week}`)
+      for (const item of news.slice(0, -1)) assert.match(item.text, /^(Em \d|No mês que vem)/, 'o letreiro corta o fim, não a data')
+    }
+  }
+  assert.equal(upcomingNews({ year: 2015, week: 0, acquired: [], chart: [] }).length, 5, 'sem paradas, cinco contagens')
 })
 
 test('o Jogo do Ano da indústria fica registrado', () => {
@@ -405,6 +423,8 @@ test('coletiva: respostas aplicam efeitos, manchete fecha e hype vai pro próxim
   const done = item()
   assert.equal(done.answers.length, 3)
   assert.equal(typeof done.answers[2].win, 'boolean', 'polêmica é aposta')
+  const verdict = state.fx.find(entry => entry.type === (done.answers[2].win ? 'cheer' : 'sigh'))
+  assert.ok(verdict?.silent, 'escritório reage, mas o som da polêmica fica pra tela depois do suspense')
   assert.ok(done.headline?.text, 'manchete pronta')
   assert.equal(state.log[0].text, done.headline.text, 'manchete vai pra história')
   assert.equal(state.stats.interviews, 1)
