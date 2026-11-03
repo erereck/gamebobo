@@ -238,6 +238,7 @@ export function StartScreen() {
           {legacy && step === 0 && <p className="legacy-note"><Icon name="info" size={12} />Saves da versão antiga (0.x) não passam para o 3D.</p>}
         </section>
       )}
+      <small className="start-credit">EriLab™ / Erick Luiz</small>
     </div>
   )
 }
