@@ -1,17 +1,61 @@
 import * as THREE from 'three'
-import { Boneco, Gato } from './character.js'
+import { Boneco, DESK_TOP, Gato } from './character.js'
 import { Bubble } from './bubbles.js'
 
 const TAU = Math.PI * 2
-const angleLerp = (a, b, t) => {
-  let d = ((b - a + Math.PI) % TAU + TAU) % TAU - Math.PI
-  return a + d * t
-}
+const wrap = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI
+const angleLerp = (a, b, t) => a + wrap(b - a) * t
 const rand = (a, b) => a + Math.random() * (b - a)
 const pickOne = list => list[Math.floor(Math.random() * list.length)]
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+const ease = v => {
+  const x = clamp(v, 0, 1)
+  return x * x * (3 - 2 * x)
+}
 
 const WORK_THOUGHTS = { fun: ['gamepad', 'code'], art: ['brush', 'sparkle'], sound: ['note', 'headphones'], idea: ['bulb', 'puzzle'] }
-const SMALL_TALK = ['coffee', 'pizza', 'gamepad', 'heart', 'star', 'laugh', 'question', 'money', 'ball', 'music', 'sun', 'tv', 'bug', 'cat', 'idea', 'rocket', 'dice', 'fire', 'cards', 'trophy']
+const WALK_SPEED = 1.25
+
+// Altura do assento quando o móvel ainda não informa seatY (contrato: spot.seatY).
+// Sofá sem assento marcado ou reunião sem cadeira: o boneco fica em pé, nunca sentado no ar.
+function seatHeight(spot, action) {
+  if (typeof spot.seatY === 'number') return spot.seatY
+  if (action === 'desk') return .3
+  if (action === 'sofa' && spot.seatX != null) return .4
+  return null
+}
+
+// Ponto atrás da cadeira (de costas para a mesa), de onde se senta e para onde se levanta.
+const behind = (spot, gap = .3) => [spot.x - Math.sin(spot.face) * gap, spot.z - Math.cos(spot.face) * gap]
+
+// "Toca aqui": distância de um braço entre os dois. reachOn acha, no trecho de a (longe)
+// até b (perto), o ponto a exatamente essa distância do colega.
+const FIVE_REACH = .62
+function reachOn([ax, az], [bx, bz], mate) {
+  let lo = 0
+  let hi = 1
+  for (let i = 0; i < 16; i += 1) {
+    const t = (lo + hi) / 2
+    if (Math.hypot(ax + (bx - ax) * t - mate.x, az + (bz - az) * t - mate.z) >= FIVE_REACH) lo = t
+    else hi = t
+  }
+  return [ax + (bx - ax) * lo, az + (bz - az) * lo]
+}
+
+// Brinquedo de mão de cada época: Game & Watch, tijolinho, portátil largo, celular.
+const HANDHELD_BY_ERA = { fliper: 'watch', cartucho: 'brick', cd: 'brick', lanhouse: 'wide', app: 'phone', stream: 'phone', algoritmo: 'phone', futuro: 'phone' }
+const LATE_ERAS = new Set(['cd', 'lanhouse', 'app', 'stream', 'algoritmo', 'futuro'])
+function handheldFor(view) {
+  const year = view?.year
+  if (typeof year === 'number') return year >= 2008 ? 'phone' : year >= 2001 ? 'wide' : year >= 1989 ? 'brick' : 'watch'
+  return HANDHELD_BY_ERA[view?.era?.id] ?? 'phone'
+}
+function drinkFor(view, info) {
+  const year = view?.year
+  const late = typeof year === 'number' ? year >= 1997 : LATE_ERAS.has(view?.era?.id)
+  if (late && (info.energy < 35 || (info.working && info.pace === 'crunch') || Math.random() < .2)) return 'can'
+  return 'mug'
+}
 
 export class StaffAgent {
   constructor(world, info) {
@@ -27,45 +71,154 @@ export class StaffAgent {
     this.state = 'idle'
     this.timer = rand(.3, 1.5)
     this.path = []
-    this.speed = 0
     this.rot = 0
     this.targetRot = 0
     this.deskIndex = -1
+    this.desk = null
     this.spot = null
+    this.claim = null
     this.partner = null
     this.appear = 1
     this.voice = .8 + Math.random() * .6
     this.thoughtTimer = rand(3, 8)
+    this.gestureTimer = rand(6, 12)
+    this.lift = 0
+    this.liftGoal = 0
+    this.glide = null
+    this.seat = null
+    this.partyTimer = 0
+    this.buddy = null
+    this.five = null
+    this.lookPoint = new THREE.Vector3()
   }
 
   get x() { return this.root.position.x }
   get z() { return this.root.position.z }
 
+  // Teletransporte (montagem do escritório): sempre em pé, no chão, sem assento.
   place(x, z, rot = 0) {
     this.root.position.set(x, 0, z)
     this.rot = this.targetRot = rot
     this.root.rotation.y = rot
+    this.glide = null
+    this.seat = null
+    this.lift = this.liftGoal = 0
+    this.vacate()
+    this.boneco.setBase('stand')
+    this.boneco.snapBase()
+    this.boneco.setProp(null)
+    this.boneco.gaze = null
+  }
+
+  // Onde a pessoa fica de pé: sentada, deitada ou levantando, vale o ponto de levantar, nunca o assento.
+  footing() {
+    if (this.seat) return [this.seat.x, this.seat.z]
+    if (this.glide) return [this.glide.x1, this.glide.z1]
+    return [this.x, this.z]
   }
 
   walkTo(x, z, then) {
-    this.releaseSpot()
-    this.path = this.world.nav.findPath(this.x, this.z, x, z)
-    this.onArrive = then
+    const b = this.boneco
+    // caminhada nova cancela a anterior, e com ela o lugar que estava reservado no caminho
+    this.dropClaim()
+    this.path = []
+    this.onArrive = null
     this.state = 'walk'
-    this.boneco.setPose('walk')
+    this.activity = null
+    b.setPose(null)
+    b.setProp(null)
+    b.gaze = null
+    const go = () => {
+      this.freeSpots()
+      b.setBase('stand')
+      this.path = this.world.nav.findPath(this.x, this.z, x, z)
+      this.onArrive = then
+    }
+    if (this.seat) this.standUp(go)
+    else if (this.glide) this.glide.done = () => {
+      this.freeSpots()
+      go()
+    }
+    else go()
   }
 
+  // Quem ainda está sentado ou deitado segura o lugar até levantar; reserva a caminho sempre cai.
   releaseSpot() {
-    if (this.spot) this.spot.usedBy = null
+    this.dropClaim()
+    if (!this.seat) this.freeSpots()
+  }
+
+  freeSpots() {
+    if (this.spot && this.spot.usedBy === this.id) this.spot.usedBy = null
     this.spot = null
     if (this.desk && this.desk.usedBy === this.id) this.desk.usedBy = null
     this.desk = null
   }
 
+  // Lugar reservado por quem ainda vai até ele (useSpot). Fica fora de freeSpots de propósito:
+  // quem levanta da mesa para ir ao café solta a cadeira, mas não o café.
+  dropClaim() {
+    const claim = this.claim
+    this.claim = null
+    if (claim && claim !== this.spot && claim.usedBy === this.id) claim.usedBy = null
+  }
+
+  // Larga tudo o que segura: assento, mesa e reserva a caminho (teleporte, troca de visual).
+  vacate() {
+    this.dropClaim()
+    this.freeSpots()
+  }
+
   setIdle(time = rand(.6, 2.2)) {
     this.state = 'idle'
     this.timer = time
-    this.boneco.setPose(null)
+    this.activity = null
+    const b = this.boneco
+    b.setPose(null)
+    b.setProp(null)
+    b.gaze = null
+    if (!this.seat) b.setBase('stand')
+  }
+
+  // Desliza até o assento (ou para dentro da cama) enquanto vira e senta.
+  startGlide(x, z, dur, done) {
+    this.glide = { x0: this.x, z0: this.z, x1: x, z1: z, t: 0, dur, done }
+  }
+
+  // Termina na hora o deslize e a postura (escritório remontado com a pessoa já sentada).
+  snapGlide() {
+    const g = this.glide
+    this.glide = null
+    if (g) this.root.position.set(g.x1, 0, g.z1)
+    this.lift = this.liftGoal
+    this.root.position.y = this.boneco.lift = this.lift
+    this.rot = this.targetRot
+    this.root.rotation.y = this.rot
+    this.boneco.snapBase()
+    g?.done?.()
+  }
+
+  settle({ x, z, face, kind, seatY = 0, lieY = 0, standX, standZ, swivel = 0, dur = .4 }) {
+    const b = this.boneco
+    this.seat = { x: standX, z: standZ, face, kind, swivel }
+    this.targetRot = face
+    b.setBase(kind)
+    if (kind === 'sit') {
+      this.liftGoal = seatY - b.seatHip
+      b.seatHigh = seatY
+    } else this.liftGoal = lieY
+    this.startGlide(x, z, dur)
+  }
+
+  standUp(then) {
+    const seat = this.seat
+    this.seat = null
+    this.boneco.setBase('stand')
+    this.liftGoal = 0
+    this.startGlide(seat.x, seat.z, seat.kind === 'lie' ? .55 : .32, () => {
+      this.freeSpots()
+      then?.()
+    })
   }
 
   myDesk() {
@@ -75,15 +228,57 @@ export class StaffAgent {
   goToDesk(mode = 'work') {
     const desk = this.myDesk()
     if (!desk) return this.wander()
-    this.walkTo(desk.spot.x, desk.spot.z, () => {
-      this.desk = desk
-      desk.usedBy = this.id
-      this.place(desk.spot.x, desk.spot.z, desk.spot.face)
-      this.state = mode
-      this.timer = mode === 'work' ? rand(7, 16) : mode === 'sleep' ? rand(5, 9) : rand(4, 8)
-      this.boneco.setPose(mode === 'work' ? 'type' : mode === 'sleep' ? 'sleep' : 'sit')
-      if (mode === 'sleep') this.bubble.show('emote', 'zzz', { color: '#6c63ff', duration: 2.2 })
-    })
+    if (this.desk === desk && this.seat) return this.atDesk(mode)
+    const [ax, az] = behind(desk.spot)
+    this.walkTo(ax, az, () => this.sitAtDesk(desk, mode))
+    desk.usedBy = this.id
+  }
+
+  // Senta na própria mesa: chegando a pé, ou na hora (instant) quando o escritório é remontado.
+  sitAtDesk(desk, mode, instant = false) {
+    const spot = desk.spot
+    const [ax, az] = behind(spot)
+    this.desk = desk
+    desk.usedBy = this.id
+    this.settle({ x: spot.x, z: spot.z, face: spot.face, kind: 'sit', seatY: seatHeight(spot, 'desk'), standX: ax, standZ: az, swivel: .45, dur: .38 })
+    if (instant) this.snapGlide()
+    this.atDesk(mode)
+  }
+
+  atDesk(mode) {
+    const b = this.boneco
+    this.state = mode
+    this.activity = null
+    this.timer = mode === 'work' ? rand(7, 16) : mode === 'sleep' ? rand(6, 10) : rand(5, 9)
+    b.setProp(null)
+    b.gaze = null
+    if (mode === 'work') b.setPose('type')
+    else if (mode === 'sleep') {
+      b.deskLean = this.deskLean()
+      b.setPose('sleep')
+    } else this.seatedLeisure()
+  }
+
+  // Inclinação para a cabeça encostar nos braços sobre a mesa, conforme a altura do assento.
+  deskLean() {
+    const b = this.boneco
+    const s = b.scale
+    const seatY = seatHeight(this.desk?.spot ?? {}, 'desk')
+    const hip = seatY + .062 * s
+    const deskTop = this.desk?.spot?.deskY ?? DESK_TOP
+    const c = (deskTop + .075 + .235 * s - hip) / (.52 * s)
+    return clamp(Math.acos(clamp(c, -1, 1)), .12, .32)
+  }
+
+  // Sentado sem trabalhar: celular/portátil da época, mãos atrás da cabeça ou só balançando os pés.
+  seatedLeisure() {
+    const b = this.boneco
+    const roll = Math.random()
+    if (roll < .55) {
+      b.setProp(handheldFor(this.world.view))
+      b.setPose('phone')
+    } else if (roll < .8) b.setPose('relax')
+    else b.setPose(null)
   }
 
   wander() {
@@ -92,23 +287,84 @@ export class StaffAgent {
   }
 
   useSpot(action) {
-    const spots = this.world.spots.filter(spot => spot.action === action && !spot.usedBy)
+    const spots = this.world.spots.filter(spot => spot.action === action && !spot.usedBy && (action !== 'bed' || spot.lie))
     if (!spots.length) return false
     const spot = pickOne(spots)
-    spot.usedBy = this.id
     this.walkTo(spot.x, spot.z, () => {
+      this.claim = null
       this.spot = spot
       spot.usedBy = this.id
-      this.place(spot.seatX ?? spot.x, spot.seatZ ?? spot.z, spot.face)
+      this.targetRot = spot.face
       this.state = 'activity'
       this.activity = action
-      this.timer = action === 'sofa' ? rand(6, 12) : action === 'arcade' ? rand(6, 11) : rand(3, 6)
-      const pose = { coffee: 'drink', sofa: 'sit', arcade: 'play', foosball: 'play', whiteboard: 'wave', look: null, plant: null, meeting: 'sit' }[action]
-      this.boneco.setPose(pose ?? null)
-      const icon = { coffee: 'coffee', arcade: 'gamepad', foosball: 'ball', whiteboard: 'bulb', look: 'sun', plant: 'plant', sofa: 'zzz' }[action]
-      if (icon && Math.random() < .7) this.bubble.show(action === 'sofa' ? 'emote' : 'thought', icon, { duration: 2 })
+      this.timer = { sofa: rand(7, 13), bed: rand(12, 22), arcade: rand(6, 11), foosball: rand(5, 9), meeting: rand(6, 12), coffee: rand(4, 7) }[action] ?? rand(3.5, 6)
+      this.beginActivity(action, spot)
     })
+    // reserva depois do walkTo (que cancela a anterior); some se a caminhada for interrompida
+    this.claim = spot
+    spot.usedBy = this.id
     return true
+  }
+
+  beginActivity(action, spot) {
+    const b = this.boneco
+    const info = this.info
+    const view = this.world.view
+    const tired = info.energy < 45 || info.trait === 'preguica'
+    if (action === 'coffee') {
+      b.setProp(drinkFor(view, info))
+      b.setPose('drink')
+      if (Math.random() < .5) this.bubble.show('thought', 'coffee', { duration: 1.6, scale: .42 })
+    } else if (action === 'sofa') {
+      const seatY = seatHeight(spot, 'sofa')
+      if (seatY == null) {
+        b.setProp(handheldFor(view))
+        b.setPose('phone')
+        return
+      }
+      this.settle({ x: spot.seatX ?? spot.x, z: spot.seatZ ?? spot.z, face: spot.face, kind: 'sit', seatY, standX: spot.x, standZ: spot.z, dur: .45 })
+      if (tired && !info.working && Math.random() < .6) {
+        this.state = 'rest'
+        b.setPose('doze')
+      } else this.seatedLeisure()
+    } else if (action === 'bed') {
+      const lie = spot.lie
+      this.settle({ x: lie.x, z: lie.z, face: lie.rot, kind: 'lie', lieY: lie.y, standX: spot.x, standZ: spot.z, dur: .7 })
+      this.state = 'rest'
+      if (tired || Math.random() < .55) b.setPose('doze')
+      else {
+        b.setProp(handheldFor(view))
+        b.setPose('phone')
+      }
+    } else if (action === 'arcade') {
+      b.setPose('play')
+      if (Math.random() < .6) this.bubble.show('thought', 'gamepad', { duration: 1.6, scale: .42 })
+    } else if (action === 'foosball') b.setPose('foos')
+    else if (action === 'whiteboard') {
+      b.setProp('marker')
+      b.setPose('point')
+      if (Math.random() < .6) this.bubble.show('thought', 'bulb', { duration: 1.6, scale: .42 })
+    } else if (action === 'plant') {
+      b.setProp('water')
+      b.setPose('water')
+    } else if (action === 'look') {
+      if (Math.random() < .3) {
+        b.setProp(drinkFor(view, info))
+        b.setPose('drink')
+      } else b.setPose('look')
+    } else if (action === 'meeting') {
+      const seatY = seatHeight(spot, 'meeting')
+      // a cadeira fica no próprio ponto: levanta para trás dela, não dentro dela
+      const [sx, sz] = spot.seatX == null ? behind(spot) : [spot.x, spot.z]
+      if (seatY != null) this.settle({ x: spot.seatX ?? spot.x, z: spot.seatZ ?? spot.z, face: spot.face, kind: 'sit', seatY, standX: sx, standZ: sz, dur: .4 })
+      this.lookPoint.set(spot.x + Math.sin(spot.face) * .9, 0, spot.z + Math.cos(spot.face) * .9)
+      b.gaze = this.lookPoint
+      b.setPose('listen')
+      this.meetTimer = rand(.5, 2)
+    } else if (action === 'phone') {
+      b.setProp(handheldFor(view))
+      b.setPose('phone')
+    }
   }
 
   decide() {
@@ -120,8 +376,8 @@ export class StaffAgent {
     const r = Math.random()
     if (working) {
       if (info.energy < 18 && r < .5) return this.goToDesk('sleep')
-      let breakChance = .1 + (trait === 'tagarela' ? .12 : 0) + (trait === 'cafe' ? .08 : 0) + (info.energy < 35 ? .1 : 0) - (info.pace === 'crunch' ? .06 : 0)
       if (trait === 'preguica' && r < .12) return this.goToDesk('sleep')
+      const breakChance = .1 + (trait === 'tagarela' ? .12 : 0) + (trait === 'cafe' ? .08 : 0) + (info.energy < 35 ? .1 : 0) - (info.pace === 'crunch' ? .06 : 0)
       if (r < breakChance) {
         const options = []
         if (w.hasSpot('coffee')) options.push('coffee', 'coffee', ...(trait === 'cafe' ? ['coffee', 'coffee', 'coffee'] : []))
@@ -134,11 +390,15 @@ export class StaffAgent {
       }
       return this.goToDesk('work')
     }
-    const weights = [['wander', 2], ['chat', 3.2], ['desk', 1.4], ['coffee', 1.4], ['sofa', 1.6], ['arcade', trait === 'gamer' ? 5 : 1.8], ['foosball', 1.5], ['look', 1], ['whiteboard', trait === 'caotico' ? 3 : .8], ['plant', trait === 'zen' ? 3 : .6], ['cat', 2], ['meeting', .6]]
-    if (trait === 'tagarela') weights[1][1] = 7
-    if (trait === 'preguica') weights[4][1] = 5
-    const usable = weights.filter(([name]) => name === 'wander' || name === 'chat' || name === 'desk' || (name === 'cat' ? w.cat : w.hasSpot(name)))
-    const total = usable.reduce((s, [, v]) => s + v, 0)
+    const bed = 1 + (info.energy < 50 ? 2.5 : 0) + (trait === 'preguica' ? 3 : 0)
+    const weights = [
+      ['wander', 2], ['chat', trait === 'tagarela' ? 7 : 3.2], ['desk', 1.4], ['coffee', 1.4], ['sofa', trait === 'preguica' ? 5 : 1.6], ['bed', bed],
+      ['arcade', trait === 'gamer' ? 5 : 1.8], ['foosball', 1.5], ['look', 1], ['whiteboard', trait === 'caotico' ? 3 : .8], ['plant', trait === 'zen' ? 3 : .6],
+      ['cat', 2], ['meeting', .6], ['phone', trait === 'gamer' ? 2.4 : 1.3], ['stretch', .5],
+    ]
+    const always = new Set(['wander', 'chat', 'desk', 'phone', 'stretch'])
+    const usable = weights.filter(([name]) => always.has(name) || (name === 'cat' ? w.cat : name === 'bed' ? w.spots.some(spot => spot.action === 'bed' && spot.lie && !spot.usedBy) : w.hasSpot(name)))
+    const total = usable.reduce((sum, [, v]) => sum + v, 0)
     let roll = Math.random() * total
     for (const [name, weight] of usable) {
       roll -= weight
@@ -147,27 +407,51 @@ export class StaffAgent {
       if (name === 'desk') return this.goToDesk('sit')
       if (name === 'chat') return w.startChat(this) || this.wander()
       if (name === 'cat') return this.petCat()
+      if (name === 'phone' || name === 'stretch') return this.inPlace(name)
       return this.useSpot(name) || this.wander()
     }
     return this.wander()
   }
 
+  // Coisas que se fazem parado onde está: olhar o portátil/celular ou se espreguiçar.
+  inPlace(kind) {
+    if (this.seat) return this.wander()
+    if (kind === 'stretch') {
+      this.setIdle(rand(2.4, 3.2))
+      this.boneco.gesture(this.info.energy < 40 ? 'yawn' : 'stretch')
+      return
+    }
+    this.state = 'activity'
+    this.activity = 'phone'
+    this.timer = rand(4, 8)
+    this.beginActivity('phone')
+  }
+
   petCat() {
     const cat = this.world.cat
     if (!cat) return this.wander()
-    this.walkTo(cat.x + .45, cat.z + .1, () => {
+    this.walkTo(cat.x + .42, cat.z + .1, () => {
+      const b = this.boneco
       this.face(cat.x, cat.z)
       this.state = 'activity'
       this.activity = 'cat'
-      this.timer = 2.5
-      this.boneco.setPose('wave', .5)
+      this.timer = 2.8
+      b.setBase('crouch')
+      b.setPose('pet')
       this.bubble.show('emote', 'heart', { color: '#ff4d8d', duration: 1.8 })
-      cat.purr()
+      cat.purr(this)
     })
   }
 
+  // Sentado, só gira o que a cadeira deixa; deitado, não gira. A cabeça faz o resto.
   face(x, z) {
-    this.targetRot = Math.atan2(x - this.x, z - this.z)
+    const a = Math.atan2(x - this.x, z - this.z)
+    if (this.seat) {
+      if (this.seat.kind === 'lie') return
+      this.targetRot = this.seat.face + clamp(wrap(a - this.seat.face), -this.seat.swivel, this.seat.swivel)
+      return
+    }
+    this.targetRot = a
   }
 
   leave() {
@@ -186,24 +470,152 @@ export class StaffAgent {
     this.root.visible = true
     this.appear = 0
     this.setIdle(.4)
-    if (Math.random() < .7) this.bubble.show('speech', 'smile', { duration: 1.4 })
+    if (Math.random() < .7) {
+      this.bubble.show('speech', 'smile', { duration: 1.4 })
+      this.boneco.gesture('wave')
+    }
   }
 
   react(kind) {
     if (this.state === 'gone' || this.state === 'leaving') return
-    this.releaseSpot()
-    this.path = []
-    if (kind === 'cheer' || kind === 'party') {
-      this.state = 'celebrate'
-      this.timer = kind === 'party' ? 3.4 : 2
-      this.boneco.setPose('cheer', kind === 'party' ? 1 : .6)
-      this.bubble.show('emote', kind === 'party' ? 'star' : 'laugh', { color: '#ff9f1c', duration: 1.8 })
-    } else if (kind === 'sad') {
+    const b = this.boneco
+    if (kind === 'sad') {
+      if (this.state === 'rest') return
+      this.path = []
+      this.onArrive = null
+      this.dropClaim()
+      if (this.glide && !this.seat) this.glide.done = () => this.freeSpots()
       this.state = 'sad'
-      this.timer = 3
-      this.boneco.setPose('sad')
-      this.bubble.show('emote', 'storm', { color: '#5c677d', duration: 2.6 })
+      this.timer = 3.2
+      b.setProp(null)
+      b.setPose('sad')
+      this.bubble.show('emote', 'storm', { color: '#5c677d', duration: 2.8 })
+      return
     }
+    const party = kind === 'party'
+    this.path = []
+    this.onArrive = null
+    this.dropClaim()
+    if (this.glide && !this.seat) this.glide.done = () => this.freeSpots()
+    this.state = 'celebrate'
+    this.timer = party ? 4.4 : 2.2
+    b.setProp(null)
+    b.gaze = null
+    if (party) {
+      this.partyTimer = 10
+      b.partyHat(true)
+    }
+    const cheer = () => {
+      if (this.state !== 'celebrate') return
+      b.setPose('cheer', party ? 1 : .7)
+      if (party && !this.buddy) this.findBuddy()
+    }
+    this.bubble.show('emote', party ? 'star' : 'laugh', { color: '#ff9f1c', duration: 1.8 })
+    // sentado comemora no lugar; numa festa todo mundo levanta para os "toca aqui"
+    if (this.seat && (party || this.seat.kind === 'lie')) this.standUp(cheer)
+    else cheer()
+  }
+
+  // Toca aqui: o mais próximo livre vem ao encontro; os dois batem a mão e pulam.
+  findBuddy() {
+    let best = null
+    let bestD = 2.6
+    for (const other of this.world.agents) {
+      if (other === this || other.buddy || other.state !== 'celebrate' || other.seat || other.glide || !other.root.visible) continue
+      const d = Math.hypot(other.x - this.x, other.z - this.z)
+      if (d < bestD) {
+        best = other
+        bestD = d
+      }
+    }
+    if (!best) return
+    const mate = best
+    this.buddy = mate
+    mate.buddy = this
+    mate.five = { stage: 'wait', t: 0 }
+    this.five = { stage: 'go', t: 0 }
+    mate.face(this.x, this.z)
+    mate.boneco.gaze = this.root.position
+    mate.boneco.setPose('wave', .6)
+    const [tx, tz] = this.fivePoint(mate)
+    this.walkTo(tx, tz, () => {
+      this.state = 'celebrate'
+      this.timer = Math.max(this.timer, 2)
+      if (mate.buddy !== this || mate.state !== 'celebrate') return this.dropBuddy()
+      this.face(mate.x, mate.z)
+      mate.face(this.x, this.z)
+      for (const agent of [this, mate]) {
+        agent.five = { stage: 'five', t: 0 }
+        agent.boneco.setPose('highfive')
+        agent.timer = Math.max(agent.timer, 2.2)
+      }
+    })
+  }
+
+  // A um braço do colega, no caminho de verdade até ele: em linha reta o ponto pode cair
+  // dentro de uma mesa (pods frente a frente); pelo caminho, chega-se pelo corredor.
+  fivePoint(mate) {
+    const gap = Math.hypot(this.x - mate.x, this.z - mate.z)
+    if (gap < FIVE_REACH) {
+      const angle = gap > .001 ? Math.atan2(this.x - mate.x, this.z - mate.z) : this.root.rotation.y + Math.PI
+      const bx = mate.x + Math.sin(angle) * FIVE_REACH
+      const bz = mate.z + Math.cos(angle) * FIVE_REACH
+      const nav = this.world.nav
+      const clear = nav.walkable(...nav.toCell(bx, bz)) && !this.world.desks.some(desk => Math.hypot(desk.spot.x - bx, desk.spot.z - bz) < .35)
+      return clear ? [bx, bz] : [this.x, this.z]
+    }
+    const path = [[this.x, this.z], ...this.world.nav.findPath(this.x, this.z, mate.x, mate.z)]
+    const far = ([x, z]) => Math.hypot(x - mate.x, z - mate.z) >= FIVE_REACH
+    for (let i = path.length - 1; i > 0; i -= 1) {
+      if (far(path[i - 1])) return reachOn(path[i - 1], path[i], mate)
+    }
+    return [this.x, this.z]
+  }
+
+  dropBuddy() {
+    if (this.buddy && this.buddy.buddy === this) {
+      this.buddy.buddy = null
+      this.buddy.five = null
+    }
+    this.buddy = null
+    this.five = null
+  }
+
+  updateFive(dt) {
+    const f = this.five
+    const mate = this.buddy
+    if (!f || !mate) return
+    f.t += dt
+    if (f.stage === 'wait') {
+      if (f.t > 5) return this.dropBuddy()
+      this.timer = Math.max(this.timer, .6)
+    }
+    if (f.stage === 'go' && this.state === 'celebrate' && !this.path.length && !this.glide && f.t > 4) this.dropBuddy()
+    if (f.stage === 'five' && f.t > .42 && !f.clapped) {
+      f.clapped = true
+      if (mate.five) mate.five.clapped = true
+      this.world.particles?.float(new THREE.Vector3((this.x + mate.x) / 2, 1.3, (this.z + mate.z) / 2), 'sparkle', '#ffb703', .4)
+      this.world.blip(this)
+    }
+    if (f.stage === 'five' && f.t > .75) {
+      f.stage = 'done'
+      this.boneco.setPose('cheer')
+    }
+  }
+
+  // Termina uma conversa com a reação do fim (risada, aceno, braços cruzados ou corações).
+  afterChat(reaction) {
+    const b = this.boneco
+    this.partner = null
+    b.gaze = null
+    if (this.state !== 'chat') return
+    this.setIdle(rand(1.2, 1.8))
+    if (reaction === 'laugh') b.setPose('laugh')
+    else if (reaction === 'angry') b.setPose('cross')
+    else if (reaction === 'heart') {
+      b.mood.love = 1
+      b.setPose('listen', .6)
+    } else b.gesture('nod')
   }
 
   think(pillar) {
@@ -211,25 +623,59 @@ export class StaffAgent {
     this.bubble.show('thought', pickOne(WORK_THOUGHTS[pillar] ?? WORK_THOUGHTS.fun), { duration: 1.6, scale: .45 })
   }
 
+  // Gesto ocasional para ninguém parecer estátua: espreguiçar, bocejar, coçar a cabeça.
+  fidget(dt) {
+    this.gestureTimer -= dt
+    if (this.gestureTimer > 0) return
+    const b = this.boneco
+    const tired = this.info.energy < 40
+    this.gestureTimer = rand(8, 16)
+    if (this.state === 'work') {
+      const roll = Math.random()
+      if (tired && roll < .5) b.gesture('yawn')
+      else if (roll < .35) b.gesture('stretch')
+      else if (roll < .65) b.gesture('scratch')
+    } else if (this.state === 'idle' && !this.seat && this.timer > 1.2) {
+      b.gesture(tired ? 'yawn' : pickOne(['stretch', 'scratch', 'shrug']))
+    } else if (this.state === 'activity' && this.activity === 'arcade' && Math.random() < .5) {
+      b.gesture('clap')
+      this.bubble.show('emote', 'star', { color: '#ffb703', duration: 1.4, scale: .4 })
+    }
+  }
+
   update(dt) {
     const w = this.world
     const b = this.boneco
+    const info = this.info
     this.appear = Math.min(1, this.appear + dt * 4)
     this.root.scale.setScalar(.2 + .8 * this.appear)
     const hasIdea = w.ideaSet.has(this.id) && this.state !== 'gone'
     if (hasIdea && !this.alert.sprite.visible) this.alert.show('alert', 'exclaim', { sticky: true, scale: .5 })
     if (!hasIdea && this.alert.sprite.visible) this.alert.hide()
+    const low = -.55 * b.lying
+    this.bubble.offset = low
+    this.alert.offset = low
     this.bubble.update(dt)
     this.alert.update(dt)
 
     if (this.state === 'gone') {
-      if (this.info.status === 'ok') this.enter()
+      if (info.status === 'ok') this.enter()
       return
     }
-    if (this.info.status !== 'ok' && this.state !== 'leaving') this.leave()
+    if (info.status !== 'ok' && this.state !== 'leaving') this.leave()
 
     let speed = 0
-    if (this.state === 'walk' || this.state === 'leaving') {
+    if (this.glide) {
+      const g = this.glide
+      g.t += dt
+      const k = ease(g.t / g.dur)
+      this.root.position.x = g.x0 + (g.x1 - g.x0) * k
+      this.root.position.z = g.z0 + (g.z1 - g.z0) * k
+      if (g.t >= g.dur) {
+        this.glide = null
+        g.done?.()
+      }
+    } else if (this.state === 'walk' || this.state === 'leaving') {
       const target = this.path[0]
       if (!target) {
         const done = this.onArrive
@@ -240,7 +686,8 @@ export class StaffAgent {
         const dx = target[0] - this.x
         const dz = target[1] - this.z
         const dist = Math.hypot(dx, dz)
-        const v = (this.info.pace === 'crunch' && this.info.working ? 1.75 : 1.25) * dt
+        const pace = info.pace === 'crunch' && info.working ? 1.75 : WALK_SPEED
+        const v = pace * dt
         if (dist <= v) {
           this.root.position.x = target[0]
           this.root.position.z = target[1]
@@ -249,40 +696,90 @@ export class StaffAgent {
           this.root.position.x += dx / dist * v
           this.root.position.z += dz / dist * v
           this.targetRot = Math.atan2(dx, dz)
-          speed = 1
         }
+        speed = pace / WALK_SPEED
       }
     } else {
       this.timer -= dt
     }
+    this.lift += (this.liftGoal - this.lift) * (1 - Math.exp(-dt * 10))
+    this.root.position.y = this.lift
+    b.lift = this.lift
 
-    if (this.state === 'idle' && this.timer <= 0) this.decide()
-    else if (this.state === 'work') {
+    // humor no rosto: cansaço, crunch, carinho
+    b.mood.tired = clamp((38 - info.energy) / 26, 0, 1)
+    b.mood.stress = this.state === 'work' && info.working && info.pace === 'crunch' ? .9 : 0
+    b.mood.love = Math.max(0, b.mood.love - dt * .25)
+    b.talking += ((this.bubble.speaking ? 1 : 0) - b.talking) * Math.min(1, dt * 12)
+    if (this.partyTimer > 0) {
+      this.partyTimer -= dt
+      if (this.partyTimer <= 0) b.partyHat(false)
+    }
+
+    if (this.glide) {
+      // nada: termina de sentar/levantar antes de decidir
+    } else if (this.state === 'idle') {
+      if (this.timer <= 0) this.decide()
+      else this.fidget(dt)
+    } else if (this.state === 'work') {
+      this.fidget(dt)
       this.thoughtTimer -= dt
       if (this.thoughtTimer <= 0) {
         this.thoughtTimer = rand(5, 11)
         if (Math.random() < .35) w.deskChat(this)
       }
       if (this.timer <= 0) {
-        if (!this.info.working) this.setIdle(.2)
+        if (!info.working) this.setIdle(.2)
         else this.decide()
       }
     } else if (this.state === 'sit' || this.state === 'sleep') {
-      if (this.state === 'sleep' && Math.random() < dt * .4) this.bubble.show('emote', 'zzz', { color: '#6c63ff', duration: 1.8 })
-      if (this.timer <= 0 || (this.info.working && this.state === 'sit')) this.decide()
+      if (this.timer <= 0 || (info.working && this.state === 'sit')) this.decide()
+    } else if (this.state === 'rest') {
+      // cochilo no sofá ou na cama: a equipe voltou a trabalhar, acorda na hora
+      if (info.working) {
+        this.bubble.show('emote', 'exclaim', { color: '#ff5d3a', duration: 1.1, scale: .4 })
+        this.goToDesk('work')
+      } else if (this.timer <= 0) {
+        b.gesture('stretch')
+        this.setIdle(rand(.3, .8))
+      }
     } else if (this.state === 'waitChat') {
+      b.gaze = this.partner?.root.position ?? null
       if (this.timer <= 0) this.setIdle()
-    } else if (this.state === 'activity' || this.state === 'celebrate' || this.state === 'sad') {
+    } else if (this.state === 'activity') {
+      if (this.activity === 'meeting') this.updateMeeting(dt)
+      else this.fidget(dt)
       if (this.timer <= 0) this.setIdle(rand(.2, 1))
+    } else if (this.state === 'celebrate' || this.state === 'sad') {
+      this.updateFive(dt)
+      if (this.timer <= 0) {
+        this.dropBuddy()
+        this.setIdle(rand(.2, 1))
+      }
     }
 
     this.rot = angleLerp(this.rot, this.targetRot, 1 - Math.exp(-dt * 12))
     this.root.rotation.y = this.rot
     b.update(dt, speed)
   }
+
+  updateMeeting(dt) {
+    this.meetTimer -= dt
+    if (this.meetTimer > 0) return
+    const b = this.boneco
+    this.meetTimer = rand(1.2, 2.8)
+    if (b.goal.talk < .5 && Math.random() < .45) {
+      b.setPose('talk')
+      this.bubble.show('speech', pickOne(this.world.topics()), { duration: 1.2, scale: .42 })
+      this.world.blip(this)
+    } else {
+      b.setPose('listen')
+      if (Math.random() < .25) b.gesture('nod')
+    }
+  }
 }
 
-// Conversa à la Sims: falas alternadas com pictogramas e uma reação no fim.
+// Conversa à la Sims: falas alternadas com pictogramas, olhares e uma reação no fim.
 export class Conversation {
   constructor(world, a, b) {
     this.world = world
@@ -293,6 +790,10 @@ export class Conversation {
     this.timer = .3
     this.couple = world.isCouple(a.id, b.id)
     this.done = false
+    for (const [self, other] of [[a, b], [b, a]]) {
+      self.boneco.setProp(null)
+      self.boneco.gaze = other.root.position
+    }
   }
 
   update(dt) {
@@ -305,9 +806,11 @@ export class Conversation {
     const speaker = this.turn % 2 ? b : a
     const listener = this.turn % 2 ? a : b
     speaker.boneco.setPose('talk')
-    listener.boneco.setPose('talk', .25)
+    listener.boneco.setPose('listen')
+    if (Math.random() < .25) listener.boneco.gesture('nod')
     const icon = this.couple && Math.random() < .5 ? 'heart' : pickOne(this.world.topics())
     speaker.bubble.show('speech', icon, { duration: 1.25, scale: .5 })
+    if (this.couple) speaker.boneco.mood.love = Math.max(speaker.boneco.mood.love, .6)
     this.world.blip(speaker)
     this.turn += 1
     this.timer = 1.25
@@ -316,18 +819,20 @@ export class Conversation {
   end(natural) {
     this.done = true
     const { a, b } = this
+    let reaction = null
     if (natural) {
       const roll = Math.random()
-      const reaction = this.couple ? 'heart' : roll < .62 ? 'laugh' : roll < .9 ? 'smile' : 'angry'
+      reaction = this.couple ? 'heart' : roll < .62 ? 'laugh' : roll < .9 ? 'smile' : 'angry'
       for (const agent of [a, b]) {
+        if (agent.state !== 'chat') continue
         agent.bubble.show('emote', reaction, { color: reaction === 'heart' ? '#ff4d8d' : reaction === 'angry' ? '#e63946' : '#ff9f1c', duration: 1.6 })
-        if (reaction === 'laugh') agent.boneco.setPose('cheer', .25)
       }
     }
     for (const agent of [a, b]) {
-      if (agent.state === 'chat') {
+      if (agent.state === 'chat') agent.afterChat(reaction)
+      else {
         agent.partner = null
-        agent.setIdle(rand(.8, 1.6))
+        agent.boneco.gaze = null
       }
     }
   }
@@ -339,23 +844,27 @@ export class CatAgent {
     this.gato = new Gato(pickOne(['#f0a24a', '#3b3b3b', '#f5f5f5', '#c9a27a', '#8e8e8e']))
     this.root = this.gato.root
     this.gato.hit.userData.agentId = 'cat'
-    this.bubble = new Bubble(this.root, .7)
+    this.bubble = new Bubble(this.root, .72)
     this.state = 'idle'
     this.timer = 1
     this.path = []
     this.rot = 0
+    this.lift = 0
   }
 
   get x() { return this.root.position.x }
   get z() { return this.root.position.z }
 
-  purr() {
+  purr(by = null) {
     this.bubble.show('emote', 'heart', { color: '#ff4d8d', duration: 1.5, scale: .35 })
+    this.gato.purr = 2.2
+    if (by && this.state !== 'walk') this.rot = Math.atan2(by.x - this.x, by.z - this.z)
   }
 
   update(dt) {
     this.bubble.update(dt)
     const w = this.world
+    const g = this.gato
     let speed = 0
     if (this.state === 'walk') {
       const target = this.path[0]
@@ -379,18 +888,19 @@ export class CatAgent {
         } else {
           this.root.position.x += dx / dist * v
           this.root.position.z += dz / dist * v
-          this.rot = angleLerp(this.rot, Math.atan2(dx, dz) - Math.PI / 2, 1 - Math.exp(-dt * 8))
+          this.rot = angleLerp(this.rot, Math.atan2(dx, dz), 1 - Math.exp(-dt * 8))
           speed = 1
         }
       }
     } else {
       this.timer -= dt
-      if (this.timer <= 0) {
+      if (this.timer <= 0 && g.purr <= 0) {
         const bed = w.spots.find(spot => spot.action === 'catbed')
         const r = Math.random()
         if (bed && r < .3) {
           this.path = w.nav.findPath(this.x, this.z, bed.x, bed.z)
           this.sleepAfter = true
+          this.bedY = typeof bed.seatY === 'number' ? bed.seatY : .035
         } else if (r < .55 && w.agents.length) {
           const friend = pickOne(w.agents.filter(agent => agent.root.visible))
           if (friend) this.path = w.nav.findPath(this.x, this.z, friend.x + .4, friend.z + .3)
@@ -399,28 +909,49 @@ export class CatAgent {
           this.path = w.nav.findPath(this.x, this.z, x, z)
         }
         this.state = 'walk'
-        if (Math.random() < .25) this.bubble.show('emote', pickOne(['heart', 'zzz', 'question']), { color: '#ff9f1c', duration: 1.4, scale: .32 })
+        if (Math.random() < .25) this.bubble.show('emote', pickOne(['heart', 'question', 'paw']), { color: '#ff9f1c', duration: 1.4, scale: .32 })
       }
     }
-    this.gato.sleeping += ((this.state === 'sleep' ? 1 : 0) - this.gato.sleeping) * Math.min(1, dt * 3)
+    const sleeping = this.state === 'sleep' ? 1 : 0
+    g.sleeping += (sleeping - g.sleeping) * Math.min(1, dt * 3)
+    g.sitting += ((this.state === 'idle' ? 1 : 0) - g.sitting) * Math.min(1, dt * 4)
+    const liftGoal = sleeping ? this.bedY ?? 0 : 0
+    this.lift += (liftGoal - this.lift) * Math.min(1, dt * 6)
+    this.root.position.y = this.lift
+    g.lift = this.lift
     this.root.rotation.y = this.rot
-    this.gato.update(dt, speed)
+    g.update(dt, speed)
   }
+}
+
+// Mochila do Camelô: geometria única, criada na primeira visita.
+let BAG = null
+const bagParts = () => {
+  if (!BAG) {
+    BAG = {
+      bag: new THREE.BoxGeometry(.36, .42, .2),
+      stripe: new THREE.BoxGeometry(.37, .07, .21),
+      bagMat: new THREE.MeshStandardMaterial({ color: '#3a86ff', roughness: .8 }),
+      stripeMat: new THREE.MeshStandardMaterial({ color: '#ff006e', roughness: .7 }),
+    }
+  }
+  return BAG
 }
 
 export class VisitorAgent {
   constructor(world) {
     this.world = world
-    this.boneco = new Boneco({ skin: '#d9a066', hair: '#1f1a17', hairStyle: 'curto', shirt: '#ffbe0b', pants: '#2b3a55', extra: 'bone', height: 1.05 })
+    this.boneco = new Boneco({ skin: '#d9a066', hair: '#1f1a17', hairStyle: 'curto', shirt: '#ffbe0b', pants: '#2b3a55', extra: 'bone', height: 1.05, top: 'camiseta', bottom: 'bermuda', print: false, capBack: true })
     this.root = this.boneco.root
     this.boneco.hit.userData.agentId = 'visitor'
-    const bag = new THREE.Mesh(new THREE.BoxGeometry(.42, .5, .26), new THREE.MeshStandardMaterial({ color: '#3a86ff', roughness: .8 }))
-    bag.position.set(0, .55, -.22)
+    const parts = bagParts()
+    const bag = new THREE.Mesh(parts.bag, parts.bagMat)
+    bag.position.set(0, .16, -.21)
     bag.castShadow = true
-    this.root.add(bag)
-    const stripe = new THREE.Mesh(new THREE.BoxGeometry(.43, .08, .27), new THREE.MeshStandardMaterial({ color: '#ff006e' }))
-    stripe.position.set(0, .62, -.22)
-    this.root.add(stripe)
+    this.boneco.spine.add(bag)
+    const stripe = new THREE.Mesh(parts.stripe, parts.stripeMat)
+    stripe.position.set(0, .22, -.21)
+    this.boneco.spine.add(stripe)
     this.bubble = new Bubble(this.root, 1.6)
     this.state = 'enter'
     this.path = []
@@ -429,7 +960,6 @@ export class VisitorAgent {
     this.root.position.set(door.x, 0, door.z)
     const [x, z] = world.visitorSpot
     this.path = world.nav.findPath(door.x, door.z, x, z)
-    this.boneco.setPose('walk')
   }
 
   get x() { return this.root.position.x }
@@ -439,8 +969,9 @@ export class VisitorAgent {
     if (this.state === 'leave') return
     this.state = 'leave'
     this.bubble.hide()
+    this.boneco.setPose(null)
+    this.boneco.gesture('wave')
     this.path = this.world.nav.findPath(this.x, this.z, this.world.door.x, this.world.door.z)
-    this.boneco.setPose('walk')
   }
 
   update(dt) {
@@ -469,6 +1000,7 @@ export class VisitorAgent {
     } else if (this.state === 'wait') {
       this.rot = angleLerp(this.rot, Math.PI / 4, dt * 3)
       if (Math.random() < dt * .25) this.boneco.setPose(Math.random() < .5 ? 'wave' : null, .6)
+      if (Math.random() < dt * .08) this.boneco.gesture('shrug')
     } else if (this.state === 'leave') {
       this.root.visible = false
       this.gone = true

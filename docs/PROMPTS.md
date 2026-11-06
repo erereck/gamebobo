@@ -1,5 +1,11 @@
 # Registro de prompts
 
+## P-025 — 2026-10-16 — Almanaque
+
+Pedido: corrigir o cartão inicial cortado, o boneco que mudava de lugar a cada letra digitada e o boneco que dormia voando; gerar os nomes aleatórios em inglês; dar prioridade sempre aos jogos que existem, com os inventados só para fazer volume; trazer de volta os mais vendidos da história e as pequenas informações como próximos consoles; melhorar a modelagem do boneco e o setup (computadores, teclado e mouse da época); e, em modo ultracode, ir muito além do pedido.
+
+Resultado: versão 1.1.0. 1.327 jogos reais conferidos, mercado com prioridade para eles, títulos em inglês por época, Almanaque, paradas com movimento e contagem regressiva no letreiro, coletiva de imprensa, cartazes em PNG, bonecos refeitos com assentos e cama de verdade, setups e telas de cada época e janelas com hora, estação e chuva.
+
 ## P-024 — 2026-10-14 — Indústria de Verdade
 
 Pedido: voltar aos nomes originais de consoles, empresas e jogos em vez das paródias, porque o projeto é pequeno e não comercial e isso deixa o jogo mais interessante que mais um tycoon genérico, e colocar ainda mais empresas e jogos reais.

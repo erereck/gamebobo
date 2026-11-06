@@ -75,7 +75,7 @@ export function runAwards(state, year, random = Math.random) {
   }))
   const theirs = state.rivalGames.filter(game => game.year === year).map(game => ({
     title: game.title, studio: game.studio, mine: false, score: game.score, copies: game.copies,
-    indie: rivalTierAt(RIVALS.find(rival => rival.id === game.rivalId), year) <= 1,
+    indie: game.indie ?? rivalTierAt(RIVALS.find(rival => rival.id === game.rivalId), year) <= 1,
     pillars: { fun: .25, art: .25, sound: .25, idea: .25, [game.pillar]: .4 },
   }))
   const pool = [...mine, ...theirs]

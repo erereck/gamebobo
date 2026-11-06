@@ -2,9 +2,9 @@
 
 Um jogo rápido sobre montar um estúdio de games. Você decide o que fazer; os bonequinhos fazem acontecer num escritório 3D que dá para girar, dar zoom e espiar.
 
-Tudo acontece dentro da indústria de verdade: consoles reais chegam na data certa, Nintendo, Sega, id Software, Rockstar e mais 60 empresas lançam seus jogos históricos ao seu lado, e você briga com eles nas paradas e nos prêmios.
+Tudo acontece dentro da indústria de verdade: consoles reais chegam na data certa, mais de 1.300 jogos reais (de Pac-Man a GTA VI) saem no mês em que saíram, e você briga com Nintendo, Sega, id Software, Rockstar e mais 60 empresas nas paradas e nos prêmios.
 
-Versão atual: **1.0.0 — Escritório Vivo**.
+Versão atual: **1.1.0 — Almanaque**.
 
 ## Começar
 
@@ -32,9 +32,9 @@ O site usa o caminho-base `/gamebobo/`. Todo envio para `main` roda testes, gera
 3. A equipe senta e trabalha. Orbes coloridos saem dos monitores: diversão, visual, som e ideia. Os tubos do cartucho mostram o que o gênero pede e o que o jogo tem.
 4. No começo da produção e do polimento você escolhe um foco com um clique.
 5. Um **!** amarelo sobre a cabeça de alguém é uma ideia. Clique no boneco para decidir.
-6. Lançamento: quatro críticos viram as cartas, a nota é carimbada e os fãs comentam. Depois, as vendas sobem nas paradas semana a semana.
+6. Lançamento: quatro críticos viram as cartas, a nota é carimbada e os fãs comentam. Às vezes a imprensa chama para uma coletiva de três perguntas. Depois, as vendas sobem nas paradas semana a semana.
 
-Entre um jogo e outro: contratar, treinar, mudar de escritório, decorar, pesquisar, pegar freelas, comprar do Camelô e torcer nos Bobo Awards.
+Entre um jogo e outro: contratar, treinar, mudar de escritório, decorar, pesquisar, pegar freelas, comprar do Camelô, torcer nos Bobo Awards e folhear o **Almanaque** (mais vendidos da história, próximos consoles, empresas, marcos e recordes). Todo jogo e toda carreira viram um cartaz em PNG.
 
 Mais fundo:
 
@@ -47,12 +47,13 @@ Mais fundo:
 
 | Onde | O que mora lá |
 |---|---|
-| `src/game/data/` | Gêneros, temas, combinações, plataformas reais, economia, equipe, calendário histórico (`history.js`) |
-| `src/game/data/content/` | Eventos (inventados e históricos), ideias, imprensa, comentários, nomes, empresas rivais, títulos, freelas, Camelô, conquistas, manchetes e promessas |
-| `src/game/engine/` | Regras puras: reducer, semana, projeto, nota, vendas, mercado, progresso |
-| `src/three/` | Escritório 3D: plantas, móveis, bonecos, cérebro dos bonecos, balões e partículas |
+| `src/game/data/` | Gêneros, temas, combinações, plataformas reais, economia, equipe, calendário histórico (`history.js`), vendas de consoles (`consoleSales.js`) |
+| `src/game/data/realgames/` | Os jogos reais, uma década por arquivo |
+| `src/game/data/content/` | Eventos (inventados e históricos), ideias, imprensa, coletivas, comentários, nomes, empresas rivais, títulos, freelas, Camelô, conquistas, manchetes e promessas |
+| `src/game/engine/` | Regras puras: reducer, semana, projeto, nota, vendas, mercado, coletiva, almanaque, títulos, progresso |
+| `src/three/` | Escritório 3D: plantas, móveis, computadores de época, telas vivas, bonecos, cérebro dos bonecos, balões e partículas |
 | `src/features/` | Interface por assunto: HUD, criação, modais, painéis, início |
-| `src/ui/` | Ícones próprios, capa procedural, avatar 2D, fichas de efeito |
+| `src/ui/` | Ícones próprios, capa procedural, avatar 2D, fichas de efeito, cartazes em PNG |
 | `src/styles/` | Tokens, base, HUD, folhas, modais, painéis e layout móvel |
 | `scripts/balance.mjs` | Robô que joga carreiras inteiras e imprime notas, retorno e ritmo |
 | `docs/` | Visão, arquitetura, balanceamento, save, conteúdo e histórico de pedidos |
@@ -64,7 +65,11 @@ Mais fundo:
 | preços, tamanhos, escritórios, decoração, pesquisa, divulgação, eras | `src/game/data/economy.js` |
 | o que cada gênero pede e quais combinações funcionam | `src/game/data/genres.js` |
 | consoles e datas | `src/game/data/platforms.js` |
-| jogos históricos, séries anuais e manchetes datadas | `src/game/data/history.js` |
+| jogos reais (data, estúdio, nota, vendas) | `src/game/data/realgames/<década>.js` |
+| séries anuais e manchetes datadas | `src/game/data/history.js` |
+| perguntas e respostas da coletiva | `src/game/data/content/press.js` |
+| palavras e padrões dos títulos inventados | `src/game/data/content/titles.js` |
+| vendas reais de consoles aposentados | `src/game/data/consoleSales.js` |
 | empresas rivais e seu porte por época | `src/game/data/content/rivals.js` |
 | traços, perfis do fundador, prêmios e títulos de legado | `src/game/data/staff.js` |
 | modos, tipos de projeto, editoras, feiras, periféricos e choques de mercado | `src/game/data/modes.js` e `src/game/engine/modes.js` |
@@ -74,6 +79,8 @@ Mais fundo:
 | o que acontece a cada semana | `src/game/engine/tick.js` |
 | comportamento dos bonecos | `src/three/agents.js` |
 | móveis e plantas dos escritórios | `src/three/furniture.js` e `src/three/layouts.js` |
+| computadores, teclados, mouses e cadeiras de cada época | `src/three/setups.js` |
+| o que aparece nas telas | `src/three/screens.js` |
 
 ## Regra de dependência
 

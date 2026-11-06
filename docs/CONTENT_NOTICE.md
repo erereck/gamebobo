@@ -6,9 +6,11 @@ O Gamebobo usa nomes reais de consoles, fabricantes, estúdios, jogos e veículo
 
 - Plataformas reais com mês e ano do primeiro lançamento (`src/game/data/platforms.js`).
 - 65 empresas reais como rivais, com fundação, fechamento e porte por época (`src/game/data/content/rivals.js`).
-- 129 jogos históricos e séries anuais (FIFA, Winning Eleven/PES, Call of Duty) em `src/game/data/history.js`. Notas e vendas são aproximações editoriais, não dados oficiais.
+- Cerca de 1.330 jogos reais de 1980 a outubro de 2026 em `src/game/data/realgames/` (uma década por arquivo), mais as séries anuais (FIFA, Winning Eleven/PES, Call of Duty) em `src/game/data/history.js`. Cada período foi levantado por um agente e conferido por outro, com correção de datas, estúdios e plataformas; os lançamentos de 2025 e 2026 tiveram a data conferida na web. Notas e vendas continuam sendo aproximações editoriais, não dados oficiais.
+- Os jogos reais têm prioridade: empresa que tem jogo de verdade no período não lança jogo inventado. Os inventados (com nomes em inglês) só completam a prateleira e tudo o que vem depois de 2026.
 - Manchetes e eventos ligados a momentos reais (`MILESTONES` e `realEvents.js`).
 - Jogos inventados dos rivais são ficção de linha do tempo alternativa e não representam lançamentos reais dessas empresas.
+- Para corrigir uma data, nota ou estúdio, edite a linha do jogo no arquivo da década. O formato está em `realgames/row.js`.
 
 Não há logos, ilustrações, músicas, personagens desenhados ou qualquer material extraído dos jogos citados. Capas, ícones, móveis e bonecos são gerados pelo próprio jogo.
 

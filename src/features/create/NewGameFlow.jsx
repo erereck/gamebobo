@@ -12,7 +12,7 @@ import { PILLARS } from '../../game/data/staff.js'
 import { HOOKS } from '../../game/data/content/hooks.js'
 import { projectCost } from '../../game/engine/project.js'
 import { validChoice } from '../../game/engine/reducer.js'
-import { generateTitle, sequelTitle } from '../../game/engine/titles.js'
+import { collectionTitle, generateTitle, remakeTitle, remasterTitle, sequelTitle, spinoffTitle } from '../../game/engine/titles.js'
 import { yearFloat, absWeek } from '../../game/engine/state.js'
 import { freeTeams, teamMembers } from '../../game/engine/teams.js'
 import { allowsPlatform, allowsSize, allowsType, comboBlocked } from '../../game/engine/modes.js'
@@ -146,16 +146,16 @@ export function NewGameFlow({ onClose }) {
   }, [current])
 
   function suggestTitle() {
-    if (type.id === 'sequel' && lead) return sequelTitle(lead.title, (lead.seq ?? 1) + 1)
-    if (type.id === 'remake' && lead) return `${lead.title} Remake`
-    if (type.id === 'remaster' && lead) return `${lead.title} Remaster`
+    if (type.id === 'sequel' && lead) return sequelTitle(lead.title, (lead.seq ?? 1) + 1, Math.random, { genre: lead.genre, theme: lead.theme })
+    if (type.id === 'spinoff' && lead && genreId) return spinoffTitle(lead.title, genreId, Math.random, { theme: themeId, year: state.year })
+    if (type.id === 'remake' && lead) return remakeTitle(lead.title)
+    if (type.id === 'remaster' && lead) return remasterTitle(lead.title)
     if (type.id === 'port' && lead) return lead.title
     if (type.id === 'collection') {
       const sources = (choice.sources ?? []).map(id => state.games.find(game => game.id === id)).filter(Boolean)
-      const same = sources.every(game => game.franchise === sources[0]?.franchise)
-      return same && sources[0] ? `${sources[0].title.split(':')[0].replace(/\s\d+$/, '')} Collection` : `${state.studio.name} Clássicos`
+      return collectionTitle(sources, state.studio.name)
     }
-    return generateTitle(genreId, themeId)
+    return generateTitle(genreId, themeId, Math.random, state.year)
   }
 
   const set = patch => {
@@ -458,7 +458,7 @@ export function NewGameFlow({ onClose }) {
                 <div className="final-side">
                   <label className="title-field">
                     <input value={choice.title ?? ''} maxLength={34} onChange={event => setChoice(c => ({ ...c, title: event.target.value }))} aria-label="Título" />
-                    <button type="button" className="icon-btn dice" aria-label="Sortear outro título" title="Sortear" onClick={() => { sfx.click(); setChoice(c => ({ ...c, title: type.id === 'original' || type.id === 'spinoff' ? generateTitle(genreId, themeId) : suggestTitle() })) }}>
+                    <button type="button" className="icon-btn dice" aria-label="Sortear outro título" title="Sortear" onClick={() => { sfx.click(); setChoice(c => ({ ...c, title: suggestTitle() })) }}>
                       <Icon name="dice" size={20} />
                     </button>
                   </label>

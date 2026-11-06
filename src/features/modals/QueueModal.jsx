@@ -3,6 +3,7 @@ import { EventModal } from './EventModal.jsx'
 import { PhaseModal } from './PhaseModal.jsx'
 import { ReadyModal } from './ReadyModal.jsx'
 import { ReviewReveal } from './ReviewReveal.jsx'
+import { PressModal } from './PressModal.jsx'
 import { AwardsModal } from './AwardsModal.jsx'
 import { BankruptModal } from './BankruptModal.jsx'
 import { ExpoModal } from './ExpoModal.jsx'
@@ -21,6 +22,8 @@ export function QueueModal() {
       return <ReadyModal key={item.id} item={item} state={state} />
     case 'review':
       return <ReviewReveal key={item.id} item={item} state={state} />
+    case 'press':
+      return <PressModal key={item.id} item={item} state={state} />
     case 'awards':
       return <AwardsModal key={item.id} item={item} state={state} />
     case 'expo':

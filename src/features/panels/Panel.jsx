@@ -6,12 +6,14 @@ import { ResearchPanel } from './ResearchPanel.jsx'
 import { ChartsPanel } from './ChartsPanel.jsx'
 import { CollectionPanel } from './CollectionPanel.jsx'
 import { SettingsPanel } from './SettingsPanel.jsx'
+import { AlmanacPanel } from './AlmanacPanel.jsx'
 
 const PANELS = {
   team: { title: 'Equipe', icon: 'team', Component: TeamPanel, tint: '#ffd23f' },
   office: { title: 'Escritório', icon: 'building', Component: OfficePanel, tint: '#52d977' },
   research: { title: 'Pesquisa', icon: 'flask', Component: ResearchPanel, tint: '#b57bff' },
   charts: { title: 'Paradas', icon: 'chart', Component: ChartsPanel, tint: '#3fb8ff' },
+  almanac: { title: 'Almanaque', icon: 'book', Component: AlmanacPanel, tint: '#ff9b84' },
   collection: { title: 'Coleção', icon: 'cartridge', Component: CollectionPanel, tint: '#ff6bd6' },
   settings: { title: 'Ajustes', icon: 'gear', Component: SettingsPanel, tint: '#c9c2d6' },
 }

@@ -1,9 +1,9 @@
 import { RIVALS, rivalTierAt } from '../data/content/rivals.js'
 import { ALL_HISTORIC_GAMES } from '../data/history.js'
-import { OFFICES } from '../data/economy.js'
+import { OFFICES, WEEKS_PER_YEAR } from '../data/economy.js'
 import { createCandidate } from './staff.js'
 import { absWeek, log, scaled, toast } from './state.js'
-import { historicWeek } from './market.js'
+import { historicRival, historicWeek, isAnnual, isRealHit } from './market.js'
 import { allowsAcquire } from './modes.js'
 import { pick } from './rng.js'
 
@@ -40,7 +40,11 @@ export function moveToTeam(state, staffId, teamId) {
   return true
 }
 
-const upcomingHits = (state, rivalId) => ALL_HISTORIC_GAMES.filter(entry => entry.studio === rivalId && historicWeek(entry) > absWeek(state) && !entry.id.match(/^(fifa|pes|cod)-/)).length
+// Sucessos que a empresa ainda vai lançar encarecem a compra. Só conta sucesso de verdade
+// (o catálogo tem jogo pequeno de sobra) e no máximo cinco: a compra custa até 4× o preço base.
+const MAX_UPCOMING_HITS = 5
+const upcomingHits = (state, rivalId) => Math.min(MAX_UPCOMING_HITS, ALL_HISTORIC_GAMES.filter(entry => historicRival(entry) === rivalId
+  && historicWeek(entry) > absWeek(state) && !isAnnual(entry) && isRealHit(entry)).length)
 
 export function acquisitionPrice(state, rival) {
   const tier = rivalTierAt(rival, state.year)
@@ -60,6 +64,9 @@ export function acquireStudio(state, rivalId, random = Math.random) {
   if (state.money < price) return false
   state.money -= price
   state.acquired.push(rival.id)
+  // Data da compra no relógio do almanaque (ano × semanas + semana): o diário esquece, isto não.
+  state.acquiredAt ??= {}
+  state.acquiredAt[rival.id] = state.year * WEEKS_PER_YEAR + state.week
   const team = { id: `sub-${rival.id}`, name: rival.name, remote: true, rivalId: rival.id, color: rival.color }
   state.teams.push(team)
   const count = rivalTierAt(rival, state.year) >= 2 ? 4 : 3

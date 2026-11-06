@@ -9,6 +9,12 @@ export const ACHIEVEMENTS = [
   { id: 'catalogo-de-locadora', label: 'Catálogo de locadora', icon: 'book', rarity: 'epico', cond: { stat: 'gamesReleased', gte: 25 }, reward: { money: 15000 } },
   { id: 'prateleira-infinita', label: 'Prateleira infinita', icon: 'crown', rarity: 'lendario', cond: { stat: 'gamesReleased', gte: 50 }, reward: { money: 60000 } },
 
+  // imprensa
+  { id: 'microfone-na-cara', label: 'Microfone na cara', icon: 'megaphone', rarity: 'comum', cond: { stat: 'interviews', gte: 1 }, reward: { rp: 10 } },
+  { id: 'figurinha-da-tv', label: 'Figurinha da TV', icon: 'tv', rarity: 'raro', cond: { stat: 'interviews', gte: 10 }, reward: { fansPct: 0.03 } },
+  { id: 'lacrou', label: 'Lacrou', icon: 'fire', rarity: 'raro', cond: { stat: 'spicyWins', gte: 5 }, reward: { money: 5000 } },
+  { id: 'assessoria-pediu-demissao', label: 'Assessoria pediu demissão', icon: 'warning', rarity: 'epico', cond: { stat: 'spicyLosses', gte: 8 }, reward: { rp: 35 } },
+
   // notas
   { id: 'passou-de-ano', label: 'Passou de ano', icon: 'check', rarity: 'comum', cond: { stat: 'bestScore', gte: 7 }, reward: { money: 1500 } },
   { id: 'capa-de-revista', label: 'Capa de revista', icon: 'newspaper', rarity: 'raro', cond: { stat: 'bestScore', gte: 8.5 }, reward: { fansPct: 0.03 } },
